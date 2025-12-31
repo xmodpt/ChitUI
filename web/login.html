@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <script src="js/color-modes.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ChitUI Login</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="/assets/favicon-48x48.png" sizes="48x48" />
+    <link href="css/bootstrap-icons.min.css" rel="stylesheet" />
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: var(--bs-body-bg);
+      }
+      .login-container {
+        width: 100%;
+        max-width: 420px;
+        padding: 2rem;
+      }
+      .login-card {
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        padding: 3rem 2.5rem;
+      }
+      .login-logo {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .login-logo i {
+        font-size: 4rem;
+        color: var(--accent-color, #ff4757);
+        margin-bottom: 1rem;
+      }
+      .login-logo h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+      .login-logo p {
+        color: var(--bs-secondary-color);
+        margin-bottom: 0;
+      }
+      .form-floating {
+        margin-bottom: 1rem;
+      }
+      .btn-login {
+        padding: 0.75rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        background-color: var(--accent-color, #ff4757);
+        border-color: var(--accent-color, #ff4757);
+        color: white;
+      }
+      .btn-login:hover {
+        background-color: var(--accent-hover, #ff3838);
+        border-color: var(--accent-hover, #ff3838);
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-logo">
+          <i class="bi bi-box-seam"></i>
+          <h1>ChitUI</h1>
+          <p>3D Printer Management</p>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <form id="loginForm">
+          <div class="form-floating mb-3">
+            <input type="password" class="form-control" id="password" placeholder="Password" required autocomplete="current-password">
+            <label for="password"><i class="bi bi-lock-fill me-2"></i>Password</label>
+          </div>
+
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="autoLogin">
+            <label class="form-check-label" for="autoLogin">
+              Auto-login on this device
+            </label>
+          </div>
+
+          <button type="submit" class="btn w-100 btn-login" id="btnLogin">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+          </button>
+        </form>
+
+        <div class="text-center mt-3">
+          <small class="text-muted">Protected Access</small>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        // Check for auto-login on page load
+        const autoLoginEnabled = localStorage.getItem('chitui_auto_login') === 'true';
+        const savedPassword = localStorage.getItem('chitui_auto_password');
+
+        if (autoLoginEnabled && savedPassword) {
+          // Auto-login is enabled, attempt login
+          $('#password').val(savedPassword);
+          $('#autoLogin').prop('checked', true);
+
+          // Trigger login automatically
+          setTimeout(function() {
+            performLogin(savedPassword, true);
+          }, 500);
+        } else {
+          // Load auto-login preference
+          $('#autoLogin').prop('checked', autoLoginEnabled);
+          $('#password').focus();
+        }
+
+        $('#loginForm').submit(function(e) {
+          e.preventDefault();
+          const password = $('#password').val();
+          const autoLogin = $('#autoLogin').is(':checked');
+          performLogin(password, autoLogin);
+        });
+
+        function performLogin(password, autoLogin) {
+          const $btn = $('#btnLogin');
+          const originalText = $btn.html();
+
+          $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Signing in...');
+          $('#alertContainer').empty();
+
+          $.ajax({
+            url: '/auth/login',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ password: password }),
+            success: function(response) {
+              if (response.success) {
+                // Save auto-login preference
+                if (autoLogin) {
+                  localStorage.setItem('chitui_auto_login', 'true');
+                  localStorage.setItem('chitui_auto_password', password);
+                } else {
+                  localStorage.removeItem('chitui_auto_login');
+                  localStorage.removeItem('chitui_auto_password');
+                }
+
+                if (response.require_password_change) {
+                  window.location.href = '/change-password.html';
+                } else {
+                  window.location.href = '/';
+                }
+              }
+            },
+            error: function(xhr) {
+              const response = xhr.responseJSON || {};
+              const message = response.message || 'Login failed. Please try again.';
+
+              // Clear auto-login if credentials are wrong
+              localStorage.removeItem('chitui_auto_login');
+              localStorage.removeItem('chitui_auto_password');
+
+              $('#alertContainer').html(`
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>${message}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+              `);
+
+              $btn.prop('disabled', false).html(originalText);
+              $('#password').val('').focus();
+              $('#autoLogin').prop('checked', false);
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

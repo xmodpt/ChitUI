@@ -1,0 +1,160 @@
+/**
+ * IP Camera Plugin - Styles
+ */
+
+.ip-camera-container {
+    padding: 15px;
+}
+
+.ip-camera-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ip-camera-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ip-camera-card .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 10px 15px;
+}
+
+.camera-viewport {
+    aspect-ratio: 16 / 9;
+    background-color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.camera-stream {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    cursor: pointer;
+}
+
+.camera-placeholder {
+    color: #6c757d;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.camera-placeholder i {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.camera-placeholder p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.camera-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.camera-viewport:hover .camera-overlay {
+    opacity: 1;
+}
+
+.ip-camera-card .card-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    padding: 8px 15px;
+}
+
+/* Config modal styling */
+#ipCameraConfigList .card {
+    border: 1px solid #dee2e6;
+}
+
+#ipCameraConfigList .card-body {
+    padding: 12px 15px;
+}
+
+/* Loading animation for camera streams */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.camera-loading {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Fullscreen modal */
+#ipCameraFullscreenModal .modal-body {
+    background-color: #000;
+}
+
+#ipCameraFullscreenModal img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .ip-camera-card .card-header h6 {
+        font-size: 0.9rem;
+    }
+
+    .camera-overlay {
+        opacity: 1;
+    }
+}
+
+/* Status indicators */
+.bi-record-circle-fill.text-success {
+    animation: blink 2s ease-in-out infinite;
+}
+
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Form styling improvements */
+.form-text code {
+    background-color: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+}
+
+/* Toast notifications */
+.alert.position-fixed {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

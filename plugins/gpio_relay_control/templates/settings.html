@@ -1,0 +1,320 @@
+<div class="card bg-dark border-secondary mt-3">
+    <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-sliders"></i> Display Settings</h6>
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="gpio-show-text" checked>
+            <label class="form-check-label" for="gpio-show-text">
+                Show button text labels
+            </label>
+            <small class="form-text text-muted d-block">When disabled, only icons will be shown on buttons</small>
+        </div>
+
+        <hr>
+
+        <h6 class="card-title mb-3"><i class="bi bi-tag"></i> Relay Configuration</h6>
+
+        <!-- Relay 1 -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle mb-0">Relay 1</h6>
+                    <div class="d-flex gap-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay1-show-label" checked>
+                            <label class="form-check-label" for="gpio-relay1-show-label">Show Label</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay1-enabled" checked>
+                            <label class="form-check-label" for="gpio-relay1-enabled">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" id="gpio-relay1-name" placeholder="Relay 1">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" id="gpio-relay1-type">
+                            <option value="NO">NO (Normally Open)</option>
+                            <option value="NC">NC (Normally Closed)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Icon</label>
+                        <select class="form-select" id="gpio-relay1-icon">
+                            <option value="fa-bolt">⚡ Lightning Bolt</option>
+                            <option value="fa-power-off">🔌 Power</option>
+                            <option value="fa-fan">🌀 Fan</option>
+                            <option value="fa-droplet">💧 Water Drop</option>
+                            <option value="fa-lightbulb">💡 Light Bulb</option>
+                            <option value="fa-fire">🔥 Heater</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">GPIO Pin (BCM)</label>
+                        <input type="number" class="form-control" id="gpio-relay1-pin" min="2" max="27" placeholder="17">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relay 2 -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle mb-0">Relay 2</h6>
+                    <div class="d-flex gap-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay2-show-label" checked>
+                            <label class="form-check-label" for="gpio-relay2-show-label">Show Label</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay2-enabled" checked>
+                            <label class="form-check-label" for="gpio-relay2-enabled">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" id="gpio-relay2-name" placeholder="Relay 2">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" id="gpio-relay2-type">
+                            <option value="NO">NO (Normally Open)</option>
+                            <option value="NC">NC (Normally Closed)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Icon</label>
+                        <select class="form-select" id="gpio-relay2-icon">
+                            <option value="fa-bolt">⚡ Lightning Bolt</option>
+                            <option value="fa-power-off">🔌 Power</option>
+                            <option value="fa-fan">🌀 Fan</option>
+                            <option value="fa-droplet">💧 Water Drop</option>
+                            <option value="fa-lightbulb">💡 Light Bulb</option>
+                            <option value="fa-fire">🔥 Heater</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">GPIO Pin (BCM)</label>
+                        <input type="number" class="form-control" id="gpio-relay2-pin" min="2" max="27" placeholder="27">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relay 3 -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle mb-0">Relay 3</h6>
+                    <div class="d-flex gap-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay3-show-label" checked>
+                            <label class="form-check-label" for="gpio-relay3-show-label">Show Label</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay3-enabled" checked>
+                            <label class="form-check-label" for="gpio-relay3-enabled">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" id="gpio-relay3-name" placeholder="Relay 3">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" id="gpio-relay3-type">
+                            <option value="NO">NO (Normally Open)</option>
+                            <option value="NC">NC (Normally Closed)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Icon</label>
+                        <select class="form-select" id="gpio-relay3-icon">
+                            <option value="fa-bolt">⚡ Lightning Bolt</option>
+                            <option value="fa-power-off">🔌 Power</option>
+                            <option value="fa-fan">🌀 Fan</option>
+                            <option value="fa-droplet">💧 Water Drop</option>
+                            <option value="fa-lightbulb">💡 Light Bulb</option>
+                            <option value="fa-fire">🔥 Heater</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">GPIO Pin (BCM)</label>
+                        <input type="number" class="form-control" id="gpio-relay3-pin" min="2" max="27" placeholder="22">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relay 4 -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle mb-0">Relay 4</h6>
+                    <div class="d-flex gap-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay4-show-label" checked>
+                            <label class="form-check-label" for="gpio-relay4-show-label">Show Label</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay4-enabled" checked>
+                            <label class="form-check-label" for="gpio-relay4-enabled">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" id="gpio-relay4-name" placeholder="Relay 4">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" id="gpio-relay4-type">
+                            <option value="NO">NO (Normally Open)</option>
+                            <option value="NC">NC (Normally Closed)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Icon</label>
+                        <select class="form-select" id="gpio-relay4-icon">
+                            <option value="fa-bolt">⚡ Lightning Bolt</option>
+                            <option value="fa-power-off">🔌 Power</option>
+                            <option value="fa-fan">🌀 Fan</option>
+                            <option value="fa-droplet">💧 Water Drop</option>
+                            <option value="fa-lightbulb">💡 Light Bulb</option>
+                            <option value="fa-fire">🔥 Heater</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">GPIO Pin (BCM)</label>
+                        <input type="number" class="form-control" id="gpio-relay4-pin" min="2" max="27" placeholder="23">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-warning mb-3">
+            <small><i class="bi bi-exclamation-triangle"></i> <strong>Warning:</strong> Changing GPIO pins requires restarting ChitUI.</small>
+        </div>
+
+        <div class="alert alert-info mb-3">
+            <small>
+                <strong>Common GPIO Pins (BCM):</strong> 2, 3, 4, 17, 27, 22, 10, 9, 11, 5, 6, 13, 19, 26, 14, 15, 18, 23, 24, 25, 8, 7, 12, 16, 20, 21<br>
+                <strong>Avoid:</strong> GPIO 0, 1 (reserved for ID EEPROM)
+            </small>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" id="gpio-cancel-settings">Cancel</button>
+            <button type="button" class="btn btn-primary" id="gpio-save-settings">
+                <i class="bi bi-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Load current configuration
+    fetch('/plugin/gpio_relay_control/config')
+        .then(response => response.json())
+        .then(config => {
+            // Populate display settings
+            document.getElementById('gpio-show-text').checked = config.show_text !== false;
+
+            // Populate relay names, types, icons, enabled state, and label visibility
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`gpio-relay${i}-name`).value = config[`relay${i}_name`] || `Relay ${i}`;
+                document.getElementById(`gpio-relay${i}-type`).value = config[`relay${i}_type`] || 'NO';
+                document.getElementById(`gpio-relay${i}-icon`).value = config[`relay${i}_icon`] || 'fa-bolt';
+                document.getElementById(`gpio-relay${i}-enabled`).checked = config[`relay${i}_enabled`] !== false;
+                document.getElementById(`gpio-relay${i}-show-label`).checked = config[`relay${i}_show_label`] !== false;
+            }
+
+            // Populate GPIO pins
+            document.getElementById('gpio-relay1-pin').value = config.relay1_pin;
+            document.getElementById('gpio-relay2-pin').value = config.relay2_pin;
+            document.getElementById('gpio-relay3-pin').value = config.relay3_pin;
+            document.getElementById('gpio-relay4-pin').value = config.relay4_pin;
+        })
+        .catch(error => {
+            console.error('Error loading config:', error);
+            alert('Failed to load configuration');
+        });
+
+    // Save button handler
+    document.getElementById('gpio-save-settings').addEventListener('click', function() {
+        const newConfig = {
+            show_text: document.getElementById('gpio-show-text').checked
+        };
+
+        // Add relay configurations
+        for (let i = 1; i <= 4; i++) {
+            newConfig[`relay${i}_name`] = document.getElementById(`gpio-relay${i}-name`).value;
+            newConfig[`relay${i}_type`] = document.getElementById(`gpio-relay${i}-type`).value;
+            newConfig[`relay${i}_icon`] = document.getElementById(`gpio-relay${i}-icon`).value;
+            newConfig[`relay${i}_pin`] = parseInt(document.getElementById(`gpio-relay${i}-pin`).value);
+            newConfig[`relay${i}_enabled`] = document.getElementById(`gpio-relay${i}-enabled`).checked;
+            newConfig[`relay${i}_show_label`] = document.getElementById(`gpio-relay${i}-show-label`).checked;
+        }
+
+        // Validate GPIO pins
+        for (let i = 1; i <= 4; i++) {
+            if (newConfig[`relay${i}_pin`] < 2 || newConfig[`relay${i}_pin`] > 27) {
+                alert('GPIO pins must be between 2 and 27');
+                return;
+            }
+        }
+
+        // Check for duplicate pins (only for enabled relays)
+        const enabledPins = [];
+        for (let i = 1; i <= 4; i++) {
+            if (newConfig[`relay${i}_enabled`]) {
+                enabledPins.push(newConfig[`relay${i}_pin`]);
+            }
+        }
+        if (enabledPins.length !== new Set(enabledPins).size) {
+            alert('Each enabled relay must use a different GPIO pin');
+            return;
+        }
+
+        // Save configuration
+        fetch('/plugin/gpio_relay_control/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newConfig)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Settings saved successfully!' + (data.restart_required ? '\n\nPlease restart ChitUI for GPIO pin changes to take effect.' : ''));
+                // Hide settings panel
+                const panel = document.getElementById('plugin-settings-gpio_relay_control');
+                if (panel) panel.style.display = 'none';
+            } else {
+                alert('Failed to save settings: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error saving settings:', error);
+            alert('Error saving settings');
+        });
+    });
+
+    // Cancel button handler
+    document.getElementById('gpio-cancel-settings').addEventListener('click', function() {
+        const panel = document.getElementById('plugin-settings-gpio_relay_control');
+        if (panel) panel.style.display = 'none';
+    });
+})();
+</script>

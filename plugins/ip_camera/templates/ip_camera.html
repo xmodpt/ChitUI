@@ -1,0 +1,301 @@
+<!-- IP Camera Plugin -->
+<div class="ip-camera-container">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <select class="form-select form-select-sm" id="ipCameraSelect" style="max-width: 250px;">
+            <option value="">No cameras configured</option>
+        </select>
+        <div class="btn-group btn-group-sm" role="group">
+            <button class="btn btn-outline-success" id="btnStartIPCamera" disabled>
+                <i class="bi bi-play-fill"></i>
+            </button>
+            <button class="btn btn-outline-danger" id="btnStopIPCamera" disabled>
+                <i class="bi bi-stop-fill"></i>
+            </button>
+            <button class="btn btn-outline-secondary" id="btnFullscreenIPCamera" disabled>
+                <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+        </div>
+    </div>
+    <div class="camera-container" id="ipCameraContainer">
+        <div class="camera-placeholder" id="ipCameraPlaceholder">
+            <i class="bi bi-camera-video-off" style="font-size: 3rem; color: var(--bs-secondary-color);"></i>
+            <p class="text-muted mt-3 mb-0">Select a camera and click play to start</p>
+            <small class="text-muted">Configure cameras in Settings > Plugins > IP Camera</small>
+        </div>
+        <img id="ipCameraStream" src="" alt="IP Camera Stream" style="display: none; width: 100%; height: auto;">
+    </div>
+</div>
+
+<!-- Fullscreen Camera Modal -->
+<div class="modal fade" id="ipCameraFullscreenModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white" id="fullscreenCameraTitle">Camera</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body d-flex align-items-center justify-content-center p-0">
+                <img id="fullscreenCameraImage" src="" alt="Camera Stream" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* IP Camera Plugin Styles */
+.ip-camera-container {
+    /* Minimal styles - using main chitui.css camera styles */
+}
+
+#ipCameraFullscreenModal .modal-body {
+    background-color: #000;
+}
+
+#ipCameraFullscreenModal img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+</style>
+
+<script>
+(function() {
+    const IPCameraPlugin = {
+        cameras: [],
+        selectedCamera: null,
+        isStreaming: false,
+        fullscreenModal: null,
+
+        init: function() {
+            console.log('IP Camera Plugin initialized');
+
+            this.fullscreenModal = new bootstrap.Modal(document.getElementById('ipCameraFullscreenModal'));
+
+            // Setup event listeners
+            document.getElementById('ipCameraSelect').addEventListener('change', (e) => {
+                this.selectCamera(e.target.value);
+            });
+
+            document.getElementById('btnStartIPCamera').addEventListener('click', () => {
+                this.startCamera();
+            });
+
+            document.getElementById('btnStopIPCamera').addEventListener('click', () => {
+                this.stopCamera();
+            });
+
+            document.getElementById('btnFullscreenIPCamera').addEventListener('click', () => {
+                this.showFullscreen();
+            });
+
+            this.loadCameras();
+
+            // Refresh camera list periodically
+            setInterval(() => {
+                this.loadCameras();
+            }, 5000);
+        },
+
+        loadCameras: function() {
+            fetch('/plugin/ip_camera/cameras')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        this.cameras = data.cameras;
+                        this.updateCameraList();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading cameras:', error);
+                });
+        },
+
+        updateCameraList: function() {
+            const select = document.getElementById('ipCameraSelect');
+            const currentValue = select.value;
+
+            // Clear and repopulate dropdown
+            select.innerHTML = '';
+
+            if (this.cameras.length === 0) {
+                select.innerHTML = '<option value="">No cameras configured</option>';
+                select.disabled = true;
+                this.updateUI(false, false);
+                return;
+            }
+
+            select.disabled = false;
+            select.innerHTML = '<option value="">Select a camera...</option>';
+
+            this.cameras.forEach(camera => {
+                const option = document.createElement('option');
+                option.value = camera.id;
+                option.textContent = `${camera.name} (${camera.protocol.toUpperCase()})`;
+                if (camera.active) {
+                    option.textContent += ' ●';
+                }
+                select.appendChild(option);
+            });
+
+            // Restore selection if it still exists
+            if (currentValue && this.cameras.find(c => c.id === currentValue)) {
+                select.value = currentValue;
+                this.selectedCamera = this.cameras.find(c => c.id === currentValue);
+
+                // Update UI based on camera status
+                if (this.selectedCamera.active) {
+                    this.isStreaming = true;
+                    this.updateUI(true, true);
+                    this.showStream();
+                } else {
+                    this.isStreaming = false;
+                    this.updateUI(true, false);
+                }
+            }
+        },
+
+        selectCamera: function(cameraId) {
+            if (!cameraId) {
+                this.selectedCamera = null;
+                this.isStreaming = false;
+                this.updateUI(false, false);
+                this.hideStream();
+                return;
+            }
+
+            this.selectedCamera = this.cameras.find(c => c.id === cameraId);
+
+            if (this.selectedCamera) {
+                // If camera is already active, show stream
+                if (this.selectedCamera.active) {
+                    this.isStreaming = true;
+                    this.updateUI(true, true);
+                    this.showStream();
+                } else {
+                    this.isStreaming = false;
+                    this.updateUI(true, false);
+                    this.hideStream();
+                }
+            }
+        },
+
+        updateUI: function(cameraSelected, streaming) {
+            const btnStart = document.getElementById('btnStartIPCamera');
+            const btnStop = document.getElementById('btnStopIPCamera');
+            const btnFullscreen = document.getElementById('btnFullscreenIPCamera');
+
+            if (!cameraSelected) {
+                btnStart.disabled = true;
+                btnStop.disabled = true;
+                btnFullscreen.disabled = true;
+            } else if (streaming) {
+                btnStart.disabled = true;
+                btnStop.disabled = false;
+                btnFullscreen.disabled = false;
+            } else {
+                btnStart.disabled = false;
+                btnStop.disabled = true;
+                btnFullscreen.disabled = true;
+            }
+        },
+
+        showStream: function() {
+            const placeholder = document.getElementById('ipCameraPlaceholder');
+            const stream = document.getElementById('ipCameraStream');
+
+            if (this.selectedCamera) {
+                stream.src = `/plugin/ip_camera/camera/${this.selectedCamera.id}/video`;
+                placeholder.style.display = 'none';
+                stream.style.display = 'block';
+            }
+        },
+
+        hideStream: function() {
+            const placeholder = document.getElementById('ipCameraPlaceholder');
+            const stream = document.getElementById('ipCameraStream');
+
+            stream.src = '';
+            stream.style.display = 'none';
+            placeholder.style.display = 'flex';
+        },
+
+        startCamera: function() {
+            if (!this.selectedCamera) return;
+
+            fetch(`/plugin/ip_camera/camera/${this.selectedCamera.id}/start`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    this.showMessage('success', data.msg || 'Camera started');
+                    this.isStreaming = true;
+                    setTimeout(() => {
+                        this.loadCameras();
+                        this.showStream();
+                    }, 1000);
+                } else {
+                    this.showMessage('error', data.msg || 'Failed to start camera');
+                }
+            })
+            .catch(error => {
+                console.error('Error starting camera:', error);
+                this.showMessage('error', 'Error starting camera: ' + error.message);
+            });
+        },
+
+        stopCamera: function() {
+            if (!this.selectedCamera) return;
+
+            fetch(`/plugin/ip_camera/camera/${this.selectedCamera.id}/stop`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    this.showMessage('success', data.msg || 'Camera stopped');
+                    this.isStreaming = false;
+                    this.updateUI(true, false);
+                    this.hideStream();
+                    this.loadCameras();
+                } else {
+                    this.showMessage('error', data.msg || 'Failed to stop camera');
+                }
+            })
+            .catch(error => {
+                console.error('Error stopping camera:', error);
+                this.showMessage('error', 'Error stopping camera: ' + error.message);
+            });
+        },
+
+        showFullscreen: function() {
+            if (!this.selectedCamera || !this.isStreaming) return;
+
+            document.getElementById('fullscreenCameraTitle').textContent = this.selectedCamera.name;
+            document.getElementById('fullscreenCameraImage').src = `/plugin/ip_camera/camera/${this.selectedCamera.id}/video`;
+            this.fullscreenModal.show();
+        },
+
+        showMessage: function(type, message) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+    };
+
+    window.IPCameraPlugin = IPCameraPlugin;
+
+    setTimeout(() => {
+        IPCameraPlugin.init();
+    }, 500);
+})();
+</script>
