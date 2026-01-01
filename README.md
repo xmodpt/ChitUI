@@ -33,7 +33,7 @@ git clone https://github.com/xmodpt/ChitUI.git ChitUI
 cd ChitUI
 ./install.sh
 ```
-Follow intructions and in the end do reboot the system.
+Follow intructions and in the end do a reboot the system.
 NOTE: After system reboot rerun ./install 
 
 or run
