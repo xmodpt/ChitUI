@@ -33,6 +33,16 @@ git clone https://github.com/xmodpt/ChitUI.git ChitUI
 cd ChitUI
 ./install.sh
 ```
+Follow intructions and in the end do reboot the system.
+NOTE: After system reboot rerun ./install 
+
+or run
+
+```bash
+bash install.sh
+```
+follow instructions but skit the usb pen generation and continue in order to install ChitUI as a service
+
 
 ### Quick Start
 
