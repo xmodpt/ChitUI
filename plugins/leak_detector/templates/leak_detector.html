@@ -1,0 +1,410 @@
+<!-- Leak Detector Plugin UI -->
+<div class="leak-detector-container">
+    <style>
+        .leak-detector-container {
+            padding: 15px;
+        }
+
+        .leak-status-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .leak-device-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .leak-device-status.online {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .leak-device-status.offline {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        .leak-status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .leak-status-indicator.online {
+            background: #28a745;
+            animation: pulse-green 2s infinite;
+        }
+
+        .leak-status-indicator.offline {
+            background: #dc3545;
+        }
+
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .leak-sensors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .leak-sensor-card {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .leak-sensor-card.alert {
+            background: #fff3cd;
+            border-color: #ffc107;
+            animation: shake 0.5s infinite;
+        }
+
+        .leak-sensor-card.danger {
+            background: #f8d7da;
+            border-color: #dc3545;
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .leak-sensor-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+
+        .leak-sensor-location {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+
+        .leak-sensor-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .leak-sensor-card.alert .leak-sensor-value {
+            color: #ffc107;
+        }
+
+        .leak-sensor-card.danger .leak-sensor-value {
+            color: #dc3545;
+        }
+
+        .leak-alerts-section {
+            margin-top: 15px;
+        }
+
+        .leak-alerts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .leak-alerts-header h6 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .leak-alert-item {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .leak-alert-item.critical {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+
+        .leak-alert-time {
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .leak-no-alerts {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .leak-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .leak-btn:hover {
+            background: #0056b3;
+        }
+
+        .leak-btn-clear {
+            background: #6c757d;
+        }
+
+        .leak-btn-clear:hover {
+            background: #5a6268;
+        }
+
+        .leak-device-info {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .leak-device-info strong {
+            color: #495057;
+        }
+    </style>
+
+    <!-- Device Status -->
+    <div class="leak-status-card">
+        <div id="leak-device-status" class="leak-device-status offline">
+            <div>
+                <span class="leak-status-indicator offline"></span>
+                <strong>Leak Detector</strong>
+                <span id="leak-device-state" style="margin-left: 8px; font-weight: 600; color: #dc3545;">Offline</span>
+            </div>
+            <div class="leak-device-info" id="leak-device-info">
+                <span>Waiting for connection...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sensor Cards -->
+    <div class="leak-status-card">
+        <h6 style="margin-bottom: 12px; font-weight: 600;">Sensor Status</h6>
+        <div class="leak-sensors-grid" id="leak-sensors-grid">
+            <div class="leak-sensor-card" id="sensor1">
+                <div class="leak-sensor-title">Sensor 1</div>
+                <div class="leak-sensor-location">Vat Center</div>
+                <div class="leak-sensor-value">--</div>
+            </div>
+            <div class="leak-sensor-card" id="sensor2">
+                <div class="leak-sensor-title">Sensor 2</div>
+                <div class="leak-sensor-location">Front Edge</div>
+                <div class="leak-sensor-value">--</div>
+            </div>
+            <div class="leak-sensor-card" id="sensor3">
+                <div class="leak-sensor-title">Sensor 3</div>
+                <div class="leak-sensor-location">Build Plate</div>
+                <div class="leak-sensor-value">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts Section -->
+    <div class="leak-status-card leak-alerts-section">
+        <div class="leak-alerts-header">
+            <h6>Recent Alerts</h6>
+            <button class="leak-btn leak-btn-clear" onclick="clearLeakAlerts()">Clear Alerts</button>
+        </div>
+        <div id="leak-alerts-list">
+            <div class="leak-no-alerts">No alerts detected</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Socket.IO connection
+    const socket = io();
+
+    // Subscribe to leak detector updates when connected
+    socket.on('connect', function() {
+        console.log('Connected to leak detector');
+        socket.emit('subscribe_leak_detector');
+    });
+
+    // Initial data load
+    socket.on('leak_detector_data', function(data) {
+        console.log('Received leak detector data:', data);
+        updateLeakDetectorUI(data);
+    });
+
+    // Real-time updates
+    socket.on('leak_detector_update', function(data) {
+        console.log('Leak detector update:', data);
+        updateLeakDetectorUI(data);
+    });
+
+    // Critical alert notifications
+    socket.on('leak_detector_alert', function(alert) {
+        console.warn('LEAK ALERT:', alert);
+
+        // Play alert sound or show browser notification if supported
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Leak Detected!', {
+                body: `Sensor ${alert.sensor} (${alert.location}) detected a leak!`,
+                icon: '/static/img/alert-icon.png',
+                requireInteraction: true
+            });
+        }
+
+        // Visual flash effect
+        flashAlertIndicator();
+    });
+
+    function updateLeakDetectorUI(data) {
+        // Update device status
+        const deviceStatus = data.device;
+        const deviceStatusEl = document.getElementById('leak-device-status');
+        const deviceStateEl = document.getElementById('leak-device-state');
+        const deviceInfoEl = document.getElementById('leak-device-info');
+        const indicator = deviceStatusEl.querySelector('.leak-status-indicator');
+
+        if (deviceStatus && deviceStatus.online) {
+            deviceStatusEl.classList.remove('offline');
+            deviceStatusEl.classList.add('online');
+            indicator.classList.remove('offline');
+            indicator.classList.add('online');
+            deviceStateEl.textContent = 'Online';
+            deviceStateEl.style.color = '#28a745';
+
+            deviceInfoEl.innerHTML = `
+                <strong>IP:</strong> ${deviceStatus.ip || 'N/A'} |
+                <strong>Chip:</strong> ${deviceStatus.chip || 'N/A'} |
+                <strong>Version:</strong> ${deviceStatus.version || 'N/A'}
+            `;
+        } else {
+            deviceStatusEl.classList.remove('online');
+            deviceStatusEl.classList.add('offline');
+            indicator.classList.remove('online');
+            indicator.classList.add('offline');
+            deviceStateEl.textContent = 'Offline';
+            deviceStateEl.style.color = '#dc3545';
+            deviceInfoEl.innerHTML = '<span>Device not connected</span>';
+        }
+
+        // Update sensor cards
+        const sensors = data.sensors || {};
+        updateSensorCard('sensor1', sensors.sensor1);
+        updateSensorCard('sensor2', sensors.sensor2);
+        updateSensorCard('sensor3', sensors.sensor3);
+
+        // Update alerts list
+        const alerts = data.alerts || [];
+        updateAlertsList(alerts);
+    }
+
+    function updateSensorCard(sensorId, sensorData) {
+        const card = document.getElementById(sensorId);
+        const valueEl = card.querySelector('.leak-sensor-value');
+
+        if (sensorData) {
+            valueEl.textContent = sensorData.value || '--';
+
+            // Update alert state
+            if (sensorData.alert) {
+                card.classList.add('danger');
+                card.classList.remove('alert');
+            } else {
+                card.classList.remove('danger', 'alert');
+            }
+        } else {
+            valueEl.textContent = '--';
+            card.classList.remove('danger', 'alert');
+        }
+    }
+
+    function updateAlertsList(alerts) {
+        const alertsList = document.getElementById('leak-alerts-list');
+
+        if (!alerts || alerts.length === 0) {
+            alertsList.innerHTML = '<div class="leak-no-alerts">No alerts detected</div>';
+            return;
+        }
+
+        let html = '';
+        alerts.forEach(alert => {
+            const isCritical = alert.alert === true;
+            const className = isCritical ? 'critical' : '';
+
+            html += `
+                <div class="leak-alert-item ${className}">
+                    <strong>Sensor ${alert.sensor} - ${alert.location}</strong><br>
+                    Value: ${alert.value} (Threshold: ${alert.threshold})<br>
+                    <span class="leak-alert-time">${alert.timestamp || alert.received_at}</span>
+                </div>
+            `;
+        });
+
+        alertsList.innerHTML = html;
+    }
+
+    function clearLeakAlerts() {
+        if (confirm('Clear all leak alerts?')) {
+            fetch('/plugin/leak_detector/clear_alerts', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('leak-alerts-list').innerHTML =
+                            '<div class="leak-no-alerts">No alerts detected</div>';
+                    }
+                })
+                .catch(err => console.error('Error clearing alerts:', err));
+        }
+    }
+
+    function flashAlertIndicator() {
+        // Flash the whole container to get attention
+        const container = document.querySelector('.leak-detector-container');
+        container.style.animation = 'none';
+        setTimeout(() => {
+            container.style.animation = 'flash 0.5s 3';
+        }, 10);
+    }
+
+    // Add flash animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes flash {
+            0%, 100% { background-color: inherit; }
+            50% { background-color: #fff3cd; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Request notification permission on load
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+
+    // Load initial data on page load
+    fetch('/plugin/leak_detector/status')
+        .then(r => r.json())
+        .then(data => updateLeakDetectorUI(data))
+        .catch(err => console.error('Error loading leak detector status:', err));
+</script>

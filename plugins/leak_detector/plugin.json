@@ -1,0 +1,14 @@
+{
+  "name": "Leak Detector",
+  "version": "1.0.0",
+  "author": "ChitUI Developer",
+  "description": "ESP32-based resin leak detector with real-time monitoring and alerts for 3D printer safety",
+  "dependencies": [],
+  "ui_integration": {
+    "type": "toolbar",
+    "location": "top",
+    "icon": "bi-droplet-fill",
+    "title": "Leak Detector",
+    "template": "leak_detector.html"
+  }
+}
