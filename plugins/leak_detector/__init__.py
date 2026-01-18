@@ -6,14 +6,16 @@ ESP32-based resin leak detection system with real-time monitoring
 from flask import Blueprint, jsonify, request
 from datetime import datetime
 import logging
+from plugins.base import ChitUIPlugin
 
 logger = logging.getLogger(__name__)
 
 
-class Plugin:
+class Plugin(ChitUIPlugin):
     """ESP32 Leak Detector Plugin for ChitUI"""
 
-    def __init__(self):
+    def __init__(self, plugin_dir):
+        super().__init__(plugin_dir)
         self.name = "Leak Detector"
         self.version = "1.0.0"
         self.author = "ChitUI Developer"
@@ -45,6 +47,16 @@ class Plugin:
 
     def get_author(self):
         return self.author
+
+    def get_ui_integration(self):
+        """Return UI integration configuration"""
+        return {
+            'type': 'toolbar',
+            'location': 'top',
+            'icon': 'bi-droplet-fill',
+            'title': 'Leak Detector',
+            'template': 'leak_detector.html'
+        }
 
     def on_startup(self, app, socketio):
         """Called when plugin is loaded"""
