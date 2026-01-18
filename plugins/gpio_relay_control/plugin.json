@@ -1,0 +1,14 @@
+{
+  "name": "GPIO Relay Control",
+  "version": "1.0.0",
+  "author": "ChitUI Developer",
+  "description": "Control 3 GPIO relays from the toolbar with real-time status updates",
+  "dependencies": ["RPi.GPIO"],
+  "ui_integration": {
+    "type": "toolbar",
+    "location": "top",
+    "icon": "bi-lightning-charge",
+    "title": "GPIO Relays",
+    "template": "gpio_relay_control.html"
+  }
+}

@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <script src="js/color-modes.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Chitubox SDCP WebUI" />
+    <meta name="author" content="Jan Grewe" />
+    <title>ChitUI</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+    <link rel="icon" type="image/png" href="/assets/favicon-48x48.png" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link rel="shortcut icon" href="/assets/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
+    <link rel="manifest" href="/assets/site.webmanifest" />
+    <meta name="theme-color" content="#712cf9" />
+    <link href="css/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="css/chitui.css" rel="stylesheet" />
+  </head>
+  <body>
+    <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+      <symbol id="gear-fill" viewBox="0 0 16 16">
+        <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
+      </symbol>
+    </svg>
+
+    <header class="app-header">
+      <div class="d-flex align-items-center gap-2">
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">
+          <i class="bi bi-list"></i>
+        </button>
+        <a href="#" class="app-logo">
+          <i class="bi bi-box-seam"></i>
+          <span>ChitUI</span>
+        </a>
+      </div>
+      <div class="header-actions">
+      </div>
+    </header>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="app-sidebar">
+      <div class="sidebar-section scrollable">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="sidebar-section-title mb-0">
+            <i class="bi bi-hdd-network me-1"></i> Printers
+          </div>
+          <button class="btn btn-sm btn-outline-secondary" id="sidebarPinBtn" title="Pin sidebar">
+            <i class="bi bi-pin-angle"></i>
+          </button>
+        </div>
+        <div id="printersList"></div>
+      </div>
+      <div class="sidebar-section mt-auto">
+        <button class="btn btn-outline-secondary btn-icon w-100" data-bs-toggle="modal" data-bs-target="#modalSettings">
+          <i class="bi bi-gear-fill"></i>
+          <span>Settings</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="app-content">
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="printer-preview">
+            <div class="printer-preview-left">
+              <img id="printerIcon" alt="Printer" class="d-none" />
+              <div id="printerIconPlaceholder" class="printer-icon-placeholder">
+                <i class="bi bi-printer" style="font-size: 4rem; color: var(--bs-secondary-color);"></i>
+              </div>
+            </div>
+            <div class="printer-preview-right">
+              <h3 id="printerName">Select a Printer</h3>
+              <p id="printerType">No printer selected</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-8">
+          <div class="dashboard-card">
+            <h4 class="card-title">
+              <i class="bi bi-info-circle me-2"></i>Printer Information
+            </h4>
+            <ul class="nav custom-tabs" role="tablist" id="navTabs"></ul>
+            <div class="tab-content mt-3" id="navPanes"></div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+          <div class="dashboard-card camera-card">
+            <h4 class="card-title mb-3">
+              <i class="bi bi-camera-video me-2"></i>Camera Stream
+            </h4>
+            <ul class="nav custom-tabs" role="tablist" id="cameraTabs">
+              <li class="nav-item">
+                <button class="nav-link active" id="tab-printer-camera"
+                        data-bs-toggle="pill" data-bs-target="#tabprinter-camera"
+                        type="button">
+                  <i class="bi bi-webcam"></i> Printer
+                </button>
+              </li>
+            </ul>
+            <div class="tab-content mt-3" id="cameraPanes">
+              <!-- Printer Camera Tab -->
+              <div class="tab-pane fade show active" id="tabprinter-camera">
+                <div class="d-flex justify-content-end mb-2">
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-success" id="btnStartCamera">
+                      <i class="bi bi-play-fill"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" id="btnStopCamera" disabled>
+                      <i class="bi bi-stop-fill"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" id="btnFullscreenCamera" disabled>
+                      <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="camera-container" id="cameraContainer">
+                  <div class="camera-placeholder" id="cameraPlaceholder">
+                    <i class="bi bi-camera-video-off" style="font-size: 3rem; color: var(--bs-secondary-color);"></i>
+                    <p class="text-muted mt-3 mb-0">Click play to start</p>
+                    <small class="text-muted" id="cameraStatus">Camera ready</small>
+                  </div>
+                  <img id="cameraStream" src="" alt="Camera Stream" style="display: none;">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Print Controls Card (visible during active print) -->
+      <div class="row g-3 mb-4 d-none" id="printControlsRow">
+        <div class="col-12">
+          <div class="dashboard-card" style="border: 2px solid var(--accent-color);">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h4 class="card-title mb-0">
+                <i class="bi bi-printer-fill me-2"></i>Active Print
+              </h4>
+              <button class="btn btn-sm btn-accent" id="btnShowPrintStatusMain">
+                <i class="bi bi-arrows-fullscreen"></i> Show Details
+              </button>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-8">
+                <div class="mb-2">
+                  <strong>File:</strong> <span id="mainPrintFileName" class="font-monospace">-</span>
+                </div>
+                <div class="mb-2">
+                  <strong>Status:</strong> <span id="mainPrintStatus" class="badge bg-info">-</span>
+                </div>
+                <div class="progress progress-enhanced mb-2" style="height: 30px;">
+                  <div id="mainPrintProgress" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%; font-size: 16px; line-height: 30px;">0%</div>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <small class="text-muted"><i class="bi bi-layers"></i> <span id="mainPrintLayers">0 / 0</span></small>
+                  <small class="text-muted"><i class="bi bi-clock"></i> <span id="mainPrintTime">00:00:00</span></small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="d-flex flex-column gap-2">
+                  <button type="button" class="btn btn-warning btn-icon" id="btnMainPausePrint">
+                    <i class="bi bi-pause-fill"></i> Pause
+                  </button>
+                  <button type="button" class="btn btn-success btn-icon d-none" id="btnMainResumePrint">
+                    <i class="bi bi-play-fill"></i> Resume
+                  </button>
+                  <button type="button" class="btn btn-danger btn-icon" id="btnMainStopPrint">
+                    <i class="bi bi-stop-fill"></i> Stop
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="dashboard-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h4 class="card-title mb-0">
+                <i class="bi bi-folder2-open me-2"></i>Files
+              </h4>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-accent btn-icon" data-bs-toggle="collapse" data-bs-target="#uploadSection">
+                  <i class="bi bi-cloud-upload"></i>
+                  Upload File
+                </button>
+                <button class="btn btn-sm btn-outline-secondary btn-icon" id="btnRefreshFiles">
+                  <i class="bi bi-arrow-clockwise"></i>
+                  Refresh
+                </button>
+              </div>
+            </div>
+            
+            <div class="collapse mb-3" id="uploadSection">
+              <div class="card bg-body-tertiary">
+                <div class="card-body">
+                  <form enctype="multipart/form-data" method="post" id="formUpload">
+                    <div class="upload-area mb-3">
+                      <i class="bi bi-cloud-arrow-up" style="font-size: 2.5rem; color: var(--bs-secondary-color);"></i>
+                      <h5 class="mt-3 mb-2">Drop file here</h5>
+                      <p class="text-muted mb-3">or click to browse</p>
+                      <input id="uploadFile" class="form-control" type="file" name="file" style="display: none;">
+                      <button type="button" class="btn btn-outline-secondary btn-icon" onclick="document.getElementById('uploadFile').click()">
+                        <i class="bi bi-folder2-open"></i>
+                        Choose File
+                      </button>
+                    </div>
+
+                    <!-- Upload Destination Selector -->
+                    <div class="mb-3" id="uploadDestination" style="display: none;">
+                      <label class="form-label text-muted mb-2">
+                        <i class="bi bi-hdd me-1"></i> Upload Destination
+                      </label>
+                      <div class="d-flex gap-3">
+                        <div class="form-check">
+                          <input class="form-check-input" type="radio" name="destination" id="destLocal" value="local" checked>
+                          <label class="form-check-label" for="destLocal">
+                            <i class="bi bi-device-ssd"></i> Local Storage
+                          </label>
+                        </div>
+                        <div class="form-check">
+                          <input class="form-check-input" type="radio" name="destination" id="destUsb" value="usb">
+                          <label class="form-check-label" for="destUsb">
+                            <i class="bi bi-usb-drive"></i> USB Storage
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <input id="uploadPrinter" type="hidden" name="printer" value="">
+                    <input id="uploadDestPath" type="hidden" name="destination" value="local">
+                    <div class="progress progress-enhanced mb-3" role="progressbar" style="display: none;">
+                      <div id="progressUpload" class="progress-bar" style="width: 0%">0%</div>
+                    </div>
+                    <button id="btnUpload" type="button" class="btn btn-accent btn-icon w-100" style="display: none;">
+                      <i class="bi bi-upload"></i>
+                      Upload to Printer
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+            
+            <div class="file-manager-container">
+              <!-- Storage Gauges Row -->
+              <div class="storage-gauges-row mb-3">
+                <!-- Printer Storage Gauge -->
+                <div class="gauge-wrapper" id="storageInfo" style="display: none !important;">
+                  <div class="circular-gauge">
+                    <svg class="gauge-svg" viewBox="0 0 200 200">
+                      <circle class="gauge-bg" cx="100" cy="100" r="80" fill="none" stroke-width="20"/>
+                      <circle class="gauge-progress" id="storageGaugeCircle" cx="100" cy="100" r="80" fill="none" stroke-width="20" stroke-linecap="round"/>
+                    </svg>
+                    <div class="gauge-content">
+                      <div class="gauge-percentage" id="storageGaugePercent">0%</div>
+                      <div class="gauge-label">Printer</div>
+                    </div>
+                  </div>
+                  <div class="text-center mt-1">
+                    <small class="text-muted">
+                      <span id="storageUsedSimple">--</span> / <span id="storageFreeSimple">--</span>
+                    </small>
+                  </div>
+                </div>
+
+                <!-- USB Gadget Storage Gauge -->
+                <div class="gauge-wrapper" id="usbGaugeWrapper" style="display: none;">
+                  <div class="circular-gauge">
+                    <svg class="gauge-svg" viewBox="0 0 200 200">
+                      <circle class="gauge-bg" cx="100" cy="100" r="80" fill="none" stroke-width="20"/>
+                      <circle class="gauge-progress" id="usbGaugeCircle" cx="100" cy="100" r="80" fill="none" stroke-width="20" stroke-linecap="round"/>
+                    </svg>
+                    <div class="gauge-content">
+                      <div class="gauge-percentage" id="usbGaugePercent">0%</div>
+                      <div class="gauge-label">PI USB</div>
+                    </div>
+                  </div>
+                  <div class="text-center mt-1">
+                    <small class="text-muted" id="usbGaugeDetails">-- / --</small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="file-manager-toolbar mb-3">
+                <div class="row g-2">
+                  <div class="col-md-8">
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-search"></i></span>
+                      <input type="text" class="form-control" placeholder="Search files..." id="fileSearchInput">
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <button type="button" class="btn btn-primary w-100" id="btnRefreshPI">
+                      <i class="bi bi-arrow-clockwise me-1"></i>Refresh PI USB
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-hover" id="fileManagerTable">
+                  <thead>
+                    <tr>
+                      <th width="10%">Preview</th>
+                      <th width="5%">#</th>
+                      <th width="60%"><i class="bi bi-file-earmark me-1"></i>File Name</th>
+                      <th width="25%" class="text-end">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fileManagerBody">
+                    <tr>
+                      <td colspan="4" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                        No files found. Upload a file to get started.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div class="modal fade" id="modalConfirm" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalConfirmTitle">Confirm Action</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Please confirm that you want to <span id="modalConfirmAction"></span> 
+            <span class="badge bg-secondary font-monospace text-wrap" id="modalConfirmValue"></span>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-accent" id="btnConfirm">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="modalSettings" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="bi bi-gear-fill me-2"></i>Settings</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-0">
+            <div class="row g-0">
+              <!-- Vertical Navigation -->
+              <div class="col-md-3 border-end">
+                <div class="nav flex-column nav-pills settings-nav" role="tablist" aria-orientation="vertical">
+                  <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#printers-pane" type="button" role="tab">
+                    <i class="bi bi-printer me-2"></i> Printers
+                  </button>
+                  <button class="nav-link" data-bs-toggle="pill" data-bs-target="#storage-pane" type="button" role="tab">
+                    <i class="bi bi-hdd me-2"></i> Storage
+                  </button>
+                  <button class="nav-link" data-bs-toggle="pill" data-bs-target="#account-pane" type="button" role="tab">
+                    <i class="bi bi-person-circle me-2"></i> Account
+                  </button>
+                  <button class="nav-link" data-bs-toggle="pill" data-bs-target="#general-pane" type="button" role="tab">
+                    <i class="bi bi-sliders me-2"></i> General
+                  </button>
+                  <button class="nav-link" data-bs-toggle="pill" data-bs-target="#plugins-pane" type="button" role="tab">
+                    <i class="bi bi-puzzle me-2"></i> Plugins
+                  </button>
+                  <button class="nav-link" data-bs-toggle="pill" data-bs-target="#packages-pane" type="button" role="tab">
+                    <i class="bi bi-box-seam me-2"></i> Packages
+                  </button>
+                  <button class="nav-link" data-bs-toggle="pill" data-bs-target="#maintenance-pane" type="button" role="tab">
+                    <i class="bi bi-tools me-2"></i> Maintenance
+                  </button>
+                  <button class="nav-link" data-bs-toggle="pill" data-bs-target="#about-pane" type="button" role="tab">
+                    <i class="bi bi-info-circle me-2"></i> About
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tab Content -->
+              <div class="col-md-9">
+                <div class="tab-content p-4">
+              <div class="tab-pane fade show active" id="printers-pane">
+                <div class="mb-4">
+                  <h6 class="mb-3">Printer Discovery</h6>
+                  <button type="button" class="btn btn-accent btn-icon" id="btnDiscover">
+                    <i class="bi bi-search"></i> Discover Printers
+                  </button>
+                  <div class="spinner-border spinner-border-sm ms-2 d-none" id="discoverSpinner"></div>
+                </div>
+                <div class="mb-4">
+                  <h6 class="mb-3">Add Printer Manually</h6>
+                  <div class="row g-2 mb-2">
+                    <div class="col-md-5">
+                      <input type="text" class="form-control" id="manualPrinterIP" placeholder="192.168.1.100">
+                      <small class="text-muted">IP Address</small>
+                    </div>
+                    <div class="col-md-5">
+                      <input type="text" class="form-control" id="manualPrinterName" placeholder="My Printer">
+                      <small class="text-muted">Name (optional)</small>
+                    </div>
+                    <div class="col-md-2">
+                      <button type="button" class="btn btn-success w-100 btn-icon" id="btnAddManual">
+                        <i class="bi bi-plus-lg"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- USB Device Type - Per Printer Setting -->
+                  <div class="row g-2 mb-3">
+                    <div class="col-12">
+                      <div class="card border-primary">
+                        <div class="card-body p-3">
+                          <label for="manualUSBDeviceType" class="form-label fw-bold mb-2">
+                            <i class="bi bi-usb-drive"></i> USB Configuration (Per Printer)
+                          </label>
+                          <select class="form-select" id="manualUSBDeviceType">
+                            <option value="physical">🔌 Physical USB Drive - Uses printer's delete command</option>
+                            <option value="virtual">💾 Pi Virtual USB Gadget - Direct file delete from Pi</option>
+                          </select>
+                          <small class="text-muted d-block mt-2">
+                            <strong>Physical:</strong> For thumbdrives/external HDDs plugged into printer<br>
+                            <strong>Virtual:</strong> For Raspberry Pi acting as USB storage device
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row g-2 mb-2">
+                    <div class="col-12">
+                      <button type="button" class="btn btn-outline-secondary btn-sm btn-icon" id="btnSelectPrinterImage">
+                        <i class="bi bi-image me-1"></i>
+                        <span id="selectedImageText">Select Printer Image (Optional)</span>
+                      </button>
+                      <input type="hidden" id="manualPrinterImage" value="">
+                    </div>
+                  </div>
+                </div>
+                <div class="mb-4 d-none" id="editPrinterSection">
+                  <h6 class="mb-3">Edit Printer</h6>
+                  <div class="row g-2 mb-2">
+                    <div class="col-md-5">
+                      <input type="text" class="form-control" id="editPrinterIP" placeholder="192.168.1.100">
+                      <small class="text-muted">IP Address</small>
+                    </div>
+                    <div class="col-md-5">
+                      <input type="text" class="form-control" id="editPrinterName" placeholder="My Printer">
+                      <small class="text-muted">Name</small>
+                    </div>
+                    <div class="col-md-2">
+                      <button type="button" class="btn btn-success w-100 btn-icon" id="btnSaveEdit">
+                        <i class="bi bi-check-lg"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- USB Device Type - Per Printer Setting -->
+                  <div class="row g-2 mb-3">
+                    <div class="col-12">
+                      <div class="card border-primary">
+                        <div class="card-body p-3">
+                          <label for="editUSBDeviceType" class="form-label fw-bold mb-2">
+                            <i class="bi bi-usb-drive"></i> USB Configuration (Per Printer)
+                          </label>
+                          <select class="form-select" id="editUSBDeviceType">
+                            <option value="physical">🔌 Physical USB Drive - Uses printer's delete command</option>
+                            <option value="virtual">💾 Pi Virtual USB Gadget - Direct file delete from Pi</option>
+                          </select>
+                          <small class="text-muted d-block mt-2">
+                            <strong>Physical:</strong> For thumbdrives/external HDDs plugged into printer<br>
+                            <strong>Virtual:</strong> For Raspberry Pi acting as USB storage device
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row g-2 mb-2">
+                    <div class="col-12">
+                      <button type="button" class="btn btn-outline-secondary btn-sm btn-icon" id="btnEditPrinterImage">
+                        <i class="bi bi-image me-1"></i>
+                        <span id="editSelectedImageText">Select Printer Image (Optional)</span>
+                      </button>
+                      <input type="hidden" id="editPrinterImage" value="">
+                      <input type="hidden" id="editPrinterId" value="">
+                    </div>
+                  </div>
+
+                  <div class="row g-2">
+                    <div class="col-12">
+                      <button type="button" class="btn btn-sm btn-outline-secondary" id="btnCancelEdit">
+                        <i class="bi bi-x-lg me-1"></i>Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h6 class="mb-3">Saved Printers</h6>
+                  <div id="savedPrintersList">
+                    <div class="text-muted text-center py-4">
+                      <i class="bi bi-info-circle"></i> No printers configured
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="tab-pane fade" id="storage-pane">
+                <div class="mb-4">
+                  <h6 class="mb-3">Printer Storage</h6>
+                  <div class="alert alert-info" id="storageDetailInfo">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                      <div>
+                        <strong>Total Storage:</strong> <span id="storageTotal">--</span>
+                      </div>
+                      <div>
+                        <strong>Used:</strong> <span id="storageUsed">--</span>
+                      </div>
+                      <div>
+                        <strong>Free:</strong> <span id="storageFree">--</span>
+                      </div>
+                    </div>
+                    <div class="progress mb-2" style="height: 25px;">
+                      <div class="progress-bar" role="progressbar" id="storageProgressBar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                        <span id="storagePercent">0%</span>
+                      </div>
+                    </div>
+                    <small class="text-muted">Storage includes print history, thumbnails, and system data</small>
+                  </div>
+                </div>
+                
+                <div class="mb-4">
+                  <h6 class="mb-3">Clean Up Storage</h6>
+                  <p class="text-muted small mb-3">
+                    <strong>Clean History:</strong> Removes old print history, thumbnails, and cached data. Your .goo files are preserved.
+                  </p>
+                  <button type="button" class="btn btn-warning btn-icon mb-3" id="btnCleanStorage">
+                    <i class="bi bi-trash"></i> Clean History & Cache
+                  </button>
+                  
+                  <hr class="my-4">
+                  
+                  <h6 class="mb-3 text-danger">Danger Zone</h6>
+                  <p class="text-muted small mb-3">
+                    <strong>Format Local Storage:</strong> Formats the printer's internal storage, deleting ALL files including .goo files. Same as the "Format Local Storage" button on the printer.
+                  </p>
+                  <button type="button" class="btn btn-danger btn-icon" id="btnWipeStorage">
+                    <i class="bi bi-exclamation-triangle"></i> Format Local Storage
+                  </button>
+                </div>
+                
+                <div class="alert alert-warning" role="alert">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  <strong>Note:</strong> Storage info updates automatically every few seconds when connected to a printer.
+                </div>
+              </div>
+
+              <div class="tab-pane fade" id="account-pane">
+                <h6 class="mb-3">Account Settings</h6>
+
+                <div class="mb-4">
+                  <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="autoLoginCheck">
+                    <label class="form-check-label" for="autoLoginCheck">
+                      Auto-login on this device
+                    </label>
+                  </div>
+                  <small class="text-muted">Automatically log in without entering password. Only enable on trusted devices.</small>
+                </div>
+
+                <div class="mb-4">
+                  <h6 class="mb-3">Change Password</h6>
+                  <button type="button" class="btn btn-warning btn-icon" onclick="window.location.href='/change-password.html'">
+                    <i class="bi bi-key-fill"></i> Change Password
+                  </button>
+                </div>
+
+                <hr class="my-4">
+
+                <div>
+                  <h6 class="mb-3">Session Management</h6>
+
+                  <div class="mb-3">
+                    <label for="sessionTimeout" class="form-label">Auto-logout after inactivity</label>
+                    <select class="form-select" id="sessionTimeout">
+                      <option value="0">Never (stay logged in)</option>
+                      <option value="300">5 minutes</option>
+                      <option value="900">15 minutes</option>
+                      <option value="1800">30 minutes</option>
+                      <option value="3600">1 hour</option>
+                      <option value="7200">2 hours</option>
+                      <option value="14400">4 hours</option>
+                      <option value="28800">8 hours</option>
+                    </select>
+                    <small class="text-muted d-block mt-2">
+                      <i class="bi bi-info-circle me-1"></i>
+                      Session will automatically logout after the selected period of inactivity. Set to "Never" to stay logged in indefinitely.
+                    </small>
+                  </div>
+
+                  <button type="button" class="btn btn-outline-danger btn-icon" id="btnLogoutSettings">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                  </button>
+                  <div class="mt-2">
+                    <small class="text-muted">Log out of ChitUI and return to the login page</small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-pane fade" id="general-pane">
+                <div class="form-check form-switch mb-3">
+                  <input class="form-check-input" type="checkbox" id="autoDiscoverCheck">
+                  <label class="form-check-label" for="autoDiscoverCheck">
+                    Auto-discover printers on startup
+                  </label>
+                </div>
+                <small class="text-muted">Automatically search for printers when the application starts</small>
+              </div>
+
+              <div class="tab-pane fade" id="plugins-pane">
+                <div class="mb-3">
+                  <h6>Plugin Management</h6>
+                  <p class="text-muted small">
+                    Extend ChitUI with plugins. Enable or disable plugins to add features like terminal access,
+                    custom printers support, and more.
+                  </p>
+                </div>
+                <div id="pluginManagerList">
+                  <div class="text-center py-4">
+                    <div class="spinner-border text-secondary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="alert alert-info mt-3">
+                  <i class="bi bi-info-circle me-2"></i>
+                  <strong>Note:</strong> Enabling or disabling plugins will reload the page to apply changes.
+                </div>
+              </div>
+
+              <div class="tab-pane fade" id="packages-pane">
+                <div class="mb-3">
+                  <h6>Python Packages</h6>
+                  <p class="text-muted small">
+                    List of all installed Python packages and their versions.
+                  </p>
+                  <button type="button" class="btn btn-sm btn-accent btn-icon" id="btnRefreshPackages">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                  </button>
+                </div>
+                <div id="packagesListContainer">
+                  <div class="text-center py-4">
+                    <div class="spinner-border text-secondary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-pane fade" id="maintenance-pane">
+                <div class="mb-3">
+                  <h6>System Maintenance</h6>
+                  <p class="text-muted small">
+                    Perform system maintenance tasks like restarting the application or rebooting the Raspberry Pi.
+                  </p>
+                </div>
+
+                <div class="alert alert-info" role="alert">
+                  <i class="bi bi-info-circle me-2"></i>
+                  <strong>Tip:</strong> For automatic restart functionality, run ChitUI using <code>sudo ./run.sh</code>
+                  instead of running <code>main.py</code> directly.
+                </div>
+
+                <div class="card bg-dark border-secondary mb-3">
+                  <div class="card-body">
+                    <h6 class="card-title mb-3">
+                      <i class="bi bi-arrow-clockwise me-2"></i>Restart Application
+                    </h6>
+                    <p class="text-muted small mb-3">
+                      Restart the ChitUI application. This will reload all plugins and apply any configuration changes.
+                      The web interface will reconnect automatically.
+                    </p>
+                    <button type="button" class="btn btn-warning btn-icon" id="btnRestartApp">
+                      <i class="bi bi-arrow-clockwise"></i> Restart Application
+                    </button>
+                  </div>
+                </div>
+
+                <div class="card bg-dark border-secondary mb-3">
+                  <div class="card-body">
+                    <h6 class="card-title mb-3 text-danger">
+                      <i class="bi bi-power me-2"></i>Reboot Raspberry Pi
+                    </h6>
+                    <p class="text-muted small mb-3">
+                      Reboot the entire Raspberry Pi system. This will disconnect all printers and stop the application.
+                      Wait about 30-60 seconds before reconnecting.
+                    </p>
+                    <button type="button" class="btn btn-danger btn-icon" id="btnRebootPi">
+                      <i class="bi bi-power"></i> Reboot System
+                    </button>
+                  </div>
+                </div>
+
+                <div class="alert alert-warning" role="alert">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  <strong>Note:</strong> Both operations will temporarily interrupt your connection to the system.
+                </div>
+              </div>
+
+              <!-- About Tab -->
+              <div class="tab-pane fade" id="about-pane">
+                <div class="text-center mb-4">
+                  <div class="mb-3">
+                    <i class="bi bi-box-seam" style="font-size: 4rem; color: var(--accent-color);"></i>
+                  </div>
+                  <h3 class="mb-3">ChitUI</h3>
+                  <p class="lead text-muted">Web Interface for Chitu 3D Printer Control</p>
+                  <p class="text-muted">Version 2.1</p>
+                </div>
+
+                <div class="card bg-dark border-secondary mb-3">
+                  <div class="card-body">
+                    <h6 class="card-title mb-3">
+                      <i class="bi bi-info-circle me-2"></i>About This Project
+                    </h6>
+                    <p class="text-muted mb-3">
+                      ChitUI is an enhanced web-based interface for controlling Chitu-based 3D printers.
+                      It provides real-time monitoring, file management via USB gadget mode, and extensible plugin support
+                      for additional functionality like GPIO relay control, IP camera streaming, and system monitoring.
+                    </p>
+                    <p class="text-muted mb-0">
+                      <strong>Features:</strong>
+                    </p>
+                    <ul class="text-muted">
+                      <li>Automatic printer discovery via UDP broadcast</li>
+                      <li>Real-time printer status monitoring via WebSocket</li>
+                      <li>File upload/management (USB Gadget & Network modes)</li>
+                      <li>Automatic thumbnail extraction from .ctb and .goo files <span class="badge bg-success">NEW</span></li>
+                      <li>Print control (start, pause, resume, stop)</li>
+                      <li>Temperature monitoring and control</li>
+                      <li>Plugin system for extensibility</li>
+                      <li>User authentication and settings management</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card bg-dark border-secondary mb-3">
+                  <div class="card-body">
+                    <h6 class="card-title mb-3">
+                      <i class="bi bi-person-badge me-2"></i>Credits
+                    </h6>
+                    <p class="text-muted mb-2">
+                      <strong>Original Proof of Concept:</strong>
+                    </p>
+                    <p class="text-muted mb-3">
+                      This project is based on the original ChitUI proof of concept created by
+                      <strong>Jan Grewe</strong>.
+                    </p>
+                    <div class="d-flex gap-2 flex-wrap">
+                      <a href="https://github.com/jangrewe/ChitUI" target="_blank" class="btn btn-sm btn-outline-primary btn-icon">
+                        <i class="bi bi-github me-1"></i> Original ChitUI Repository
+                      </a>
+                      <a href="https://www.jangrewe.com/" target="_blank" class="btn btn-sm btn-outline-primary btn-icon">
+                        <i class="bi bi-globe me-1"></i> jangrewe.com
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card bg-dark border-secondary">
+                  <div class="card-body">
+                    <h6 class="card-title mb-3">
+                      <i class="bi bi-code-slash me-2"></i>Technology Stack
+                    </h6>
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <p class="text-muted mb-1"><strong>Backend:</strong></p>
+                        <ul class="text-muted small mb-0">
+                          <li>Python 3.11</li>
+                          <li>Flask Web Framework</li>
+                          <li>Flask-SocketIO (WebSocket)</li>
+                          <li>Loguru (Logging)</li>
+                        </ul>
+                      </div>
+                      <div class="col-md-6">
+                        <p class="text-muted mb-1"><strong>Frontend:</strong></p>
+                        <ul class="text-muted small mb-0">
+                          <li>Bootstrap 5</li>
+                          <li>Socket.IO Client</li>
+                          <li>Bootstrap Icons</li>
+                          <li>Vanilla JavaScript</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-accent btn-icon" id="btnSaveSettings">
+              <i class="bi bi-save"></i> Save Settings
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="modalPrintStatus" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+          <div class="modal-header" style="background: var(--accent-color); color: white;">
+            <h5 class="modal-title"><i class="bi bi-printer-fill me-2"></i>Print Status</h5>
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-sm btn-light" id="btnPrintCamera" disabled>
+                <i class="bi bi-camera-video"></i><span class="d-none d-sm-inline"> Camera</span>
+              </button>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <!-- Thumbnail Column -->
+              <div class="col-12 col-md-5 mb-3 mb-md-0">
+                <div id="printThumbnailContainer" class="print-thumbnail-container">
+                  <div id="printThumbnailPlaceholder" class="print-thumbnail-placeholder">
+                    <i class="bi bi-image" style="font-size: 3rem; opacity: 0.3;"></i>
+                    <p class="text-muted small mb-0">No preview available</p>
+                  </div>
+                  <img id="printThumbnail" class="print-thumbnail d-none" alt="Print preview" loading="lazy">
+                </div>
+                <!-- Camera View (shown when camera is active) -->
+                <div id="printCameraContainer" class="print-camera-container d-none">
+                  <img id="printCameraView" src="/camera/video" alt="Camera view" class="print-camera-view" loading="lazy">
+                </div>
+              </div>
+
+              <!-- Print Info Column -->
+              <div class="col-12 col-md-7">
+                <div class="mb-3">
+                  <h6 class="text-muted mb-1">Status</h6>
+                  <h4 id="printStatusText">Initializing...</h4>
+                </div>
+                <div class="mb-3">
+                  <h6 class="text-muted mb-1">File</h6>
+                  <p id="printFileName" class="font-monospace mb-0 small">-</p>
+                </div>
+                <div class="mb-3">
+                  <h6 class="text-muted mb-1">Progress</h6>
+                  <div class="progress progress-enhanced mb-2">
+                    <div id="printProgress" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%">0%</div>
+                  </div>
+                  <div class="d-flex justify-content-between mb-2">
+                    <small class="text-muted"><i class="bi bi-layers"></i> <span id="printLayers">0 / 0</span></small>
+                  </div>
+                  <div class="d-flex justify-content-between">
+                    <small class="text-muted"><i class="bi bi-clock"></i> <span id="printTime">00:00:00 / 00:00:00</span></small>
+                  </div>
+                </div>
+                <div id="printError" class="alert alert-danger d-none" role="alert">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                  <span id="printErrorText">Error information</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-warning btn-icon" id="btnPausePrint">
+              <i class="bi bi-pause-fill"></i> Pause
+            </button>
+            <button type="button" class="btn btn-success btn-icon d-none" id="btnResumePrint">
+              <i class="bi bi-play-fill"></i> Resume
+            </button>
+            <button type="button" class="btn btn-danger btn-icon" id="btnStopPrint">
+              <i class="bi bi-stop-fill"></i> Stop
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Camera Fullscreen Modal -->
+    <div class="modal fade" id="modalCameraFullscreen" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-camera-video me-2"></i>Camera Stream
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center p-0">
+            <img id="cameraStreamFullscreen" src="" alt="Camera Stream" style="width: 640px; height: 480px; display: block; margin: 0 auto;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Printer Image Selection Modal -->
+    <div class="modal fade" id="modalPrinterImage" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-image me-2"></i>Select Printer Image
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted small mb-3">Choose an image to represent this printer</p>
+            <div class="row g-3" id="printerImageGrid">
+              <!-- Default/No Image Option -->
+              <div class="col-6 col-md-4">
+                <div class="printer-image-option" data-image="">
+                  <div class="printer-image-preview">
+                    <i class="bi bi-printer" style="font-size: 3rem; color: var(--bs-secondary-color);"></i>
+                  </div>
+                  <small class="d-block text-center mt-2">Default Icon</small>
+                </div>
+              </div>
+              <!-- Dynamic images will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toastUpload" class="toast position-fixed top-0 end-0 m-3" role="alert">
+      <div class="toast-header">
+        <i class="bi bi-file-earmark-arrow-up me-2"></i>
+        <strong class="me-auto">File Upload</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+      </div>
+      <div class="toast-body" id="toastUploadText">Success!</div>
+    </div>
+
+    <template id="tmplPrintersListItem">
+      <div class="printer-card" data-connection-id="" data-printer-id="">
+        <div class="printer-card-header">
+          <img class="printerIcon printer-icon" src="" alt="Printer" />
+          <div class="flex-grow-1">
+            <h6 class="printerName printer-name mb-1"></h6>
+            <small class="printerType text-muted"></small>
+          </div>
+          <span class="printer-status-badge printerStatusBadge status-online">
+            <i class="bi bi-circle-fill"></i>
+            <span class="printerStatus">Online</span>
+          </span>
+        </div>
+        <div class="printerInfo mt-2">
+          <small class="text-muted">Idle</small>
+        </div>
+        <div class="printerSpinner spinner-border spinner-border-sm d-none"></div>
+      </div>
+    </template>
+
+    <template id="tmplNavTab">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" type="button" role="tab"></button>
+      </li>
+    </template>
+
+    <template id="tmplNavPane">
+      <div class="tab-pane" role="tabpanel" tabindex="0">
+        <table class="table">
+          <tbody></tbody>
+        </table>
+      </div>
+    </template>
+
+    <template id="tmplSavedPrinter">
+      <div class="dashboard-card mb-2" data-printer-id="">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-1 printer-name"></h6>
+            <small class="text-muted printer-ip"></small>
+          </div>
+          <div class="d-flex gap-2 align-items-center">
+            <div class="form-check form-switch">
+              <input class="form-check-input printer-enabled-toggle" type="checkbox" checked>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-warning btn-icon btn-set-default" title="Set as Default">
+              <i class="bi bi-star"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary btn-icon btn-edit-printer" title="Edit">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-danger btn-icon btn-remove-printer" title="Remove">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <script src="js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/socket.io.min.js"></script>
+    <script src="js/sdcp.js"></script>
+
+    <script src="/js/chitui.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/plugins.js?v=3"></script>
+
+  </body>
+</html>

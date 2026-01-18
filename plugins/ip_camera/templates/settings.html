@@ -1,0 +1,342 @@
+<div class="card bg-dark border-secondary mt-3">
+    <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-camera-video"></i> IP Camera Configuration</h6>
+
+        <!-- Camera List -->
+        <div id="ip-camera-settings-list" class="mb-3">
+            <!-- Cameras will be loaded here -->
+        </div>
+
+        <!-- Add New Camera Form -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-plus-circle"></i> Add New Camera</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Camera Name</label>
+                        <input type="text" class="form-control" id="new-camera-name" placeholder="e.g., Xiaomi Camera 2K">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Protocol</label>
+                        <select class="form-select" id="new-camera-protocol">
+                            <option value="rtsp" selected>RTSP</option>
+                            <option value="http">HTTP/MJPEG</option>
+                            <option value="auto">Auto-detect</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Stream URL</label>
+                        <input type="text" class="form-control" id="new-camera-url" placeholder="rtsp://192.168.1.100:554/">
+                    </div>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                    <button type="button" class="btn btn-info btn-sm" id="test-new-camera-btn">
+                        <i class="bi bi-wifi"></i> Test Connection
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm" id="add-camera-btn">
+                        <i class="bi bi-plus-circle"></i> Add Camera
+                    </button>
+                </div>
+                <div id="new-camera-test-result" class="mt-2" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Common Camera URLs</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small mb-0">
+                    <li><strong>Xiaomi Mi Camera 2K:</strong> <code>rtsp://192.168.1.100:554/</code></li>
+                    <li><strong>Wyze Cam (RTSP firmware):</strong> <code>rtsp://192.168.1.100:554/live</code></li>
+                    <li><strong>Generic RTSP:</strong> <code>rtsp://username:password@192.168.1.100:554/stream</code></li>
+                    <li><strong>Generic HTTP MJPEG:</strong> <code>http://192.168.1.100:8080/video</code></li>
+                </ul>
+                <div class="alert alert-warning mt-3 mb-0 small">
+                    <strong>Note:</strong> Replace IP address with your camera's actual IP. Some cameras require authentication in the URL.
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" id="ip-camera-cancel-settings">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    let cameras = [];
+
+    // Load cameras
+    function loadCameras() {
+        fetch('/plugin/ip_camera/config')
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    cameras = data.cameras;
+                    renderCameras();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading cameras:', error);
+            });
+    }
+
+    // Render camera list
+    function renderCameras() {
+        const container = document.getElementById('ip-camera-settings-list');
+
+        if (cameras.length === 0) {
+            container.innerHTML = '<p class="text-muted text-center">No cameras configured yet. Add one below.</p>';
+            return;
+        }
+
+        let html = '';
+        cameras.forEach((camera, index) => {
+            html += `
+                <div class="card bg-secondary mb-2" data-camera-index="${index}">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <label class="form-label small mb-1">Name</label>
+                                <input type="text" class="form-control form-control-sm camera-name"
+                                       value="${camera.name}" data-index="${index}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small mb-1">Protocol</label>
+                                <select class="form-select form-select-sm camera-protocol" data-index="${index}">
+                                    <option value="rtsp" ${camera.protocol === 'rtsp' ? 'selected' : ''}>RTSP</option>
+                                    <option value="http" ${camera.protocol === 'http' ? 'selected' : ''}>HTTP/MJPEG</option>
+                                    <option value="auto" ${camera.protocol === 'auto' ? 'selected' : ''}>Auto-detect</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1">URL</label>
+                                <input type="text" class="form-control form-control-sm camera-url"
+                                       value="${camera.url}" data-index="${index}">
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <label class="form-label small mb-1">&nbsp;</label>
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <button class="btn btn-sm btn-info" onclick="testCamera(${index})" title="Test Connection">
+                                        <i class="bi bi-wifi"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" onclick="updateCamera(${index})" title="Save">
+                                        <i class="bi bi-save"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteCamera(${index})" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="camera-test-result-${index}" class="mt-2" style="display: none;"></div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // Add camera
+    document.getElementById('add-camera-btn').addEventListener('click', function() {
+        const name = document.getElementById('new-camera-name').value.trim();
+        const protocol = document.getElementById('new-camera-protocol').value;
+        const url = document.getElementById('new-camera-url').value.trim();
+
+        if (!name || !url) {
+            alert('Please enter a camera name and URL');
+            return;
+        }
+
+        fetch('/plugin/ip_camera/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'add',
+                name: name,
+                protocol: protocol,
+                url: url
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                document.getElementById('new-camera-name').value = '';
+                document.getElementById('new-camera-url').value = '';
+                loadCameras();
+            } else {
+                alert('Failed to add camera: ' + data.msg);
+            }
+        })
+        .catch(error => {
+            console.error('Error adding camera:', error);
+            alert('Error adding camera');
+        });
+    });
+
+    // Update camera
+    window.updateCamera = function(index) {
+        const card = document.querySelector(`[data-camera-index="${index}"]`);
+        const name = card.querySelector('.camera-name').value.trim();
+        const protocol = card.querySelector('.camera-protocol').value;
+        const url = card.querySelector('.camera-url').value.trim();
+
+        if (!name || !url) {
+            alert('Please enter a camera name and URL');
+            return;
+        }
+
+        fetch('/plugin/ip_camera/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'update',
+                index: index,
+                name: name,
+                protocol: protocol,
+                url: url
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                alert('Camera updated successfully');
+                loadCameras();
+            } else {
+                alert('Failed to update camera: ' + data.msg);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating camera:', error);
+            alert('Error updating camera');
+        });
+    };
+
+    // Delete camera
+    window.deleteCamera = function(index) {
+        if (!confirm('Are you sure you want to delete this camera?')) {
+            return;
+        }
+
+        fetch('/plugin/ip_camera/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'delete',
+                index: index
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                loadCameras();
+            } else {
+                alert('Failed to delete camera: ' + data.msg);
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting camera:', error);
+            alert('Error deleting camera');
+        });
+    };
+
+    // Test camera connection (new camera)
+    document.getElementById('test-new-camera-btn').addEventListener('click', function() {
+        const name = document.getElementById('new-camera-name').value.trim();
+        const protocol = document.getElementById('new-camera-protocol').value;
+        const url = document.getElementById('new-camera-url').value.trim();
+
+        if (!url) {
+            alert('Please enter a camera URL to test');
+            return;
+        }
+
+        const resultDiv = document.getElementById('new-camera-test-result');
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div class="alert alert-info mb-0"><i class="bi bi-hourglass-split"></i> Testing connection...</div>';
+
+        fetch('/plugin/ip_camera/test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                url: url,
+                protocol: protocol
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                resultDiv.innerHTML = `<div class="alert alert-success mb-0"><i class="bi bi-check-circle"></i> ${data.msg}</div>`;
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger mb-0"><i class="bi bi-x-circle"></i> ${data.msg}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error testing camera:', error);
+            resultDiv.innerHTML = `<div class="alert alert-danger mb-0"><i class="bi bi-x-circle"></i> Connection test failed: ${error.message}</div>`;
+        });
+    });
+
+    // Test camera connection (existing camera)
+    window.testCamera = function(index) {
+        const card = document.querySelector(`[data-camera-index="${index}"]`);
+        const url = card.querySelector('.camera-url').value.trim();
+        const protocol = card.querySelector('.camera-protocol').value;
+
+        if (!url) {
+            alert('Please enter a camera URL to test');
+            return;
+        }
+
+        const resultDiv = document.getElementById(`camera-test-result-${index}`);
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div class="alert alert-info mb-0 small"><i class="bi bi-hourglass-split"></i> Testing connection...</div>';
+
+        fetch('/plugin/ip_camera/test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                url: url,
+                protocol: protocol
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                resultDiv.innerHTML = `<div class="alert alert-success mb-0 small"><i class="bi bi-check-circle"></i> ${data.msg}</div>`;
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger mb-0 small"><i class="bi bi-x-circle"></i> ${data.msg}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error testing camera:', error);
+            resultDiv.innerHTML = `<div class="alert alert-danger mb-0 small"><i class="bi bi-x-circle"></i> Connection test failed: ${error.message}</div>`;
+        });
+    };
+
+    // Close button handler
+    document.getElementById('ip-camera-cancel-settings').addEventListener('click', function() {
+        const panel = document.getElementById('plugin-settings-ip_camera');
+        if (panel) panel.style.display = 'none';
+    });
+
+    // Load cameras on init
+    loadCameras();
+})();
+</script>

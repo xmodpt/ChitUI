@@ -1,0 +1,20 @@
+{
+    "name": "IP Camera",
+    "version": "1.0.0",
+    "author": "ChitUI Plus",
+    "description": "Stream IP cameras using RTSP, HTTP, or other protocols. Supports OpenCV, GStreamer, and FFmpeg.",
+    "enabled": true,
+    "ui_integration": {
+        "type": "tab",
+        "title": "IP Camera",
+        "icon": "bi bi-camera-video",
+        "position": "main"
+    },
+    "settings_schema": {
+        "cameras": {
+            "type": "array",
+            "description": "List of configured IP cameras",
+            "default": []
+        }
+    }
+}

@@ -1,0 +1,482 @@
+<!-- Terminal Plugin UI -->
+<div class="card terminal-card mt-4">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="printer-comm-tab" data-bs-toggle="tab" data-bs-target="#printer-comm" type="button" role="tab">
+          <i class="bi bi-printer"></i> Printer Communication
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="chitui-logs-tab" data-bs-toggle="tab" data-bs-target="#chitui-logs" type="button" role="tab">
+          <i class="bi bi-terminal-fill"></i> Python Console
+        </button>
+      </li>
+    </ul>
+  </div>
+  <div class="card-body p-0">
+    <div class="tab-content">
+      <!-- Printer Communication Tab -->
+      <div class="tab-pane fade show active" id="printer-comm" role="tabpanel">
+        <div class="terminal-header d-flex justify-content-between align-items-center p-2">
+          <h6 class="mb-0">
+            <i class="bi bi-terminal"></i> Terminal
+            <span class="badge bg-info ms-2" id="filterBadge" style="font-size: 0.7rem;">
+              <i class="bi bi-funnel"></i> Filtered
+            </span>
+          </h6>
+          <div>
+            <button class="btn btn-sm btn-outline-info" id="terminalToggleFilter" title="Toggle message filtering">
+              <i class="bi bi-funnel-fill"></i> Filter
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="terminalClear">
+              <i class="bi bi-x-circle"></i> Clear
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="terminalToggleScroll">
+              <i class="bi bi-arrow-down-circle"></i> Auto-scroll
+            </button>
+          </div>
+        </div>
+        <div class="terminal-output" id="terminalOutput">
+          <div class="terminal-welcome">
+            ChitUI Terminal - Ready
+            <br>
+            Monitoring printer communication...
+            <br>
+            <span style="color: #00bfff;">Filter Active:</span> Showing only System Commands, Print Commands, Print Status, and System Errors
+          </div>
+        </div>
+        <div class="terminal-input-container">
+          <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input
+              type="text"
+              class="form-control"
+              id="terminalInput"
+              placeholder='Enter: 0 or 1 or {"Cmd":258,"Data":{"Url":"/usb"}}'
+              autocomplete="off"
+            >
+            <button class="btn btn-primary" id="terminalSend">
+              <i class="bi bi-send"></i> Send
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Python Console Tab -->
+      <div class="tab-pane fade" id="chitui-logs" role="tabpanel">
+        <div class="terminal-header d-flex justify-content-between align-items-center p-2">
+          <h6 class="mb-0">
+            <i class="bi bi-terminal-fill"></i> Live Python Console
+            <small class="text-muted ms-2" id="logFilePath">stdout/stderr</small>
+          </h6>
+          <div>
+            <button class="btn btn-sm btn-outline-secondary" id="logRefresh" title="Refresh logs">
+              <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="logClear">
+              <i class="bi bi-x-circle"></i> Clear
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="logToggleScroll">
+              <i class="bi bi-arrow-down-circle"></i> Auto-scroll
+            </button>
+            <button class="btn btn-sm btn-outline-primary" id="logAutoRefresh" title="Auto-refresh every 2 seconds">
+              <i class="bi bi-arrow-repeat"></i> Auto
+            </button>
+          </div>
+        </div>
+        <div class="terminal-output" id="logOutput">
+          <div class="terminal-welcome">
+            Loading Python console output...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.terminal-card {
+  margin-top: 1rem;
+  background-color: var(--bs-dark);
+  border-color: var(--bs-secondary);
+}
+
+.terminal-card .nav-tabs {
+  border-bottom: none;
+}
+
+.terminal-card .nav-link {
+  color: var(--bs-secondary-color);
+  border: 1px solid transparent;
+  border-bottom: none;
+}
+
+.terminal-card .nav-link:hover {
+  color: var(--bs-light);
+  border-color: var(--bs-secondary);
+}
+
+.terminal-card .nav-link.active {
+  color: var(--bs-light);
+  background-color: #1a1d20;
+  border-color: var(--bs-secondary);
+  border-bottom-color: #1a1d20;
+}
+
+.terminal-header {
+  background-color: #2a2d30;
+  border-bottom: 1px solid var(--bs-secondary);
+}
+
+.terminal-output {
+  height: 400px;
+  overflow-y: auto;
+  background-color: #1a1d20;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  padding: 1rem;
+}
+
+.terminal-welcome {
+  color: #888;
+  margin-bottom: 1rem;
+}
+
+.terminal-message {
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+  font-size: 0.85rem;
+}
+
+.terminal-timestamp {
+  color: #666;
+  white-space: nowrap;
+}
+
+.terminal-direction {
+  font-weight: bold;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  white-space: nowrap;
+}
+
+.terminal-direction.send {
+  color: #ffa500;
+}
+
+.terminal-direction.recv {
+  color: #00ff00;
+}
+
+.terminal-printer-id {
+  color: #00bfff;
+  margin-right: 0.5rem;
+  white-space: nowrap;
+}
+
+.terminal-content {
+  color: #e0e0e0;
+  word-wrap: break-word;
+}
+
+.terminal-input-container {
+  padding: 0.75rem;
+  background-color: #2a2d30;
+  border-top: 1px solid var(--bs-secondary);
+}
+
+.terminal-input-container .input-group-text {
+  background-color: #1a1d20;
+  color: #00ff00;
+  border-color: var(--bs-secondary);
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+}
+
+.terminal-input-container .form-control {
+  background-color: #1a1d20;
+  color: #00ff00;
+  border-color: var(--bs-secondary);
+  font-family: 'Courier New', monospace;
+}
+
+.terminal-input-container .form-control:focus {
+  background-color: #1a1d20;
+  color: #00ff00;
+  border-color: #00ff00;
+  box-shadow: 0 0 0 0.25rem rgba(0, 255, 0, 0.25);
+}
+
+/* Log-specific styles */
+.log-line {
+  margin-bottom: 0.2rem;
+  line-height: 1.3;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.log-line.error {
+  color: #ff6b6b;
+}
+
+.log-line.warning {
+  color: #ffa500;
+}
+
+.log-line.info {
+  color: #4dabf7;
+}
+
+.log-line.success {
+  color: #51cf66;
+}
+
+.log-line.debug {
+  color: #888;
+}
+</style>
+
+<script>
+(function() {
+  // ========================================
+  // Printer Communication Tab
+  // ========================================
+  let autoScroll = true;
+  let filterEnabled = true;
+  const output = document.getElementById('terminalOutput');
+  const input = document.getElementById('terminalInput');
+  const filterBadge = document.getElementById('filterBadge');
+  const filterButton = document.getElementById('terminalToggleFilter');
+
+  // Load filter settings
+  fetch('/plugin/terminal/filter')
+    .then(r => r.json())
+    .then(data => {
+      filterEnabled = data.enabled;
+      updateFilterUI();
+    });
+
+  // Filter toggle
+  filterButton.addEventListener('click', function() {
+    filterEnabled = !filterEnabled;
+    fetch('/plugin/terminal/filter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: filterEnabled })
+    })
+    .then(r => r.json())
+    .then(data => {
+      filterEnabled = data.enabled;
+      updateFilterUI();
+      addLocalMessage(filterEnabled ?
+        'Filter ENABLED: Showing only System Commands, Print Commands, Print Status, System Errors' :
+        'Filter DISABLED: Showing all messages');
+    });
+  });
+
+  function updateFilterUI() {
+    if (filterEnabled) {
+      filterBadge.style.display = 'inline-block';
+      filterButton.classList.add('active');
+      filterButton.classList.remove('btn-outline-info');
+      filterButton.classList.add('btn-info');
+    } else {
+      filterBadge.style.display = 'none';
+      filterButton.classList.remove('active');
+      filterButton.classList.add('btn-outline-info');
+      filterButton.classList.remove('btn-info');
+    }
+  }
+
+  // Auto-scroll toggle
+  document.getElementById('terminalToggleScroll').addEventListener('click', function() {
+    autoScroll = !autoScroll;
+    this.classList.toggle('active', autoScroll);
+  });
+
+  // Clear button
+  document.getElementById('terminalClear').addEventListener('click', function() {
+    output.innerHTML = '<div class="terminal-welcome">Terminal cleared</div>';
+    fetch('/plugin/terminal/clear', { method: 'POST' });
+  });
+
+  // Send command
+  function sendCommand() {
+    const command = input.value.trim();
+    if (!command) return;
+
+    if (typeof currentPrinter === 'undefined' || !currentPrinter) {
+      addLocalMessage('ERROR: No printer selected. Please select a printer first.');
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(command);
+      socket.emit('terminal_send_command', {
+        printer_id: currentPrinter,
+        command: parsed
+      });
+    } catch (e) {
+      socket.emit('terminal_send_command', {
+        printer_id: currentPrinter,
+        command: command
+      });
+    }
+
+    input.value = '';
+  }
+
+  document.getElementById('terminalSend').addEventListener('click', sendCommand);
+  input.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      sendCommand();
+    }
+  });
+
+  // Listen for terminal messages
+  socket.on('terminal_message', function(data) {
+    const msg = document.createElement('div');
+    msg.className = 'terminal-message';
+
+    const direction = data.direction.toLowerCase();
+    const directionClass = direction === 'send' ? 'send' : 'recv';
+    const directionText = direction === 'send' ? '>>>' : '<<<';
+
+    msg.innerHTML = `
+      <span class="terminal-timestamp">[${data.timestamp}]</span>
+      <span class="terminal-direction ${directionClass}">${directionText}</span>
+      <span class="terminal-printer-id">${data.printer_id.substring(0, 8)}</span>
+      <span class="terminal-content">${escapeHtml(data.message)}</span>
+    `;
+
+    output.appendChild(msg);
+
+    if (autoScroll) {
+      output.scrollTop = output.scrollHeight;
+    }
+  });
+
+  function addLocalMessage(message) {
+    const msg = document.createElement('div');
+    msg.className = 'terminal-message';
+    msg.innerHTML = `<span class="terminal-timestamp">[${getCurrentTime()}]</span><span style="color: #ff0000;">${escapeHtml(message)}</span>`;
+    output.appendChild(msg);
+    if (autoScroll) {
+      output.scrollTop = output.scrollHeight;
+    }
+  }
+
+  function getCurrentTime() {
+    const now = new Date();
+    return now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Load existing messages on startup
+  fetch('/plugin/terminal/messages')
+    .then(r => r.json())
+    .then(data => {
+      data.messages.forEach(msg => {
+        socket.emit('terminal_message', msg);
+      });
+    });
+
+  // ========================================
+  // ChitUI Logs Tab
+  // ========================================
+  let logAutoScroll = true;
+  let logAutoRefresh = false;
+  let logRefreshInterval = null;
+  const logOutput = document.getElementById('logOutput');
+  const logFilePath = document.getElementById('logFilePath');
+
+  function loadLogs() {
+    fetch('/plugin/terminal/console')
+      .then(r => r.json())
+      .then(data => {
+        logFilePath.textContent = `${data.source} (${data.count} lines)`;
+
+        // Clear and populate
+        logOutput.innerHTML = '';
+
+        data.lines.forEach(line => {
+          const logLine = document.createElement('div');
+          logLine.className = 'log-line';
+
+          // Colorize based on log level
+          const lineLower = line.toLowerCase();
+          if (lineLower.includes('error') || lineLower.includes('✗') || lineLower.includes('failed')) {
+            logLine.classList.add('error');
+          } else if (lineLower.includes('warning') || lineLower.includes('⚠')) {
+            logLine.classList.add('warning');
+          } else if (lineLower.includes('info') || lineLower.includes('ℹ')) {
+            logLine.classList.add('info');
+          } else if (lineLower.includes('success') || lineLower.includes('✓')) {
+            logLine.classList.add('success');
+          } else if (lineLower.includes('debug')) {
+            logLine.classList.add('debug');
+          }
+
+          logLine.textContent = line;
+          logOutput.appendChild(logLine);
+        });
+
+        if (logAutoScroll) {
+          logOutput.scrollTop = logOutput.scrollHeight;
+        }
+      })
+      .catch(err => {
+        logOutput.innerHTML = '<div class="terminal-welcome" style="color: #ff6b6b;">Error loading console: ' + err + '</div>';
+      });
+  }
+
+  // Refresh button
+  document.getElementById('logRefresh').addEventListener('click', function() {
+    loadLogs();
+  });
+
+  // Clear button
+  document.getElementById('logClear').addEventListener('click', function() {
+    logOutput.innerHTML = '<div class="terminal-welcome">Log view cleared (file not affected)</div>';
+  });
+
+  // Auto-scroll toggle
+  document.getElementById('logToggleScroll').addEventListener('click', function() {
+    logAutoScroll = !logAutoScroll;
+    this.classList.toggle('active', logAutoScroll);
+  });
+
+  // Auto-refresh toggle
+  document.getElementById('logAutoRefresh').addEventListener('click', function() {
+    logAutoRefresh = !logAutoRefresh;
+    this.classList.toggle('active', logAutoRefresh);
+
+    if (logAutoRefresh) {
+      this.classList.remove('btn-outline-primary');
+      this.classList.add('btn-primary');
+      logRefreshInterval = setInterval(loadLogs, 2000);
+      loadLogs(); // Load immediately
+    } else {
+      this.classList.add('btn-outline-primary');
+      this.classList.remove('btn-primary');
+      if (logRefreshInterval) {
+        clearInterval(logRefreshInterval);
+        logRefreshInterval = null;
+      }
+    }
+  });
+
+  // Load logs when tab is activated
+  document.getElementById('chitui-logs-tab').addEventListener('shown.bs.tab', function() {
+    loadLogs();
+  });
+})();
+</script>

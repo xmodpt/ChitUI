@@ -1,0 +1,353 @@
+<div class="container-fluid p-3">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h5 class="mb-3">
+                <i class="bi bi-cpu me-2"></i>System Information
+            </h5>
+        </div>
+    </div>
+
+    <!-- System Info Cards -->
+    <div class="row g-3 mb-4" id="system-info">
+        <div class="col-md-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        <i class="bi bi-hdd me-1"></i>Device
+                    </h6>
+                    <p class="card-text mb-1"><strong id="hostname">-</strong></p>
+                    <small class="text-muted" id="model">-</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        <i class="bi bi-ubuntu me-1"></i>Operating System
+                    </h6>
+                    <p class="card-text mb-1" id="os">-</p>
+                    <small class="text-muted">Python <span id="python-version">-</span></small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        <i class="bi bi-cpu me-1"></i>CPU
+                    </h6>
+                    <p class="card-text mb-1"><span id="cpu-cores">-</span> Cores</p>
+                    <small class="text-muted"><span id="cpu-threads">-</span> Threads</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        <i class="bi bi-clock-history me-1"></i>Uptime
+                    </h6>
+                    <p class="card-text" id="uptime">-</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-time Stats -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <h5 class="mb-3">
+                <i class="bi bi-activity me-2"></i>Real-time Statistics
+                <button class="btn btn-sm btn-outline-primary ms-2" onclick="refreshStats()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </h5>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <!-- CPU Usage -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3">
+                        <i class="bi bi-cpu-fill me-1"></i>CPU Usage
+                        <span class="float-end badge bg-primary" id="cpu-percent">0%</span>
+                    </h6>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar" id="cpu-progress" role="progressbar" style="width: 0%">0%</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-speedometer2 me-1"></i>
+                            <span id="cpu-freq">-</span> MHz
+                        </small>
+                        <small class="text-muted" id="cpu-temp-display" data-bs-toggle="tooltip" data-bs-placement="top" title="CPU core temperature (internal chip sensor). The case/board feels cooler to the touch than this reading.">
+                            <i class="bi bi-thermometer-half me-1"></i>
+                            CPU: <span id="cpu-temp">-</span>
+                        </small>
+                    </div>
+                    <!-- Per-core usage -->
+                    <div class="mt-3" id="cpu-cores-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Usage -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3">
+                        <i class="bi bi-memory me-1"></i>Memory Usage
+                        <span class="float-end badge bg-info" id="memory-percent">0%</span>
+                    </h6>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar bg-info" id="memory-progress" role="progressbar" style="width: 0%">0%</div>
+                    </div>
+                    <small class="text-muted">
+                        <span id="memory-used">-</span> GB / <span id="memory-total">-</span> GB
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disk Usage -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3">
+                        <i class="bi bi-hdd-fill me-1"></i>Disk Usage
+                        <span class="float-end badge bg-warning" id="disk-percent">0%</span>
+                    </h6>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar bg-warning" id="disk-progress" role="progressbar" style="width: 0%">0%</div>
+                    </div>
+                    <small class="text-muted">
+                        <span id="disk-used">-</span> GB / <span id="disk-total">-</span> GB
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Stats -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3">
+                        <i class="bi bi-wifi me-1"></i>Network I/O
+                    </h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">
+                            <i class="bi bi-arrow-up-circle me-1"></i>Sent:
+                        </span>
+                        <span id="network-sent">- MB</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">
+                            <i class="bi bi-arrow-down-circle me-1"></i>Received:
+                        </span>
+                        <span id="network-recv">- MB</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Auto-refresh interval (5 seconds)
+let refreshInterval;
+let isRefreshing = false;
+
+// Show error message
+function showError(message) {
+    const container = document.querySelector('.container-fluid');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+    alertDiv.innerHTML = `
+        <strong>⚠️ Error:</strong> ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    container.insertBefore(alertDiv, container.firstChild);
+}
+
+// Load system information (static data)
+function loadSystemInfo() {
+    fetch('/plugin/rpi_stats/system-info')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error('Error loading system info:', data.error);
+                showError('Failed to load system information. Is psutil installed? Run: pip3 install psutil');
+                return;
+            }
+
+            document.getElementById('hostname').textContent = data.hostname || '-';
+            document.getElementById('model').textContent = data.model || '-';
+            document.getElementById('os').textContent = data.os || '-';
+            document.getElementById('python-version').textContent = data.python_version || '-';
+            document.getElementById('cpu-cores').textContent = data.cpu_cores || '-';
+            document.getElementById('cpu-threads').textContent = data.cpu_threads || '-';
+            document.getElementById('uptime').textContent = data.uptime || '-';
+        })
+        .catch(error => {
+            console.error('Error loading system info:', error);
+            showError(`Failed to connect to stats API: ${error.message}. Make sure psutil is installed (pip3 install psutil) and the server is running.`);
+        });
+}
+
+// Load current statistics
+function loadStats() {
+    if (isRefreshing) return;
+    isRefreshing = true;
+
+    fetch('/plugin/rpi_stats/stats')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error('Error loading stats:', data.error);
+                showError('Cannot load statistics. Please install psutil: pip3 install psutil');
+                isRefreshing = false;
+                return;
+            }
+
+            // CPU
+            updateProgress('cpu', data.cpu.percent);
+            document.getElementById('cpu-freq').textContent = data.cpu.frequency_mhz || '-';
+
+            // Temperature
+            if (data.temperature !== null) {
+                document.getElementById('cpu-temp').textContent = data.temperature + '°C';
+                document.getElementById('cpu-temp-display').style.display = 'inline';
+            } else {
+                document.getElementById('cpu-temp-display').style.display = 'none';
+            }
+
+            // Per-core CPU usage
+            if (data.cpu.per_core && data.cpu.per_core.length > 0) {
+                const container = document.getElementById('cpu-cores-container');
+                container.innerHTML = '<small class="text-muted d-block mt-2 mb-1">Per-core usage:</small>';
+                data.cpu.per_core.forEach((percent, index) => {
+                    const coreDiv = document.createElement('div');
+                    coreDiv.className = 'progress mb-1';
+                    coreDiv.style.height = '8px';
+                    coreDiv.innerHTML = `<div class="progress-bar progress-bar-striped" style="width: ${percent}%"></div>`;
+                    container.appendChild(coreDiv);
+                });
+            }
+
+            // Memory
+            updateProgress('memory', data.memory.percent);
+            document.getElementById('memory-used').textContent = data.memory.used_gb;
+            document.getElementById('memory-total').textContent = data.memory.total_gb;
+
+            // Disk
+            updateProgress('disk', data.disk.percent);
+            document.getElementById('disk-used').textContent = data.disk.used_gb;
+            document.getElementById('disk-total').textContent = data.disk.total_gb;
+
+            // Network
+            document.getElementById('network-sent').textContent = data.network.sent_mb + ' MB';
+            document.getElementById('network-recv').textContent = data.network.recv_mb + ' MB';
+
+            isRefreshing = false;
+        })
+        .catch(error => {
+            console.error('Error loading stats:', error);
+            isRefreshing = false;
+        });
+}
+
+
+// Update progress bar
+function updateProgress(type, percent) {
+    const progressBar = document.getElementById(`${type}-progress`);
+    const percentBadge = document.getElementById(`${type}-percent`);
+
+    progressBar.style.width = percent + '%';
+    progressBar.textContent = percent + '%';
+    percentBadge.textContent = percent + '%';
+
+    // Change color based on usage
+    progressBar.className = 'progress-bar';
+    if (percent >= 90) {
+        progressBar.classList.add('bg-danger');
+    } else if (percent >= 75) {
+        progressBar.classList.add('bg-warning');
+    } else if (type === 'memory') {
+        progressBar.classList.add('bg-info');
+    } else if (type === 'disk') {
+        progressBar.classList.add('bg-warning');
+    }
+}
+
+// Refresh all data
+function refreshStats() {
+    loadStats();
+}
+
+// Initialize - wait a moment for DOM to be ready after injection
+(function() {
+    console.log('RPi Stats plugin initializing...');
+
+    // Use setTimeout to ensure DOM elements are fully rendered after injection
+    setTimeout(function() {
+        console.log('Loading RPi Stats data...');
+
+        // Initialize Bootstrap tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Load initial data
+        loadSystemInfo();
+        refreshStats();
+
+        // Auto-refresh every 5 seconds
+        refreshInterval = setInterval(refreshStats, 5000);
+
+        console.log('RPi Stats plugin initialized - auto-refresh enabled');
+    }, 100); // Small delay to ensure DOM is ready
+})();
+
+// Clean up interval when plugin is unloaded
+window.addEventListener('beforeunload', function() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+</script>
+
+<style>
+.card {
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.progress {
+    border-radius: 6px;
+}
+
+.table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+}
+</style>
