@@ -1,0 +1,314 @@
+<div class="card bg-dark border-secondary mt-3">
+    <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-droplet-fill"></i> Leak Detector Configuration</h6>
+
+        <!-- ESP32 Devices Section -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-3"><i class="bi bi-cpu"></i> ESP32 Devices</h6>
+
+                <div id="leak-devices-list" class="mb-3">
+                    <div class="alert alert-info mb-0">
+                        <small><i class="bi bi-info-circle"></i> No devices registered yet. Devices will appear here once they connect to ChitUI.</small>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Connected devices are automatically detected and added</small>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="leak-refresh-devices">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="card-title mb-3"><i class="bi bi-thermometer"></i> Sensor Configuration</h6>
+
+        <!-- Sensor 1 -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle mb-0">Sensor 1</h6>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="leak-sensor1-enabled" checked>
+                        <label class="form-check-label" for="leak-sensor1-enabled">Enabled</label>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Sensor Name</label>
+                        <input type="text" class="form-control" id="leak-sensor1-name" placeholder="Sensor 1">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-control" id="leak-sensor1-location" placeholder="Vat Center">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sensor 2 -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle mb-0">Sensor 2</h6>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="leak-sensor2-enabled" checked>
+                        <label class="form-check-label" for="leak-sensor2-enabled">Enabled</label>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Sensor Name</label>
+                        <input type="text" class="form-control" id="leak-sensor2-name" placeholder="Sensor 2">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-control" id="leak-sensor2-location" placeholder="Front Edge">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sensor 3 -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle mb-0">Sensor 3</h6>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="leak-sensor3-enabled" checked>
+                        <label class="form-check-label" for="leak-sensor3-enabled">Enabled</label>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Sensor Name</label>
+                        <input type="text" class="form-control" id="leak-sensor3-name" placeholder="Sensor 3">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-control" id="leak-sensor3-location" placeholder="Build Plate">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info mb-3">
+            <small>
+                <i class="bi bi-info-circle"></i> <strong>Note:</strong> Sensor configurations are used for display purposes.
+                The ESP32 device handles actual leak detection logic and thresholds.
+            </small>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" id="leak-cancel-settings">Cancel</button>
+            <button type="button" class="btn btn-primary" id="leak-save-settings">
+                <i class="bi bi-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .leak-device-card {
+        background: var(--bs-dark, #1a1d20);
+        border: 1px solid var(--bs-border-color, #495057);
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 8px;
+    }
+
+    .leak-device-card .leak-device-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .leak-device-card .leak-device-title {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .leak-device-card .leak-device-status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .leak-device-card .leak-device-status.online {
+        background-color: var(--success-color, #06d6a0);
+        color: #000;
+    }
+
+    .leak-device-card .leak-device-status.offline {
+        background-color: #6c757d;
+        color: #fff;
+    }
+
+    .leak-device-card .leak-device-info {
+        font-size: 12px;
+        opacity: 0.8;
+    }
+</style>
+
+<script>
+(function() {
+    let currentConfig = {};
+    let knownDevices = [];
+
+    // Load current configuration
+    loadConfiguration();
+
+    function loadConfiguration() {
+        fetch('/plugin/leak_detector/config')
+            .then(response => response.json())
+            .then(config => {
+                currentConfig = config;
+
+                // Populate sensor settings
+                for (let i = 1; i <= 3; i++) {
+                    document.getElementById(`leak-sensor${i}-name`).value = config[`sensor${i}_name`] || `Sensor ${i}`;
+                    document.getElementById(`leak-sensor${i}-location`).value = config[`sensor${i}_location`] || '';
+                    document.getElementById(`leak-sensor${i}-enabled`).checked = config[`sensor${i}_enabled`] !== false;
+                }
+
+                // Load and display devices
+                knownDevices = config.devices || [];
+                updateDevicesList();
+            })
+            .catch(error => {
+                console.error('Error loading config:', error);
+                alert('Failed to load configuration');
+            });
+    }
+
+    function updateDevicesList() {
+        const container = document.getElementById('leak-devices-list');
+
+        if (!knownDevices || knownDevices.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-info mb-0">
+                    <small><i class="bi bi-info-circle"></i> No devices registered yet. Devices will appear here once they connect to ChitUI.</small>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        knownDevices.forEach(device => {
+            const isOnline = device.online || false;
+            html += `
+                <div class="leak-device-card">
+                    <div class="leak-device-header">
+                        <div class="leak-device-title">
+                            <i class="bi bi-cpu"></i> ${device.chip || 'ESP32'}
+                        </div>
+                        <span class="leak-device-status ${isOnline ? 'online' : 'offline'}">
+                            ${isOnline ? 'Online' : 'Offline'}
+                        </span>
+                    </div>
+                    <div class="leak-device-info">
+                        <div><strong>IP:</strong> ${device.ip || 'N/A'}</div>
+                        <div><strong>Version:</strong> ${device.version || 'N/A'}</div>
+                        ${device.last_update ? `<div><strong>Last Update:</strong> ${new Date(device.last_update).toLocaleString()}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // Refresh devices button
+    document.getElementById('leak-refresh-devices').addEventListener('click', function() {
+        fetch('/plugin/leak_detector/status')
+            .then(response => response.json())
+            .then(data => {
+                // Update devices list if there's a connected device
+                if (data.device && data.device.online && data.device.ip) {
+                    const existingDevice = knownDevices.find(d => d.ip === data.device.ip);
+                    if (existingDevice) {
+                        Object.assign(existingDevice, data.device);
+                    } else {
+                        knownDevices.push(data.device);
+                    }
+                    updateDevicesList();
+                } else {
+                    alert('No devices currently connected');
+                }
+            })
+            .catch(error => {
+                console.error('Error refreshing devices:', error);
+                alert('Failed to refresh devices');
+            });
+    });
+
+    // Save button handler
+    document.getElementById('leak-save-settings').addEventListener('click', function() {
+        const newConfig = {
+            devices: knownDevices
+        };
+
+        // Add sensor configurations
+        for (let i = 1; i <= 3; i++) {
+            newConfig[`sensor${i}_name`] = document.getElementById(`leak-sensor${i}-name`).value;
+            newConfig[`sensor${i}_location`] = document.getElementById(`leak-sensor${i}-location`).value;
+            newConfig[`sensor${i}_enabled`] = document.getElementById(`leak-sensor${i}-enabled`).checked;
+        }
+
+        // Validate sensor names
+        for (let i = 1; i <= 3; i++) {
+            if (!newConfig[`sensor${i}_name`].trim()) {
+                alert(`Sensor ${i} name cannot be empty`);
+                return;
+            }
+        }
+
+        // Save configuration
+        fetch('/plugin/leak_detector/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newConfig)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Settings saved successfully!');
+                // Hide settings panel
+                const panel = document.getElementById('plugin-settings-leak_detector');
+                if (panel) panel.style.display = 'none';
+
+                // Reload the page to reflect changes
+                setTimeout(() => window.location.reload(), 500);
+            } else {
+                alert('Failed to save settings: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error saving settings:', error);
+            alert('Error saving settings');
+        });
+    });
+
+    // Cancel button handler
+    document.getElementById('leak-cancel-settings').addEventListener('click', function() {
+        const panel = document.getElementById('plugin-settings-leak_detector');
+        if (panel) panel.style.display = 'none';
+    });
+
+    // Listen for config updates via WebSocket
+    if (typeof socket !== 'undefined') {
+        socket.on('leak_detector_config_updated', function(config) {
+            currentConfig = config;
+            console.log('Leak detector config updated:', config);
+        });
+    }
+})();
+</script>

@@ -409,9 +409,11 @@
         sensors: {},
         alerts: []
     };
+    let sensorConfig = {};
 
     // Initialize
     initLeakDetector();
+    loadSensorConfig();
 
     function initLeakDetector() {
         console.log('[Leak Detector] Initializing plugin');
@@ -458,8 +460,51 @@
             showNotification(alert);
         });
 
+        socket.on('leak_detector_config_updated', function(config) {
+            console.log('[Leak Detector] Config updated:', config);
+            sensorConfig = config;
+            updateSensorLabels(config);
+        });
+
         // Load initial data
         loadLeakStatus();
+    }
+
+    function loadSensorConfig() {
+        fetch('/plugin/leak_detector/config')
+            .then(r => r.json())
+            .then(config => {
+                sensorConfig = config;
+                updateSensorLabels(config);
+            })
+            .catch(err => console.error('[Leak Detector] Error loading config:', err));
+    }
+
+    function updateSensorLabels(config) {
+        // Update sensor names and locations from config
+        for (let i = 1; i <= 3; i++) {
+            const sensorCard = document.getElementById(`sensor${i}`);
+            if (!sensorCard) continue;
+
+            const enabled = config[`sensor${i}_enabled`] !== false;
+            const name = config[`sensor${i}_name`] || `Sensor ${i}`;
+            const location = config[`sensor${i}_location`] || '';
+
+            // Update name
+            const nameEl = sensorCard.querySelector('.leak-sensor-name');
+            if (nameEl) nameEl.textContent = name;
+
+            // Update location
+            const locationEl = sensorCard.querySelector('.leak-sensor-location');
+            if (locationEl) locationEl.textContent = location;
+
+            // Show/hide based on enabled state
+            if (enabled) {
+                sensorCard.style.display = '';
+            } else {
+                sensorCard.style.display = 'none';
+            }
+        }
     }
 
     function toggleLeakPanel() {
