@@ -80,6 +80,10 @@ class Plugin(ChitUIPlugin):
             'template': 'leak_detector.html'
         }
 
+    def has_settings(self):
+        """This plugin has a settings page"""
+        return True
+
     def load_config(self):
         """Load configuration from file"""
         try:

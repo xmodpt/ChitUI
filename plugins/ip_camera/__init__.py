@@ -456,3 +456,7 @@ class Plugin(ChitUIPlugin):
             'title': 'IP Camera',
             'template': 'ip_camera.html'
         }
+
+    def has_settings(self):
+        """This plugin has a settings page"""
+        return True

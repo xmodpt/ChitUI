@@ -88,6 +88,10 @@ class Plugin(ChitUIPlugin):
             'template': 'gpio_relay_control.html'
         }
 
+    def has_settings(self):
+        """This plugin has a settings page"""
+        return True
+
     def load_config(self):
         """Load configuration from file"""
         try:
