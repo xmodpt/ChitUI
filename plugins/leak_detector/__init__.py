@@ -236,12 +236,12 @@ class Plugin(ChitUIPlugin):
                 'sensors': self.sensors,
                 'alerts': self.alerts[-10:],
                 'timestamp': datetime.now().isoformat()
-            }, broadcast=True)
+            })
 
     def _emit_alert(self, alert):
         """Emit urgent leak alert notification"""
         if self.socketio:
-            self.socketio.emit('leak_detector_alert', alert, broadcast=True)
+            self.socketio.emit('leak_detector_alert', alert)
 
     def _register_esp32_endpoints(self, app):
         """Register ESP32-facing API endpoints at the main app level"""
