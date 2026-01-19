@@ -203,6 +203,9 @@ class Plugin(ChitUIPlugin):
         # Register the blueprint
         app.register_blueprint(blueprint)
 
+        # Register ESP32 API endpoints at app level
+        self._register_esp32_endpoints(app)
+
         # Register Socket.IO handlers
         self._register_socket_handlers(socketio)
 
@@ -240,99 +243,100 @@ class Plugin(ChitUIPlugin):
         if self.socketio:
             self.socketio.emit('leak_detector_alert', alert, broadcast=True)
 
+    def _register_esp32_endpoints(self, app):
+        """Register ESP32-facing API endpoints at the main app level"""
 
-# Create global plugin instance
-plugin_instance = None
+        @app.route('/api/leak_alert', methods=['POST'])
+        def leak_alert():
+            """Receive leak alert from ESP32"""
+            try:
+                data = request.get_json()
+                logger.info(f"Received leak alert: {data}")
 
+                # Create alert record
+                alert = {
+                    'sensor': data.get('sensor'),
+                    'location': data.get('location'),
+                    'value': data.get('value'),
+                    'threshold': data.get('threshold'),
+                    'timestamp': data.get('timestamp'),
+                    'device_ip': data.get('device_ip'),
+                    'received_at': datetime.now().isoformat(),
+                    'alert': True
+                }
 
-def get_plugin_instance():
-    """Get the global plugin instance"""
-    global plugin_instance
-    if plugin_instance is None:
-        plugin_instance = Plugin()
-    return plugin_instance
+                # Add to alerts list
+                self.alerts.insert(0, alert)  # Most recent first
 
+                # Limit alerts history
+                if len(self.alerts) > self.max_alerts:
+                    self.alerts = self.alerts[:self.max_alerts]
 
-# =============================================================================
-# ESP32 API Endpoints (called from ESP32 device)
-# These endpoints are registered at the main app level, not in plugin blueprint
-# =============================================================================
+                # Update sensor data
+                sensor_id = f"sensor{data.get('sensor')}"
+                self.sensors[sensor_id] = {
+                    'value': data.get('value'),
+                    'location': data.get('location'),
+                    'alert': True,
+                    'last_update': datetime.now().isoformat()
+                }
 
-def register_esp32_endpoints(app):
-    """
-    Register ESP32-facing API endpoints at the main app level.
-    These should be called from main.py when loading the plugin.
-    """
-    plugin = get_plugin_instance()
+                # Emit real-time updates
+                self._emit_alert(alert)
+                self._emit_update()
 
-    @app.route('/api/leak_alert', methods=['POST'])
-    def leak_alert():
-        """Receive leak alert from ESP32"""
-        try:
-            data = request.get_json()
+                logger.warning(f"LEAK ALERT: Sensor {data.get('sensor')} ({data.get('location')}) - Value: {data.get('value')}")
 
-            # Create alert record
-            alert = {
-                'sensor': data.get('sensor'),
-                'location': data.get('location'),
-                'value': data.get('value'),
-                'threshold': data.get('threshold'),
-                'timestamp': data.get('timestamp'),
-                'device_ip': data.get('device_ip'),
-                'received_at': datetime.now().isoformat(),
-                'alert': True
-            }
+                return jsonify({'success': True, 'message': 'Alert received'}), 200
 
-            # Add to alerts list
-            plugin.alerts.insert(0, alert)  # Most recent first
+            except Exception as e:
+                logger.error(f"Error processing leak alert: {e}")
+                return jsonify({'success': False, 'error': str(e)}), 500
 
-            # Limit alerts history
-            if len(plugin.alerts) > plugin.max_alerts:
-                plugin.alerts = plugin.alerts[:plugin.max_alerts]
+        @app.route('/api/sensor_status', methods=['POST'])
+        def sensor_status():
+            """Receive status update from ESP32"""
+            try:
+                data = request.get_json()
+                logger.info(f"Received sensor status: {data}")
 
-            # Update sensor data
-            sensor_id = f"sensor{data.get('sensor')}"
-            plugin.sensors[sensor_id] = {
-                'value': data.get('value'),
-                'location': data.get('location'),
-                'alert': True,
-                'last_update': datetime.now().isoformat()
-            }
+                # Update device status
+                self.device_status = {
+                    'online': data.get('status') == 'online',
+                    'ip': data.get('ip'),
+                    'chip': data.get('chip'),
+                    'version': data.get('version'),
+                    'last_update': datetime.now().isoformat()
+                }
 
-            # Emit real-time updates
-            plugin._emit_alert(alert)
-            plugin._emit_update()
+                # Add/update device in known devices list
+                device_ip = data.get('ip')
+                if device_ip:
+                    # Check if device exists in config
+                    existing_device = None
+                    for dev in self.config.get('devices', []):
+                        if dev.get('ip') == device_ip:
+                            existing_device = dev
+                            break
 
-            logger.warning(f"LEAK ALERT: Sensor {data.get('sensor')} ({data.get('location')}) - Value: {data.get('value')}")
+                    if existing_device:
+                        # Update existing device
+                        existing_device.update(self.device_status)
+                    else:
+                        # Add new device
+                        if 'devices' not in self.config:
+                            self.config['devices'] = []
+                        self.config['devices'].append(self.device_status.copy())
+                        self.save_config()
 
-            return jsonify({'success': True, 'message': 'Alert received'}), 200
+                # Emit update
+                self._emit_update()
 
-        except Exception as e:
-            logger.error(f"Error processing leak alert: {e}")
-            return jsonify({'success': False, 'error': str(e)}), 500
+                logger.info(f"Status update from {data.get('ip')}: {data.get('status')}")
 
-    @app.route('/api/sensor_status', methods=['POST'])
-    def sensor_status():
-        """Receive status update from ESP32"""
-        try:
-            data = request.get_json()
+                return jsonify({'success': True, 'message': 'Status received'}), 200
 
-            # Update device status
-            plugin.device_status = {
-                'online': data.get('status') == 'online',
-                'ip': data.get('ip'),
-                'chip': data.get('chip'),
-                'version': data.get('version'),
-                'last_update': datetime.now().isoformat()
-            }
+            except Exception as e:
+                logger.error(f"Error processing sensor status: {e}")
+                return jsonify({'success': False, 'error': str(e)}), 500
 
-            # Emit update
-            plugin._emit_update()
-
-            logger.info(f"Status update from {data.get('ip')}: {data.get('status')}")
-
-            return jsonify({'success': True, 'message': 'Status received'}), 200
-
-        except Exception as e:
-            logger.error(f"Error processing sensor status: {e}")
-            return jsonify({'success': False, 'error': str(e)}), 500
