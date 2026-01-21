@@ -4,10 +4,12 @@ ESP32-based resin leak detection system with real-time monitoring
 """
 
 from flask import Blueprint, jsonify, request
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import os
 import json
+import threading
+import time
 from plugins.base import ChitUIPlugin
 
 logger = logging.getLogger(__name__)
@@ -54,6 +56,13 @@ class Plugin(ChitUIPlugin):
             'version': None,
             'last_update': None
         }
+
+        # Connection monitoring
+        self.last_communication = None
+        self.connection_timeout = 360  # 6 minutes (in seconds)
+        self.connection_check_interval = 300  # 5 minutes (in seconds)
+        self.connection_monitor_thread = None
+        self.monitor_running = False
 
         # Socket.IO reference for real-time updates
         self.socketio = None
@@ -227,11 +236,15 @@ class Plugin(ChitUIPlugin):
         # Register Socket.IO handlers
         self._register_socket_handlers(socketio)
 
+        # Start connection monitoring thread
+        self._start_connection_monitor()
+
         logger.info("Leak Detector plugin started successfully")
 
     def on_shutdown(self):
         """Called when plugin is unloaded"""
         logger.info("Leak Detector plugin shutting down...")
+        self._stop_connection_monitor()
 
     def _register_socket_handlers(self, socketio):
         """Register WebSocket event handlers"""
@@ -261,6 +274,61 @@ class Plugin(ChitUIPlugin):
         if self.socketio:
             self.socketio.emit('leak_detector_alert', alert)
 
+    def _update_last_communication(self):
+        """Update the last communication timestamp"""
+        self.last_communication = datetime.now()
+        logger.debug(f"Last communication updated: {self.last_communication}")
+
+    def _check_connection_status(self):
+        """Check if device is still online based on last communication"""
+        if self.last_communication is None:
+            # Never received communication
+            if self.device_status['online']:
+                self.device_status['online'] = False
+                logger.info("Device marked as offline (never received communication)")
+                self._emit_update()
+            return
+
+        time_since_last = datetime.now() - self.last_communication
+
+        if time_since_last.total_seconds() > self.connection_timeout:
+            if self.device_status['online']:
+                self.device_status['online'] = False
+                logger.warning(f"Device marked as offline (no communication for {time_since_last.total_seconds():.0f} seconds)")
+                self._emit_update()
+
+    def _connection_monitor_loop(self):
+        """Background thread to monitor ESP32 connection"""
+        logger.info(f"Connection monitor started (checking every {self.connection_check_interval} seconds)")
+
+        while self.monitor_running:
+            try:
+                time.sleep(self.connection_check_interval)
+                if self.monitor_running:  # Check again after sleep
+                    self._check_connection_status()
+            except Exception as e:
+                logger.error(f"Error in connection monitor: {e}")
+
+    def _start_connection_monitor(self):
+        """Start the connection monitoring thread"""
+        if not self.monitor_running:
+            self.monitor_running = True
+            self.connection_monitor_thread = threading.Thread(
+                target=self._connection_monitor_loop,
+                daemon=True,
+                name="LeakDetectorConnectionMonitor"
+            )
+            self.connection_monitor_thread.start()
+            logger.info("Connection monitor thread started")
+
+    def _stop_connection_monitor(self):
+        """Stop the connection monitoring thread"""
+        if self.monitor_running:
+            self.monitor_running = False
+            if self.connection_monitor_thread:
+                self.connection_monitor_thread.join(timeout=2)
+            logger.info("Connection monitor thread stopped")
+
     def _register_esp32_endpoints(self, app):
         """Register ESP32-facing API endpoints at the main app level"""
 
@@ -270,6 +338,9 @@ class Plugin(ChitUIPlugin):
             try:
                 data = request.get_json()
                 logger.info(f"Received leak notification: {data}")
+
+                # Update last communication timestamp
+                self._update_last_communication()
 
                 sensor_num = data.get('sensor')
                 is_alert = data.get('alert', True)
@@ -357,6 +428,9 @@ class Plugin(ChitUIPlugin):
             try:
                 data = request.get_json()
                 logger.info(f"Received sensor status: {data}")
+
+                # Update last communication timestamp
+                self._update_last_communication()
 
                 # Update device status
                 self.device_status = {
