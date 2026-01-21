@@ -1,5 +1,5 @@
 <!-- Leak Detector Toolbar Icon -->
-<div class="leak-detector-toolbar" style="display: inline-block; margin-left: 3px;">
+<div class="leak-detector-toolbar">
     <button type="button" class="btn btn-sm leak-detector-btn" id="leak-detector-btn" title="Leak Detector - Offline">
         <i class="bi bi-droplet-fill"></i>
         <span class="leak-badge" id="leak-badge" style="display: none;">0</span>
@@ -76,6 +76,11 @@
     .plugin-header-item {
         display: inline-block;
         vertical-align: middle;
+        margin-left: 8px;
+    }
+
+    .plugin-header-item:first-child {
+        margin-left: 0;
     }
 
     /* Toolbar Button */
@@ -83,6 +88,13 @@
         position: relative;
         display: inline-block;
         vertical-align: middle;
+    }
+
+    /* Mobile spacing */
+    @media (max-width: 768px) {
+        .plugin-header-item {
+            margin-left: 6px;
+        }
     }
 
     .leak-detector-btn {
