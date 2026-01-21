@@ -821,6 +821,19 @@ body {
   }
 }
 
+@media (max-width: 768px) {
+  /* On mobile, ignore sidebar pinned state */
+  .app-sidebar.pinned {
+    transform: translateX(-100%);
+  }
+
+  .app-content.sidebar-pinned {
+    margin-left: 0 !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
 @media (max-width: 576px) {
   .app-header { 
     height: 56px; 
