@@ -253,9 +253,17 @@ class Plugin(ChitUIPlugin):
                 data = request.get_json()
                 logger.info(f"Received leak alert: {data}")
 
+                sensor_num = data.get('sensor')
+
+                # Check if sensor is enabled in config
+                sensor_enabled_key = f'sensor{sensor_num}_enabled'
+                if not self.config.get(sensor_enabled_key, True):
+                    logger.info(f"Ignoring alert from disabled sensor {sensor_num}")
+                    return jsonify({'success': True, 'message': 'Sensor disabled, alert ignored'}), 200
+
                 # Create alert record
                 alert = {
-                    'sensor': data.get('sensor'),
+                    'sensor': sensor_num,
                     'location': data.get('location'),
                     'value': data.get('value'),
                     'threshold': data.get('threshold'),
@@ -272,8 +280,8 @@ class Plugin(ChitUIPlugin):
                 if len(self.alerts) > self.max_alerts:
                     self.alerts = self.alerts[:self.max_alerts]
 
-                # Update sensor data
-                sensor_id = f"sensor{data.get('sensor')}"
+                # Update sensor data only if enabled
+                sensor_id = f"sensor{sensor_num}"
                 self.sensors[sensor_id] = {
                     'value': data.get('value'),
                     'location': data.get('location'),
@@ -285,7 +293,7 @@ class Plugin(ChitUIPlugin):
                 self._emit_alert(alert)
                 self._emit_update()
 
-                logger.warning(f"LEAK ALERT: Sensor {data.get('sensor')} ({data.get('location')}) - Value: {data.get('value')}")
+                logger.warning(f"LEAK ALERT: Sensor {sensor_num} ({data.get('location')}) - Value: {data.get('value')}")
 
                 return jsonify({'success': True, 'message': 'Alert received'}), 200
 
