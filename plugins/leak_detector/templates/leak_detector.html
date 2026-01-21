@@ -589,6 +589,8 @@
         const hasWarnings = (data.alerts || []).length > 0;
         const isOnline = data.device && data.device.online;
 
+        // IMPORTANT: Alert states have priority over device status
+        // Red alerts persist even when device goes offline
         if (hasCritical) {
             btn.classList.add('danger');
             btn.title = `Leak Detector - CRITICAL ALERT! (${data.alerts.length} alerts)`;

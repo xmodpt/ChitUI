@@ -280,7 +280,15 @@ class Plugin(ChitUIPlugin):
         logger.debug(f"Last communication updated: {self.last_communication}")
 
     def _check_connection_status(self):
-        """Check if device is still online based on last communication"""
+        """
+        Check if device is still online based on last communication.
+
+        IMPORTANT: This only updates device_status['online'] flag.
+        Sensor alert states (self.sensors[X]['alert']) are NOT cleared when device goes offline.
+        Red alert states persist until either:
+        - ESP32 sends an all-clear message
+        - User manually resets detection via reset button
+        """
         if self.last_communication is None:
             # Never received communication
             if self.device_status['online']:
@@ -294,6 +302,7 @@ class Plugin(ChitUIPlugin):
         if time_since_last.total_seconds() > self.connection_timeout:
             if self.device_status['online']:
                 self.device_status['online'] = False
+                # NOTE: Sensor alerts remain active - only device status changes
                 logger.warning(f"Device marked as offline (no communication for {time_since_last.total_seconds():.0f} seconds)")
                 self._emit_update()
 
