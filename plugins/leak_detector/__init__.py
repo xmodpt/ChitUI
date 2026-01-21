@@ -266,19 +266,46 @@ class Plugin(ChitUIPlugin):
 
         @app.route('/api/leak_alert', methods=['POST'])
         def leak_alert():
-            """Receive leak alert from ESP32"""
+            """Receive leak alert or all-clear from ESP32"""
             try:
                 data = request.get_json()
-                logger.info(f"Received leak alert: {data}")
+                logger.info(f"Received leak notification: {data}")
 
                 sensor_num = data.get('sensor')
+                is_alert = data.get('alert', True)
+                is_all_clear = data.get('all_clear', False)
 
                 # Check if sensor is enabled in config
                 sensor_enabled_key = f'sensor{sensor_num}_enabled'
                 if not self.config.get(sensor_enabled_key, True):
-                    logger.info(f"Ignoring alert from disabled sensor {sensor_num}")
-                    return jsonify({'success': True, 'message': 'Sensor disabled, alert ignored'}), 200
+                    logger.info(f"Ignoring notification from disabled sensor {sensor_num}")
+                    return jsonify({'success': True, 'message': 'Sensor disabled, notification ignored'}), 200
 
+                sensor_id = f"sensor{sensor_num}"
+
+                # Handle ALL CLEAR message
+                if is_all_clear or not is_alert:
+                    logger.info(f"ALL CLEAR: Sensor {sensor_num} ({data.get('location')}) returned to normal - Value: {data.get('value')}")
+
+                    # Update sensor state to clear alert
+                    if sensor_id in self.sensors:
+                        self.sensors[sensor_id]['alert'] = False
+                        self.sensors[sensor_id]['value'] = data.get('value')
+                        self.sensors[sensor_id]['last_update'] = datetime.now().isoformat()
+                    else:
+                        self.sensors[sensor_id] = {
+                            'value': data.get('value'),
+                            'location': data.get('location'),
+                            'alert': False,
+                            'last_update': datetime.now().isoformat()
+                        }
+
+                    # Emit update to clear UI
+                    self._emit_update()
+
+                    return jsonify({'success': True, 'message': 'All clear received'}), 200
+
+                # Handle LEAK ALERT message
                 # Create alert record
                 alert = {
                     'sensor': sensor_num,
@@ -291,6 +318,12 @@ class Plugin(ChitUIPlugin):
                     'alert': True
                 }
 
+                # Add confirmation data if present
+                if 'confirmed' in data:
+                    alert['confirmed'] = data.get('confirmed')
+                if 'confirmations' in data:
+                    alert['confirmations'] = data.get('confirmations')
+
                 # Add to alerts list
                 self.alerts.insert(0, alert)  # Most recent first
 
@@ -298,8 +331,7 @@ class Plugin(ChitUIPlugin):
                 if len(self.alerts) > self.max_alerts:
                     self.alerts = self.alerts[:self.max_alerts]
 
-                # Update sensor data only if enabled
-                sensor_id = f"sensor{sensor_num}"
+                # Update sensor data
                 self.sensors[sensor_id] = {
                     'value': data.get('value'),
                     'location': data.get('location'),
@@ -316,7 +348,7 @@ class Plugin(ChitUIPlugin):
                 return jsonify({'success': True, 'message': 'Alert received'}), 200
 
             except Exception as e:
-                logger.error(f"Error processing leak alert: {e}")
+                logger.error(f"Error processing leak notification: {e}")
                 return jsonify({'success': False, 'error': str(e)}), 500
 
         @app.route('/api/sensor_status', methods=['POST'])
