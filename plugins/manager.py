@@ -212,6 +212,14 @@ class PluginManager:
         info_list = []
 
         for plugin_name, info in discovered.items():
+            # Check if plugin has settings (if loaded)
+            has_settings = False
+            if plugin_name in self.plugins:
+                try:
+                    has_settings = self.plugins[plugin_name].has_settings()
+                except Exception as e:
+                    logger.debug(f"Error checking has_settings for {plugin_name}: {e}")
+
             info_list.append({
                 'id': plugin_name,
                 'name': info['name'],
@@ -219,7 +227,8 @@ class PluginManager:
                 'author': info['author'],
                 'description': info['description'],
                 'enabled': info['enabled'],
-                'loaded': plugin_name in self.plugins
+                'loaded': plugin_name in self.plugins,
+                'has_settings': has_settings
             })
 
         return info_list

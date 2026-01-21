@@ -1880,7 +1880,22 @@ let sidebarPinned = localStorage.getItem('sidebarPinned') === 'true';
 
 function updateSidebarPinState() {
   const pinIcon = sidebarPinBtn.querySelector('i');
+  const isMobile = window.innerWidth <= 768;
 
+  // On mobile, ignore pinned state - always hide sidebar
+  if (isMobile) {
+    sidebar.classList.remove('pinned');
+    sidebar.classList.remove('show');
+    appContent.classList.remove('sidebar-pinned');
+    sidebarOverlay.classList.remove('show');
+    document.body.style.overflow = '';
+    // Keep pin icon state but don't apply pinned class
+    pinIcon.className = sidebarPinned ? 'bi bi-pin-fill' : 'bi bi-pin-angle';
+    sidebarPinBtn.title = sidebarPinned ? 'Unpin sidebar' : 'Pin sidebar';
+    return;
+  }
+
+  // Desktop behavior - apply pinned state normally
   if (sidebarPinned) {
     sidebar.classList.add('pinned');
     sidebar.classList.remove('show');
@@ -1900,6 +1915,9 @@ function updateSidebarPinState() {
 if (sidebarPinBtn) {
   // Load saved pin state on page load
   updateSidebarPinState();
+
+  // Update on window resize (when switching between mobile/desktop)
+  window.addEventListener('resize', updateSidebarPinState);
 
   sidebarPinBtn.addEventListener('click', function(e) {
     e.stopPropagation();

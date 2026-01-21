@@ -119,6 +119,18 @@ class ChitUIPlugin(ABC):
         """
         return None
 
+    def has_settings(self):
+        """
+        Return whether this plugin has a settings/configuration page.
+
+        Plugins should override this to return True if they provide a settings page
+        via the /plugin/<plugin_id>/settings endpoint.
+
+        Returns:
+            bool: True if plugin has settings, False otherwise
+        """
+        return False
+
     def on_startup(self, app, socketio):
         """
         Called when plugin is loaded at app startup.

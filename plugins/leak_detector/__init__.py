@@ -4,20 +4,46 @@ ESP32-based resin leak detection system with real-time monitoring
 """
 
 from flask import Blueprint, jsonify, request
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
+import os
+import json
+import threading
+import time
+from plugins.base import ChitUIPlugin
 
 logger = logging.getLogger(__name__)
 
 
-class Plugin:
+class Plugin(ChitUIPlugin):
     """ESP32 Leak Detector Plugin for ChitUI"""
 
-    def __init__(self):
+    def __init__(self, plugin_dir):
+        super().__init__(plugin_dir)
         self.name = "Leak Detector"
         self.version = "1.0.0"
         self.author = "ChitUI Developer"
         self.description = "ESP32-based resin leak detector with real-time monitoring"
+
+        # Configuration file path
+        self.config_file = os.path.join(os.path.expanduser('~'), '.chitui', 'leak_detector_config.json')
+
+        # Default configuration
+        self.config = {
+            'sensor1_name': 'Sensor 1',
+            'sensor1_location': 'Vat Center',
+            'sensor1_enabled': True,
+            'sensor2_name': 'Sensor 2',
+            'sensor2_location': 'Front Edge',
+            'sensor2_enabled': True,
+            'sensor3_name': 'Sensor 3',
+            'sensor3_location': 'Build Plate',
+            'sensor3_enabled': True,
+            'devices': []  # List of known ESP32 devices
+        }
+
+        # Load saved configuration
+        self.load_config()
 
         # Store sensor data and alerts
         self.sensors = {}
@@ -30,6 +56,13 @@ class Plugin:
             'version': None,
             'last_update': None
         }
+
+        # Connection monitoring
+        self.last_communication = None
+        self.connection_timeout = 360  # 6 minutes (in seconds)
+        self.connection_check_interval = 300  # 5 minutes (in seconds)
+        self.connection_monitor_thread = None
+        self.monitor_running = False
 
         # Socket.IO reference for real-time updates
         self.socketio = None
@@ -45,6 +78,41 @@ class Plugin:
 
     def get_author(self):
         return self.author
+
+    def get_ui_integration(self):
+        """Return UI integration configuration"""
+        return {
+            'type': 'toolbar',
+            'location': 'top',
+            'icon': 'bi-droplet-fill',
+            'title': 'Leak Detector',
+            'template': 'leak_detector.html'
+        }
+
+    def has_settings(self):
+        """This plugin has a settings page"""
+        return True
+
+    def load_config(self):
+        """Load configuration from file"""
+        try:
+            if os.path.exists(self.config_file):
+                with open(self.config_file, 'r') as f:
+                    saved_config = json.load(f)
+                    self.config.update(saved_config)
+                logger.info("Leak detector configuration loaded")
+        except Exception as e:
+            logger.error(f"Error loading leak detector config: {e}")
+
+    def save_config(self):
+        """Save configuration to file"""
+        try:
+            os.makedirs(os.path.dirname(self.config_file), exist_ok=True)
+            with open(self.config_file, 'w') as f:
+                json.dump(self.config, f, indent=2)
+            logger.info("Leak detector configuration saved")
+        except Exception as e:
+            logger.error(f"Error saving leak detector config: {e}")
 
     def on_startup(self, app, socketio):
         """Called when plugin is loaded"""
@@ -79,22 +147,104 @@ class Plugin:
             self._emit_update()
             return jsonify({'success': True, 'message': 'Alerts cleared'})
 
+        @blueprint.route('/reset_detection', methods=['POST'])
+        def reset_detection():
+            """Reset detection state (clear sensor alerts but keep history)"""
+            try:
+                # Clear alert flags on all sensors
+                for sensor_id in list(self.sensors.keys()):
+                    if sensor_id in self.sensors:
+                        self.sensors[sensor_id]['alert'] = False
+
+                # Emit update to all clients
+                self._emit_update()
+
+                logger.info("Leak detection state reset")
+                return jsonify({'success': True, 'message': 'Detection state reset'})
+            except Exception as e:
+                logger.error(f"Error resetting detection state: {e}")
+                return jsonify({'success': False, 'message': str(e)}), 500
+
         @blueprint.route('/sensors', methods=['GET'])
         def get_sensors():
             """Get current sensor readings"""
             return jsonify(self.sensors)
 
+        @blueprint.route('/config', methods=['GET'])
+        def get_config():
+            """Get current configuration"""
+            return jsonify(self.config)
+
+        @blueprint.route('/config', methods=['POST'])
+        def update_config():
+            """Update configuration"""
+            try:
+                data = request.get_json()
+
+                # Update sensor names and locations
+                for i in [1, 2, 3]:
+                    name_key = f'sensor{i}_name'
+                    location_key = f'sensor{i}_location'
+                    enabled_key = f'sensor{i}_enabled'
+
+                    if name_key in data:
+                        self.config[name_key] = data[name_key]
+                    if location_key in data:
+                        self.config[location_key] = data[location_key]
+                    if enabled_key in data:
+                        self.config[enabled_key] = bool(data[enabled_key])
+
+                # Update devices list
+                if 'devices' in data:
+                    self.config['devices'] = data['devices']
+
+                # Save configuration
+                self.save_config()
+
+                # Emit config update to clients
+                if self.socketio:
+                    self.socketio.emit('leak_detector_config_updated', self.config)
+
+                return jsonify({
+                    'success': True,
+                    'config': self.config,
+                    'message': 'Configuration updated successfully'
+                })
+
+            except Exception as e:
+                logger.error(f"Error updating config: {e}")
+                return jsonify({
+                    'success': False,
+                    'message': str(e)
+                }), 500
+
+        @blueprint.route('/settings', methods=['GET'])
+        def get_settings():
+            """Get settings HTML"""
+            settings_template = os.path.join(self.get_template_folder(), 'settings.html')
+            if os.path.exists(settings_template):
+                with open(settings_template, 'r') as f:
+                    return f.read()
+            return 'Settings template not found', 404
+
         # Register the blueprint
         app.register_blueprint(blueprint)
 
+        # Register ESP32 API endpoints at app level
+        self._register_esp32_endpoints(app)
+
         # Register Socket.IO handlers
         self._register_socket_handlers(socketio)
+
+        # Start connection monitoring thread
+        self._start_connection_monitor()
 
         logger.info("Leak Detector plugin started successfully")
 
     def on_shutdown(self):
         """Called when plugin is unloaded"""
         logger.info("Leak Detector plugin shutting down...")
+        self._stop_connection_monitor()
 
     def _register_socket_handlers(self, socketio):
         """Register WebSocket event handlers"""
@@ -117,106 +267,217 @@ class Plugin:
                 'sensors': self.sensors,
                 'alerts': self.alerts[-10:],
                 'timestamp': datetime.now().isoformat()
-            }, broadcast=True)
+            })
 
     def _emit_alert(self, alert):
         """Emit urgent leak alert notification"""
         if self.socketio:
-            self.socketio.emit('leak_detector_alert', alert, broadcast=True)
+            self.socketio.emit('leak_detector_alert', alert)
 
+    def _update_last_communication(self):
+        """Update the last communication timestamp"""
+        self.last_communication = datetime.now()
+        logger.debug(f"Last communication updated: {self.last_communication}")
 
-# Create global plugin instance
-plugin_instance = None
+    def _check_connection_status(self):
+        """
+        Check if device is still online based on last communication.
 
+        IMPORTANT: This only updates device_status['online'] flag.
+        Sensor alert states (self.sensors[X]['alert']) are NOT cleared when device goes offline.
+        Red alert states persist until either:
+        - ESP32 sends an all-clear message
+        - User manually resets detection via reset button
+        """
+        if self.last_communication is None:
+            # Never received communication
+            if self.device_status['online']:
+                self.device_status['online'] = False
+                logger.info("Device marked as offline (never received communication)")
+                self._emit_update()
+            return
 
-def get_plugin_instance():
-    """Get the global plugin instance"""
-    global plugin_instance
-    if plugin_instance is None:
-        plugin_instance = Plugin()
-    return plugin_instance
+        time_since_last = datetime.now() - self.last_communication
 
+        if time_since_last.total_seconds() > self.connection_timeout:
+            if self.device_status['online']:
+                self.device_status['online'] = False
+                # NOTE: Sensor alerts remain active - only device status changes
+                logger.warning(f"Device marked as offline (no communication for {time_since_last.total_seconds():.0f} seconds)")
+                self._emit_update()
 
-# =============================================================================
-# ESP32 API Endpoints (called from ESP32 device)
-# These endpoints are registered at the main app level, not in plugin blueprint
-# =============================================================================
+    def _connection_monitor_loop(self):
+        """Background thread to monitor ESP32 connection"""
+        logger.info(f"Connection monitor started (checking every {self.connection_check_interval} seconds)")
 
-def register_esp32_endpoints(app):
-    """
-    Register ESP32-facing API endpoints at the main app level.
-    These should be called from main.py when loading the plugin.
-    """
-    plugin = get_plugin_instance()
+        while self.monitor_running:
+            try:
+                time.sleep(self.connection_check_interval)
+                if self.monitor_running:  # Check again after sleep
+                    self._check_connection_status()
+            except Exception as e:
+                logger.error(f"Error in connection monitor: {e}")
 
-    @app.route('/api/leak_alert', methods=['POST'])
-    def leak_alert():
-        """Receive leak alert from ESP32"""
-        try:
-            data = request.get_json()
+    def _start_connection_monitor(self):
+        """Start the connection monitoring thread"""
+        if not self.monitor_running:
+            self.monitor_running = True
+            self.connection_monitor_thread = threading.Thread(
+                target=self._connection_monitor_loop,
+                daemon=True,
+                name="LeakDetectorConnectionMonitor"
+            )
+            self.connection_monitor_thread.start()
+            logger.info("Connection monitor thread started")
 
-            # Create alert record
-            alert = {
-                'sensor': data.get('sensor'),
-                'location': data.get('location'),
-                'value': data.get('value'),
-                'threshold': data.get('threshold'),
-                'timestamp': data.get('timestamp'),
-                'device_ip': data.get('device_ip'),
-                'received_at': datetime.now().isoformat(),
-                'alert': True
-            }
+    def _stop_connection_monitor(self):
+        """Stop the connection monitoring thread"""
+        if self.monitor_running:
+            self.monitor_running = False
+            if self.connection_monitor_thread:
+                self.connection_monitor_thread.join(timeout=2)
+            logger.info("Connection monitor thread stopped")
 
-            # Add to alerts list
-            plugin.alerts.insert(0, alert)  # Most recent first
+    def _register_esp32_endpoints(self, app):
+        """Register ESP32-facing API endpoints at the main app level"""
 
-            # Limit alerts history
-            if len(plugin.alerts) > plugin.max_alerts:
-                plugin.alerts = plugin.alerts[:plugin.max_alerts]
+        @app.route('/api/leak_alert', methods=['POST'])
+        def leak_alert():
+            """Receive leak alert or all-clear from ESP32"""
+            try:
+                data = request.get_json()
+                logger.info(f"Received leak notification: {data}")
 
-            # Update sensor data
-            sensor_id = f"sensor{data.get('sensor')}"
-            plugin.sensors[sensor_id] = {
-                'value': data.get('value'),
-                'location': data.get('location'),
-                'alert': True,
-                'last_update': datetime.now().isoformat()
-            }
+                # Update last communication timestamp
+                self._update_last_communication()
 
-            # Emit real-time updates
-            plugin._emit_alert(alert)
-            plugin._emit_update()
+                sensor_num = data.get('sensor')
+                is_alert = data.get('alert', True)
+                is_all_clear = data.get('all_clear', False)
 
-            logger.warning(f"LEAK ALERT: Sensor {data.get('sensor')} ({data.get('location')}) - Value: {data.get('value')}")
+                # Check if sensor is enabled in config
+                sensor_enabled_key = f'sensor{sensor_num}_enabled'
+                if not self.config.get(sensor_enabled_key, True):
+                    logger.info(f"Ignoring notification from disabled sensor {sensor_num}")
+                    return jsonify({'success': True, 'message': 'Sensor disabled, notification ignored'}), 200
 
-            return jsonify({'success': True, 'message': 'Alert received'}), 200
+                sensor_id = f"sensor{sensor_num}"
 
-        except Exception as e:
-            logger.error(f"Error processing leak alert: {e}")
-            return jsonify({'success': False, 'error': str(e)}), 500
+                # Handle ALL CLEAR message
+                if is_all_clear or not is_alert:
+                    logger.info(f"ALL CLEAR: Sensor {sensor_num} ({data.get('location')}) returned to normal - Value: {data.get('value')}")
 
-    @app.route('/api/sensor_status', methods=['POST'])
-    def sensor_status():
-        """Receive status update from ESP32"""
-        try:
-            data = request.get_json()
+                    # Update sensor state to clear alert
+                    if sensor_id in self.sensors:
+                        self.sensors[sensor_id]['alert'] = False
+                        self.sensors[sensor_id]['value'] = data.get('value')
+                        self.sensors[sensor_id]['last_update'] = datetime.now().isoformat()
+                    else:
+                        self.sensors[sensor_id] = {
+                            'value': data.get('value'),
+                            'location': data.get('location'),
+                            'alert': False,
+                            'last_update': datetime.now().isoformat()
+                        }
 
-            # Update device status
-            plugin.device_status = {
-                'online': data.get('status') == 'online',
-                'ip': data.get('ip'),
-                'chip': data.get('chip'),
-                'version': data.get('version'),
-                'last_update': datetime.now().isoformat()
-            }
+                    # Emit update to clear UI
+                    self._emit_update()
 
-            # Emit update
-            plugin._emit_update()
+                    return jsonify({'success': True, 'message': 'All clear received'}), 200
 
-            logger.info(f"Status update from {data.get('ip')}: {data.get('status')}")
+                # Handle LEAK ALERT message
+                # Create alert record
+                alert = {
+                    'sensor': sensor_num,
+                    'location': data.get('location'),
+                    'value': data.get('value'),
+                    'threshold': data.get('threshold'),
+                    'timestamp': data.get('timestamp'),
+                    'device_ip': data.get('device_ip'),
+                    'received_at': datetime.now().isoformat(),
+                    'alert': True
+                }
 
-            return jsonify({'success': True, 'message': 'Status received'}), 200
+                # Add confirmation data if present
+                if 'confirmed' in data:
+                    alert['confirmed'] = data.get('confirmed')
+                if 'confirmations' in data:
+                    alert['confirmations'] = data.get('confirmations')
 
-        except Exception as e:
-            logger.error(f"Error processing sensor status: {e}")
-            return jsonify({'success': False, 'error': str(e)}), 500
+                # Add to alerts list
+                self.alerts.insert(0, alert)  # Most recent first
+
+                # Limit alerts history
+                if len(self.alerts) > self.max_alerts:
+                    self.alerts = self.alerts[:self.max_alerts]
+
+                # Update sensor data
+                self.sensors[sensor_id] = {
+                    'value': data.get('value'),
+                    'location': data.get('location'),
+                    'alert': True,
+                    'last_update': datetime.now().isoformat()
+                }
+
+                # Emit real-time updates
+                self._emit_alert(alert)
+                self._emit_update()
+
+                logger.warning(f"LEAK ALERT: Sensor {sensor_num} ({data.get('location')}) - Value: {data.get('value')}")
+
+                return jsonify({'success': True, 'message': 'Alert received'}), 200
+
+            except Exception as e:
+                logger.error(f"Error processing leak notification: {e}")
+                return jsonify({'success': False, 'error': str(e)}), 500
+
+        @app.route('/api/sensor_status', methods=['POST'])
+        def sensor_status():
+            """Receive status update from ESP32"""
+            try:
+                data = request.get_json()
+                logger.info(f"Received sensor status: {data}")
+
+                # Update last communication timestamp
+                self._update_last_communication()
+
+                # Update device status
+                self.device_status = {
+                    'online': data.get('status') == 'online',
+                    'ip': data.get('ip'),
+                    'chip': data.get('chip'),
+                    'version': data.get('version'),
+                    'last_update': datetime.now().isoformat()
+                }
+
+                # Add/update device in known devices list
+                device_ip = data.get('ip')
+                if device_ip:
+                    # Check if device exists in config
+                    existing_device = None
+                    for dev in self.config.get('devices', []):
+                        if dev.get('ip') == device_ip:
+                            existing_device = dev
+                            break
+
+                    if existing_device:
+                        # Update existing device
+                        existing_device.update(self.device_status)
+                    else:
+                        # Add new device
+                        if 'devices' not in self.config:
+                            self.config['devices'] = []
+                        self.config['devices'].append(self.device_status.copy())
+                        self.save_config()
+
+                # Emit update
+                self._emit_update()
+
+                logger.info(f"Status update from {data.get('ip')}: {data.get('status')}")
+
+                return jsonify({'success': True, 'message': 'Status received'}), 200
+
+            except Exception as e:
+                logger.error(f"Error processing sensor status: {e}")
+                return jsonify({'success': False, 'error': str(e)}), 500
+

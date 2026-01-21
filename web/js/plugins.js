@@ -388,9 +388,8 @@ function renderPluginManager() {
       const card = document.createElement('div');
       card.className = 'card mb-3';
 
-      // Check if plugin has settings endpoint - include ip_camera
-      const pluginsWithSettings = ['gpio_relay_control', 'ip_camera'];
-      const hasSettings = pluginsWithSettings.includes(plugin.id);
+      // Check if plugin has settings (self-reported by plugin)
+      const hasSettings = plugin.has_settings === true;
 
       console.log(`Plugin ${plugin.id}: hasSettings = ${hasSettings}`);
 
