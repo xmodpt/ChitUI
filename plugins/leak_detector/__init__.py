@@ -138,6 +138,24 @@ class Plugin(ChitUIPlugin):
             self._emit_update()
             return jsonify({'success': True, 'message': 'Alerts cleared'})
 
+        @blueprint.route('/reset_detection', methods=['POST'])
+        def reset_detection():
+            """Reset detection state (clear sensor alerts but keep history)"""
+            try:
+                # Clear alert flags on all sensors
+                for sensor_id in list(self.sensors.keys()):
+                    if sensor_id in self.sensors:
+                        self.sensors[sensor_id]['alert'] = False
+
+                # Emit update to all clients
+                self._emit_update()
+
+                logger.info("Leak detection state reset")
+                return jsonify({'success': True, 'message': 'Detection state reset'})
+            except Exception as e:
+                logger.error(f"Error resetting detection state: {e}")
+                return jsonify({'success': False, 'message': str(e)}), 500
+
         @blueprint.route('/sensors', methods=['GET'])
         def get_sensors():
             """Get current sensor readings"""

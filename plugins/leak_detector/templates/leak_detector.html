@@ -12,7 +12,12 @@
                 <i class="bi bi-droplet-fill me-2"></i>
                 <span>Leak Detector</span>
             </div>
-            <button class="leak-panel-close" onclick="toggleLeakPanel()">&times;</button>
+            <div class="leak-panel-actions">
+                <button class="leak-btn-header-action" onclick="resetDetection()" title="Reset detection state" id="leak-reset-btn">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
+                <button class="leak-panel-close" onclick="toggleLeakPanel()">&times;</button>
+            </div>
         </div>
 
         <!-- Device Status -->
@@ -190,6 +195,35 @@
         font-size: 14px;
         display: flex;
         align-items: center;
+    }
+
+    .leak-panel-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .leak-btn-header-action {
+        background: none;
+        border: none;
+        color: var(--bs-body-color, #f8f9fa);
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 4px;
+        width: 28px;
+        height: 28px;
+        opacity: 0.7;
+        border-radius: 4px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .leak-btn-header-action:hover {
+        opacity: 1;
+        background: rgba(255, 255, 255, 0.1);
     }
 
     .leak-panel-close {
@@ -669,6 +703,38 @@
         }
     }
     window.clearLeakAlerts = clearLeakAlerts;
+
+    function resetDetection() {
+        if (confirm('Reset leak detection state? (Alert history will be preserved)')) {
+            fetch('/plugin/leak_detector/reset_detection', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        // Clear sensor alert states locally
+                        if (leakData.sensors) {
+                            Object.keys(leakData.sensors).forEach(sensorKey => {
+                                if (leakData.sensors[sensorKey]) {
+                                    leakData.sensors[sensorKey].alert = false;
+                                }
+                            });
+                        }
+
+                        // Update UI
+                        updateSensors(leakData.sensors || {});
+                        updateButton(leakData);
+
+                        console.log('[Leak Detector] Detection state reset successfully');
+                    } else {
+                        alert('Failed to reset detection: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(err => {
+                    console.error('[Leak Detector] Error resetting detection:', err);
+                    alert('Error resetting detection');
+                });
+        }
+    }
+    window.resetDetection = resetDetection;
 
     function showNotification(alert) {
         if ('Notification' in window && Notification.permission === 'granted') {
