@@ -3111,6 +3111,8 @@ def main():
 
     # Load plugins
     logger.info("Loading plugins...")
+    # Make plugin_manager accessible to plugins via app context
+    app.plugin_manager = plugin_manager
     plugin_manager.load_all_plugins(app, socketio)
 
     if settings.get("auto_discover", True):
