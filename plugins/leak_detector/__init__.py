@@ -628,7 +628,19 @@ class Plugin(ChitUIPlugin):
         @blueprint.route('/relay/plugin_available', methods=['GET'])
         def relay_plugin_available():
             """Check if GPIO relay plugin is available"""
-            return jsonify(self.is_relay_plugin_available())
+            try:
+                result = self.is_relay_plugin_available()
+                logger.info(f"Relay plugin availability check result: {result}")
+                return jsonify(result)
+            except Exception as e:
+                logger.error(f"Error checking relay plugin availability: {e}")
+                import traceback
+                traceback.print_exc()
+                return jsonify({
+                    'available': False,
+                    'reason': f'Error: {str(e)}',
+                    'relays': []
+                })
 
         @blueprint.route('/relay/log', methods=['GET'])
         def get_relay_log():
