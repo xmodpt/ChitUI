@@ -54,9 +54,10 @@ class Plugin(ChitUIPlugin):
             'sensor3_location': 'Build Plate',
             'sensor3_enabled': True,
             'devices': [],  # List of known ESP32 devices
-            # Relay configuration - uses GPIO Relay Control plugin
+            # Relay configuration - direct GPIO control
             'relay_enabled': False,  # Enable relay activation on leak detection
-            'relay_number': 1        # Which relay from GPIO Relay Control plugin to use (1-4)
+            'relay_gpio_pin': 17,    # GPIO pin for relay (BCM numbering)
+            'relay_type': 'NO'       # NO (Normally Open) or NC (Normally Closed)
         }
 
         # Relay state (persistent)
@@ -70,9 +71,6 @@ class Plugin(ChitUIPlugin):
         # Relay action log
         self.relay_log = []
         self.max_relay_log = 100  # Keep last 100 relay actions
-
-        # Reference to plugin manager (set during startup)
-        self.plugin_manager = None
 
         # Load saved configuration
         self.load_config()
@@ -212,91 +210,67 @@ class Plugin(ChitUIPlugin):
         self.save_relay_log()
         logger.info(f"Relay log: {action} - {details}")
 
-    def _get_relay_plugin(self):
-        """Get the GPIO Relay Control plugin instance"""
-        # Try to get plugin manager if not already set
-        if self.plugin_manager is None and hasattr(self, 'app') and self.app:
-            if hasattr(self.app, 'plugin_manager'):
-                self.plugin_manager = self.app.plugin_manager
-                logger.info("Plugin manager obtained from app context (delayed)")
+    def _get_relay_gpio_level(self, state):
+        """Get the correct GPIO level based on relay type (NO/NC)"""
+        relay_type = self.config.get('relay_type', 'NO')
 
-        if self.plugin_manager is None:
-            logger.warning("Plugin manager is None - cannot get relay plugin")
-            return None
-
-        plugin = self.plugin_manager.get_plugin('gpio_relay_control')
-        if plugin is None:
-            # Log available plugins for debugging
-            available = list(self.plugin_manager.get_all_plugins().keys())
-            logger.warning(f"GPIO Relay Control plugin not found. Available plugins: {available}")
-        return plugin
-
-    def _get_relay_plugin_config(self):
-        """Get the configuration from GPIO Relay Control plugin"""
-        relay_plugin = self._get_relay_plugin()
-        if relay_plugin is None:
-            return None
-        return getattr(relay_plugin, 'config', None)
-
-    def get_available_relays(self):
-        """Get list of available relays from GPIO Relay Control plugin"""
-        relay_config = self._get_relay_plugin_config()
-        if relay_config is None:
-            logger.debug("Could not get relay plugin config")
-            return []
-
-        relays = []
-        for i in range(1, 5):
-            relay_info = {
-                'number': i,
-                'name': relay_config.get(f'relay{i}_name', f'Relay {i}'),
-                'pin': relay_config.get(f'relay{i}_pin', 0),
-                'type': relay_config.get(f'relay{i}_type', 'NO'),
-                'enabled': relay_config.get(f'relay{i}_enabled', True),
-                'icon': relay_config.get(f'relay{i}_icon', 'fa-bolt'),
-                'state': relay_config.get(f'relay{i}_state', False)
-            }
-            relays.append(relay_info)
-
-        logger.debug(f"Found {len(relays)} relays from GPIO Relay Control plugin")
-        return relays
+        if relay_type == 'NC':  # Normally Closed - invert logic
+            return GPIO.LOW if state else GPIO.HIGH
+        else:  # Normally Open (default)
+            return GPIO.HIGH if state else GPIO.LOW
 
     def _init_relay_gpio(self):
-        """Initialize relay - restore armed state if needed after reboot"""
+        """Initialize relay GPIO pin"""
         if not self.config.get('relay_enabled', False):
             return
 
-        # If relay was armed (persistent state), restore it
-        if self.relay_state.get('armed', False):
-            relay_num = self.config.get('relay_number', 1)
-            relay_plugin = self._get_relay_plugin()
+        if not GPIO_AVAILABLE:
+            logger.info("GPIO not available - relay running in simulation mode")
+            return
 
-            if relay_plugin:
-                relay_plugin.set_relay_state(relay_num, True)
-                logger.warning(f"Relay {relay_num} restored to ARMED state (persistent from before reboot)")
+        try:
+            pin = self.config.get('relay_gpio_pin', 17)
+
+            # Set GPIO mode if not already set
+            try:
+                GPIO.setmode(GPIO.BCM)
+            except ValueError:
+                # Mode already set, that's fine
+                pass
+
+            GPIO.setwarnings(False)
+            GPIO.setup(pin, GPIO.OUT)
+
+            # If relay was armed (persistent state), keep it active
+            if self.relay_state.get('armed', False):
+                gpio_level = self._get_relay_gpio_level(True)
+                GPIO.output(pin, gpio_level)
+                logger.warning(f"Relay restored to ARMED state on GPIO {pin} (persistent from before reboot)")
             else:
-                logger.warning("Relay was armed but GPIO Relay Control plugin not available")
+                gpio_level = self._get_relay_gpio_level(False)
+                GPIO.output(pin, gpio_level)
+                logger.info(f"Relay initialized on GPIO {pin} (OFF)")
+
+        except Exception as e:
+            logger.error(f"Error initializing relay GPIO: {e}")
 
     def _set_relay(self, state):
-        """Set the relay state using GPIO Relay Control plugin"""
+        """Set the relay state"""
         if not self.config.get('relay_enabled', False):
             logger.debug("Relay not enabled, skipping")
             return False
 
-        relay_num = self.config.get('relay_number', 1)
-        relay_plugin = self._get_relay_plugin()
+        pin = self.config.get('relay_gpio_pin', 17)
 
-        if relay_plugin is None:
-            logger.error("GPIO Relay Control plugin not available")
-            return False
+        if not GPIO_AVAILABLE:
+            logger.info(f"Simulation: Relay on GPIO {pin} set to {'ON' if state else 'OFF'}")
+            return True
 
         try:
-            success = relay_plugin.set_relay_state(relay_num, state)
-            if success:
-                relay_config = self._get_relay_plugin_config()
-                relay_name = relay_config.get(f'relay{relay_num}_name', f'Relay {relay_num}') if relay_config else f'Relay {relay_num}'
-                logger.info(f"Relay '{relay_name}' (#{relay_num}) set to {'ON' if state else 'OFF'}")
-            return success
+            gpio_level = self._get_relay_gpio_level(state)
+            GPIO.output(pin, gpio_level)
+            logger.info(f"Relay on GPIO {pin} set to {'ON' if state else 'OFF'}")
+            return True
         except Exception as e:
             logger.error(f"Error setting relay state: {e}")
             return False
@@ -310,9 +284,7 @@ class Plugin(ChitUIPlugin):
             logger.info("Relay already armed, skipping")
             return False
 
-        relay_num = self.config.get('relay_number', 1)
-        relay_config = self._get_relay_plugin_config()
-        relay_name = relay_config.get(f'relay{relay_num}_name', f'Relay {relay_num}') if relay_config else f'Relay {relay_num}'
+        pin = self.config.get('relay_gpio_pin', 17)
 
         # Activate the relay
         if self._set_relay(True):
@@ -324,14 +296,13 @@ class Plugin(ChitUIPlugin):
             # Log the action
             self.add_relay_log_entry('ARMED', {
                 'reason': reason,
-                'relay_number': relay_num,
-                'relay_name': relay_name
+                'gpio_pin': pin
             })
 
             # Emit update to clients
             self._emit_relay_update()
 
-            logger.warning(f"RELAY '{relay_name}' ARMED due to: {reason}")
+            logger.warning(f"RELAY on GPIO {pin} ARMED due to: {reason}")
             return True
 
         return False
@@ -345,9 +316,7 @@ class Plugin(ChitUIPlugin):
             logger.info("Relay not armed, skipping disarm")
             return False
 
-        relay_num = self.config.get('relay_number', 1)
-        relay_config = self._get_relay_plugin_config()
-        relay_name = relay_config.get(f'relay{relay_num}_name', f'Relay {relay_num}') if relay_config else f'Relay {relay_num}'
+        pin = self.config.get('relay_gpio_pin', 17)
 
         # Deactivate the relay
         if self._set_relay(False):
@@ -365,14 +334,13 @@ class Plugin(ChitUIPlugin):
                 'disarmed_by': user or 'user',
                 'was_armed_at': armed_at,
                 'was_armed_reason': armed_reason,
-                'relay_number': relay_num,
-                'relay_name': relay_name
+                'gpio_pin': pin
             })
 
             # Emit update to clients
             self._emit_relay_update()
 
-            logger.info(f"RELAY '{relay_name}' DISARMED by: {user or 'user'}")
+            logger.info(f"RELAY on GPIO {pin} DISARMED by: {user or 'user'}")
             return True
 
         return False
@@ -380,69 +348,18 @@ class Plugin(ChitUIPlugin):
     def _emit_relay_update(self):
         """Emit relay state update to all connected clients"""
         if self.socketio:
-            relay_num = self.config.get('relay_number', 1)
-            relay_config = self._get_relay_plugin_config()
-            relay_name = relay_config.get(f'relay{relay_num}_name', f'Relay {relay_num}') if relay_config else f'Relay {relay_num}'
-
             self.socketio.emit('leak_detector_relay_update', {
                 'relay_state': self.relay_state,
                 'relay_enabled': self.config.get('relay_enabled', False),
-                'relay_number': relay_num,
-                'relay_name': relay_name,
+                'relay_gpio_pin': self.config.get('relay_gpio_pin', 17),
                 'timestamp': datetime.now().isoformat()
             })
-
-    def is_relay_plugin_available(self):
-        """Check if GPIO relay control plugin is installed and enabled"""
-        # Try to get plugin manager if not already set
-        if self.plugin_manager is None and hasattr(self, 'app') and self.app:
-            if hasattr(self.app, 'plugin_manager'):
-                self.plugin_manager = self.app.plugin_manager
-                logger.info("Plugin manager obtained from app context in is_relay_plugin_available")
-
-        if self.plugin_manager is None:
-            logger.warning("Plugin manager is still None")
-            return {'available': False, 'reason': 'Plugin manager not initialized', 'relays': []}
-
-        # Check if gpio_relay_control plugin exists
-        discovered = self.plugin_manager.discover_plugins()
-        logger.debug(f"Discovered plugins: {list(discovered.keys())}")
-
-        if 'gpio_relay_control' not in discovered:
-            return {'available': False, 'reason': 'GPIO Relay Control plugin not installed', 'relays': []}
-
-        # Check if it's enabled
-        if not discovered['gpio_relay_control'].get('enabled', False):
-            return {'available': False, 'reason': 'GPIO Relay Control plugin is disabled', 'relays': []}
-
-        # Get available relays
-        relays = self.get_available_relays()
-        logger.debug(f"Available relays: {relays}")
-
-        # Check if GPIO is available on the system
-        if not GPIO_AVAILABLE:
-            return {
-                'available': True,
-                'gpio_available': False,
-                'reason': 'GPIO not available (simulation mode)',
-                'relays': relays
-            }
-
-        return {'available': True, 'gpio_available': True, 'reason': None, 'relays': relays}
 
     def on_startup(self, app, socketio):
         """Called when plugin is loaded"""
         logger.info("Leak Detector plugin starting up...")
 
         self.socketio = socketio
-        self.app = app  # Store app reference for later use
-
-        # Get reference to plugin manager from app context
-        if hasattr(app, 'plugin_manager'):
-            self.plugin_manager = app.plugin_manager
-            logger.info("Plugin manager reference obtained")
-        else:
-            logger.warning("Plugin manager not found on app - relay features may not work")
 
         # Create Flask blueprint for API endpoints
         blueprint = Blueprint('leak_detector', __name__, url_prefix='/plugin/leak_detector')
@@ -525,21 +442,25 @@ class Plugin(ChitUIPlugin):
                 # Update relay configuration
                 if 'relay_enabled' in data:
                     self.config['relay_enabled'] = bool(data['relay_enabled'])
-                if 'relay_number' in data:
-                    relay_num = int(data['relay_number'])
-                    # Validate relay number range
-                    if relay_num < 1 or relay_num > 4:
+                if 'relay_gpio_pin' in data:
+                    pin = int(data['relay_gpio_pin'])
+                    # Validate pin range
+                    if pin < 2 or pin > 27:
                         return jsonify({
                             'success': False,
-                            'message': f'Invalid relay number: {relay_num}. Must be between 1 and 4.'
+                            'message': f'Invalid GPIO pin: {pin}. Must be between 2 and 27.'
                         }), 400
-                    self.config['relay_number'] = relay_num
+                    self.config['relay_gpio_pin'] = pin
+                if 'relay_type' in data:
+                    relay_type = data['relay_type'].upper()
+                    if relay_type in ['NO', 'NC']:
+                        self.config['relay_type'] = relay_type
 
                 # Save configuration
                 self.save_config()
 
                 # Re-initialize relay if settings changed
-                if any(key in data for key in ['relay_enabled', 'relay_number']):
+                if any(key in data for key in ['relay_enabled', 'relay_gpio_pin', 'relay_type']):
                     self._init_relay_gpio()
 
                 # Emit config update to clients
@@ -571,35 +492,12 @@ class Plugin(ChitUIPlugin):
         @blueprint.route('/relay/status', methods=['GET'])
         def get_relay_status():
             """Get relay status and configuration"""
-            relay_num = self.config.get('relay_number', 1)
-            relay_config = self._get_relay_plugin_config()
-
-            # Get relay details from plugin config
-            relay_name = f'Relay {relay_num}'
-            relay_pin = 0
-            relay_type = 'NO'
-            if relay_config:
-                relay_name = relay_config.get(f'relay{relay_num}_name', relay_name)
-                relay_pin = relay_config.get(f'relay{relay_num}_pin', 0)
-                relay_type = relay_config.get(f'relay{relay_num}_type', 'NO')
-
             return jsonify({
                 'relay_state': self.relay_state,
                 'relay_enabled': self.config.get('relay_enabled', False),
-                'relay_number': relay_num,
-                'relay_name': relay_name,
-                'relay_pin': relay_pin,
-                'relay_type': relay_type,
+                'relay_gpio_pin': self.config.get('relay_gpio_pin', 17),
+                'relay_type': self.config.get('relay_type', 'NO'),
                 'gpio_available': GPIO_AVAILABLE
-            })
-
-        @blueprint.route('/relay/available', methods=['GET'])
-        def get_available_relays():
-            """Get list of available relays from GPIO Relay Control plugin"""
-            relays = self.get_available_relays()
-            return jsonify({
-                'relays': relays,
-                'count': len(relays)
             })
 
         @blueprint.route('/relay/disarm', methods=['POST'])
@@ -624,23 +522,6 @@ class Plugin(ChitUIPlugin):
             except Exception as e:
                 logger.error(f"Error disarming relay: {e}")
                 return jsonify({'success': False, 'message': str(e)}), 500
-
-        @blueprint.route('/relay/plugin_available', methods=['GET'])
-        def relay_plugin_available():
-            """Check if GPIO relay plugin is available"""
-            try:
-                result = self.is_relay_plugin_available()
-                logger.info(f"Relay plugin availability check result: {result}")
-                return jsonify(result)
-            except Exception as e:
-                logger.error(f"Error checking relay plugin availability: {e}")
-                import traceback
-                traceback.print_exc()
-                return jsonify({
-                    'available': False,
-                    'reason': f'Error: {str(e)}',
-                    'relays': []
-                })
 
         @blueprint.route('/relay/log', methods=['GET'])
         def get_relay_log():
