@@ -98,8 +98,8 @@ class Plugin(ChitUIPlugin):
 
         # Connection monitoring
         self.last_communication = None
-        self.connection_timeout = 360  # 6 minutes (in seconds)
-        self.connection_check_interval = 300  # 5 minutes (in seconds)
+        self.connection_timeout = 15  # 15 seconds - mark offline if no communication
+        self.connection_check_interval = 5  # 5 seconds
         self.connection_monitor_thread = None
         self.monitor_running = False
 
