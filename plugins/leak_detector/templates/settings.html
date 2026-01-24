@@ -282,8 +282,14 @@
 
     function checkRelayPluginAvailability() {
         fetch('/plugin/leak_detector/relay/plugin_available')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Relay plugin availability:', data);
                 relayPluginAvailable = data.available;
                 availableRelays = data.relays || [];
 
@@ -298,6 +304,9 @@
                     // Gray out the relay config section
                     configEl.style.opacity = '0.5';
                     configEl.style.pointerEvents = 'none';
+
+                    // Still update dropdown to show it's not available
+                    document.getElementById('leak-relay-number').innerHTML = '<option value="1">Relay plugin not available</option>';
                 } else {
                     warningEl.style.display = 'none';
                     configEl.style.opacity = '1';
@@ -316,6 +325,10 @@
             })
             .catch(error => {
                 console.error('Error checking relay plugin:', error);
+                // Show error in dropdown
+                document.getElementById('leak-relay-number').innerHTML = '<option value="1">Error loading relays</option>';
+                document.getElementById('leak-relay-warning').style.display = 'block';
+                document.getElementById('leak-relay-warning-reason').textContent = 'Error checking relay plugin: ' + error.message;
             });
     }
 
