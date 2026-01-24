@@ -130,46 +130,28 @@
                     </small>
                 </div>
 
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">GPIO Pin (BCM)</label>
-                        <select class="form-select" id="leak-relay-gpio-pin">
-                            <option value="2">GPIO 2</option>
-                            <option value="3">GPIO 3</option>
-                            <option value="4">GPIO 4</option>
-                            <option value="5">GPIO 5</option>
-                            <option value="6">GPIO 6</option>
-                            <option value="7">GPIO 7</option>
-                            <option value="8">GPIO 8</option>
-                            <option value="9">GPIO 9</option>
-                            <option value="10">GPIO 10</option>
-                            <option value="11">GPIO 11</option>
-                            <option value="12">GPIO 12</option>
-                            <option value="13">GPIO 13</option>
-                            <option value="14">GPIO 14</option>
-                            <option value="15">GPIO 15</option>
-                            <option value="16">GPIO 16</option>
-                            <option value="17" selected>GPIO 17</option>
-                            <option value="18">GPIO 18</option>
-                            <option value="19">GPIO 19</option>
-                            <option value="20">GPIO 20</option>
-                            <option value="21">GPIO 21</option>
-                            <option value="22">GPIO 22</option>
-                            <option value="23">GPIO 23</option>
-                            <option value="24">GPIO 24</option>
-                            <option value="25">GPIO 25</option>
-                            <option value="26">GPIO 26</option>
-                            <option value="27">GPIO 27</option>
-                        </select>
-                        <div class="form-text">Select the GPIO pin connected to the power relay</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Relay Type</label>
-                        <select class="form-select" id="leak-relay-type">
-                            <option value="NO">Normally Open (NO)</option>
-                            <option value="NC">Normally Closed (NC)</option>
-                        </select>
-                        <div class="form-text">Match your relay module's configuration</div>
+                <div class="mb-3">
+                    <label class="form-label">Select Relay</label>
+                    <select class="form-select" id="leak-relay-number">
+                        <option value="1">Loading relays...</option>
+                    </select>
+                    <div class="form-text">Choose which relay to activate when a leak is detected</div>
+                </div>
+
+                <!-- Selected Relay Info -->
+                <div id="leak-selected-relay-info" class="card bg-dark mb-0" style="display: none;">
+                    <div class="card-body py-2">
+                        <div class="row small">
+                            <div class="col-4">
+                                <strong>GPIO Pin:</strong> <span id="leak-relay-info-pin">-</span>
+                            </div>
+                            <div class="col-4">
+                                <strong>Type:</strong> <span id="leak-relay-info-type">-</span>
+                            </div>
+                            <div class="col-4">
+                                <strong>Current State:</strong> <span id="leak-relay-info-state" class="badge bg-secondary">-</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -255,11 +237,12 @@
     let currentConfig = {};
     let knownDevices = [];
     let relayPluginAvailable = false;
+    let availableRelays = [];
 
     // Load current configuration
     loadConfiguration();
 
-    // Check relay plugin availability
+    // Check relay plugin availability (this also loads available relays)
     checkRelayPluginAvailability();
 
     // Load relay status
@@ -280,8 +263,12 @@
 
                 // Populate relay settings
                 document.getElementById('leak-relay-enabled').checked = config.relay_enabled || false;
-                document.getElementById('leak-relay-gpio-pin').value = config.relay_gpio_pin || '17';
-                document.getElementById('leak-relay-type').value = config.relay_type || 'NO';
+
+                // Relay number will be set after relays are loaded
+                if (availableRelays.length > 0) {
+                    document.getElementById('leak-relay-number').value = config.relay_number || '1';
+                    updateSelectedRelayInfo();
+                }
 
                 // Load and display devices
                 knownDevices = config.devices || [];
@@ -298,6 +285,7 @@
             .then(response => response.json())
             .then(data => {
                 relayPluginAvailable = data.available;
+                availableRelays = data.relays || [];
 
                 const warningEl = document.getElementById('leak-relay-warning');
                 const configEl = document.getElementById('leak-relay-config');
@@ -315,6 +303,9 @@
                     configEl.style.opacity = '1';
                     configEl.style.pointerEvents = 'auto';
 
+                    // Populate relay dropdown
+                    populateRelayDropdown(availableRelays);
+
                     // Show simulation mode notice if GPIO not available
                     if (!data.gpio_available) {
                         warningEl.style.display = 'block';
@@ -327,6 +318,69 @@
                 console.error('Error checking relay plugin:', error);
             });
     }
+
+    function populateRelayDropdown(relays) {
+        const select = document.getElementById('leak-relay-number');
+        select.innerHTML = '';
+
+        if (!relays || relays.length === 0) {
+            select.innerHTML = '<option value="1">No relays configured</option>';
+            return;
+        }
+
+        relays.forEach(relay => {
+            const option = document.createElement('option');
+            option.value = relay.number;
+
+            // Build display text with relay info
+            let displayText = `${relay.name}`;
+            if (!relay.enabled) {
+                displayText += ' (disabled)';
+            }
+            displayText += ` - GPIO ${relay.pin} (${relay.type})`;
+
+            option.textContent = displayText;
+            option.disabled = !relay.enabled;
+
+            select.appendChild(option);
+        });
+
+        // Set selected value from config
+        if (currentConfig.relay_number) {
+            select.value = currentConfig.relay_number;
+        }
+
+        // Update info panel
+        updateSelectedRelayInfo();
+    }
+
+    function updateSelectedRelayInfo() {
+        const select = document.getElementById('leak-relay-number');
+        const infoPanel = document.getElementById('leak-selected-relay-info');
+        const selectedNum = parseInt(select.value);
+
+        const relay = availableRelays.find(r => r.number === selectedNum);
+        if (relay) {
+            document.getElementById('leak-relay-info-pin').textContent = `GPIO ${relay.pin}`;
+            document.getElementById('leak-relay-info-type').textContent = relay.type === 'NC' ? 'Normally Closed' : 'Normally Open';
+
+            const stateEl = document.getElementById('leak-relay-info-state');
+            if (relay.state) {
+                stateEl.textContent = 'ON';
+                stateEl.className = 'badge bg-success';
+            } else {
+                stateEl.textContent = 'OFF';
+                stateEl.className = 'badge bg-secondary';
+            }
+
+            infoPanel.style.display = 'block';
+        } else {
+            infoPanel.style.display = 'none';
+        }
+    }
+
+    // Relay selection change handler
+    document.getElementById('leak-relay-number').addEventListener('change', updateSelectedRelayInfo);
 
     function loadRelayStatus() {
         fetch('/plugin/leak_detector/relay/status')
@@ -492,8 +546,7 @@
         // Add relay configurations (only if plugin is available)
         if (relayPluginAvailable) {
             newConfig.relay_enabled = document.getElementById('leak-relay-enabled').checked;
-            newConfig.relay_gpio_pin = parseInt(document.getElementById('leak-relay-gpio-pin').value);
-            newConfig.relay_type = document.getElementById('leak-relay-type').value;
+            newConfig.relay_number = parseInt(document.getElementById('leak-relay-number').value);
         }
 
         // Save configuration
