@@ -256,35 +256,41 @@ class Plugin(ChitUIPlugin):
 
     def _set_relay(self, state):
         """Set the relay state"""
+        logger.warning(f"DEBUG _set_relay: state={state}, relay_enabled={self.config.get('relay_enabled')}")
+
         if not self.config.get('relay_enabled', False):
-            logger.warning("Relay not enabled in config, skipping")
+            logger.warning("DEBUG _set_relay: Relay not enabled in config, skipping")
             return False
 
         pin = self.config.get('relay_gpio_pin', 17)
+        logger.warning(f"DEBUG _set_relay: Using GPIO pin {pin}")
 
         if not GPIO_AVAILABLE:
-            logger.info(f"Simulation: Relay on GPIO {pin} set to {'ON' if state else 'OFF'}")
+            logger.warning(f"DEBUG _set_relay: Simulation mode - GPIO {pin} set to {'ON' if state else 'OFF'}")
             return True
 
         try:
             # Ensure GPIO mode is set
             try:
                 GPIO.setmode(GPIO.BCM)
+                logger.warning("DEBUG _set_relay: GPIO mode set to BCM")
             except ValueError:
-                pass  # Already set
+                logger.warning("DEBUG _set_relay: GPIO mode already set")
 
             GPIO.setwarnings(False)
 
             # Ensure pin is set up as output before writing
+            logger.warning(f"DEBUG _set_relay: Setting up GPIO {pin} as OUTPUT")
             GPIO.setup(pin, GPIO.OUT)
 
             # Set the relay state
             gpio_level = self._get_relay_gpio_level(state)
+            logger.warning(f"DEBUG _set_relay: Writing {'HIGH' if gpio_level else 'LOW'} to GPIO {pin}")
             GPIO.output(pin, gpio_level)
-            logger.info(f"Relay on GPIO {pin} set to {'ON' if state else 'OFF'} (level: {'HIGH' if gpio_level else 'LOW'})")
+            logger.warning(f"DEBUG _set_relay: SUCCESS - Relay on GPIO {pin} set to {'ON' if state else 'OFF'}")
             return True
         except Exception as e:
-            logger.error(f"Error setting relay state on GPIO {pin}: {e}")
+            logger.error(f"DEBUG _set_relay: ERROR setting relay state on GPIO {pin}: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -294,16 +300,16 @@ class Plugin(ChitUIPlugin):
         Arm the relay (activate it due to leak detection).
         Persists across reboots until manually disarmed.
         """
-        logger.info(f"arm_relay called - reason: {reason}, relay_enabled: {self.config.get('relay_enabled')}, gpio_pin: {self.config.get('relay_gpio_pin')}")
+        logger.warning(f"DEBUG arm_relay: reason={reason}, relay_enabled={self.config.get('relay_enabled')}, gpio_pin={self.config.get('relay_gpio_pin')}")
 
         if self.relay_state.get('armed', False):
-            logger.info("Relay already armed, skipping")
+            logger.warning("DEBUG arm_relay: Already armed, skipping")
             return False
 
         pin = self.config.get('relay_gpio_pin', 17)
 
         # Activate the relay
-        logger.info(f"Attempting to activate relay on GPIO {pin}...")
+        logger.warning(f"DEBUG arm_relay: Attempting to activate relay on GPIO {pin}...")
         if self._set_relay(True):
             self.relay_state['armed'] = True
             self.relay_state['armed_at'] = datetime.now().isoformat()
@@ -755,17 +761,17 @@ class Plugin(ChitUIPlugin):
 
                 # Activate relay if enabled
                 relay_enabled = self.config.get('relay_enabled', False)
-                logger.info(f"Checking relay activation - relay_enabled: {relay_enabled}, config: {self.config.get('relay_gpio_pin')}")
+                logger.warning(f"DEBUG: Checking relay - enabled: {relay_enabled}, gpio_pin: {self.config.get('relay_gpio_pin')}")
 
                 if relay_enabled:
                     sensor_name = self.config.get(f'sensor{sensor_num}_name', f'Sensor {sensor_num}')
                     sensor_location = data.get('location') or self.config.get(f'sensor{sensor_num}_location', 'Unknown')
                     reason = f"Leak detected by {sensor_name} at {sensor_location}"
-                    logger.info(f"Calling arm_relay with reason: {reason}")
+                    logger.warning(f"DEBUG: Calling arm_relay with reason: {reason}")
                     result = self.arm_relay(reason)
-                    logger.info(f"arm_relay returned: {result}")
+                    logger.warning(f"DEBUG: arm_relay returned: {result}")
                 else:
-                    logger.info("Relay activation skipped - relay_enabled is False")
+                    logger.warning("DEBUG: Relay activation skipped - relay_enabled is False")
 
                 return jsonify({'success': True, 'message': 'Alert received'}), 200
 
