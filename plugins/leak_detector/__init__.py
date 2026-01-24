@@ -214,21 +214,35 @@ class Plugin(ChitUIPlugin):
 
     def _get_relay_plugin(self):
         """Get the GPIO Relay Control plugin instance"""
+        # Try to get plugin manager if not already set
+        if self.plugin_manager is None and hasattr(self, 'app') and self.app:
+            if hasattr(self.app, 'plugin_manager'):
+                self.plugin_manager = self.app.plugin_manager
+                logger.info("Plugin manager obtained from app context (delayed)")
+
         if self.plugin_manager is None:
+            logger.warning("Plugin manager is None - cannot get relay plugin")
             return None
-        return self.plugin_manager.get_plugin('gpio_relay_control')
+
+        plugin = self.plugin_manager.get_plugin('gpio_relay_control')
+        if plugin is None:
+            # Log available plugins for debugging
+            available = list(self.plugin_manager.get_all_plugins().keys())
+            logger.warning(f"GPIO Relay Control plugin not found. Available plugins: {available}")
+        return plugin
 
     def _get_relay_plugin_config(self):
         """Get the configuration from GPIO Relay Control plugin"""
         relay_plugin = self._get_relay_plugin()
         if relay_plugin is None:
             return None
-        return relay_plugin.config
+        return getattr(relay_plugin, 'config', None)
 
     def get_available_relays(self):
         """Get list of available relays from GPIO Relay Control plugin"""
         relay_config = self._get_relay_plugin_config()
         if relay_config is None:
+            logger.debug("Could not get relay plugin config")
             return []
 
         relays = []
@@ -244,6 +258,7 @@ class Plugin(ChitUIPlugin):
             }
             relays.append(relay_info)
 
+        logger.debug(f"Found {len(relays)} relays from GPIO Relay Control plugin")
         return relays
 
     def _init_relay_gpio(self):
@@ -379,11 +394,20 @@ class Plugin(ChitUIPlugin):
 
     def is_relay_plugin_available(self):
         """Check if GPIO relay control plugin is installed and enabled"""
+        # Try to get plugin manager if not already set
+        if self.plugin_manager is None and hasattr(self, 'app') and self.app:
+            if hasattr(self.app, 'plugin_manager'):
+                self.plugin_manager = self.app.plugin_manager
+                logger.info("Plugin manager obtained from app context in is_relay_plugin_available")
+
         if self.plugin_manager is None:
+            logger.warning("Plugin manager is still None")
             return {'available': False, 'reason': 'Plugin manager not initialized', 'relays': []}
 
         # Check if gpio_relay_control plugin exists
         discovered = self.plugin_manager.discover_plugins()
+        logger.debug(f"Discovered plugins: {list(discovered.keys())}")
+
         if 'gpio_relay_control' not in discovered:
             return {'available': False, 'reason': 'GPIO Relay Control plugin not installed', 'relays': []}
 
@@ -393,6 +417,7 @@ class Plugin(ChitUIPlugin):
 
         # Get available relays
         relays = self.get_available_relays()
+        logger.debug(f"Available relays: {relays}")
 
         # Check if GPIO is available on the system
         if not GPIO_AVAILABLE:
@@ -410,10 +435,14 @@ class Plugin(ChitUIPlugin):
         logger.info("Leak Detector plugin starting up...")
 
         self.socketio = socketio
+        self.app = app  # Store app reference for later use
 
         # Get reference to plugin manager from app context
         if hasattr(app, 'plugin_manager'):
             self.plugin_manager = app.plugin_manager
+            logger.info("Plugin manager reference obtained")
+        else:
+            logger.warning("Plugin manager not found on app - relay features may not work")
 
         # Create Flask blueprint for API endpoints
         blueprint = Blueprint('leak_detector', __name__, url_prefix='/plugin/leak_detector')
