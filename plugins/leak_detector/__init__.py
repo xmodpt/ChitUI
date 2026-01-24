@@ -241,15 +241,16 @@ class Plugin(ChitUIPlugin):
             GPIO.setwarnings(False)
             GPIO.setup(pin, GPIO.OUT)
 
-            # If relay was armed (persistent state), keep it active
+            # If relay was armed (power cut due to leak), keep it OFF
+            # Otherwise, keep relay ON (normal operation - printer has power)
             if self.relay_state.get('armed', False):
-                gpio_level = self._get_relay_gpio_level(True)
+                gpio_level = self._get_relay_gpio_level(False)  # OFF = power cut
                 GPIO.output(pin, gpio_level)
-                logger.warning(f"Relay restored to ARMED state on GPIO {pin} (persistent from before reboot)")
+                logger.warning(f"Relay on GPIO {pin} kept OFF (power cut - leak detected before reboot)")
             else:
-                gpio_level = self._get_relay_gpio_level(False)
+                gpio_level = self._get_relay_gpio_level(True)  # ON = normal operation
                 GPIO.output(pin, gpio_level)
-                logger.info(f"Relay initialized on GPIO {pin} (OFF)")
+                logger.info(f"Relay on GPIO {pin} initialized ON (normal operation - printer has power)")
 
         except Exception as e:
             logger.error(f"Error initializing relay GPIO: {e}")
@@ -297,20 +298,21 @@ class Plugin(ChitUIPlugin):
 
     def arm_relay(self, reason=None):
         """
-        Arm the relay (activate it due to leak detection).
+        Arm the relay (CUT POWER due to leak detection).
+        Turns the relay OFF to cut power to the printer.
         Persists across reboots until manually disarmed.
         """
         logger.warning(f"DEBUG arm_relay: reason={reason}, relay_enabled={self.config.get('relay_enabled')}, gpio_pin={self.config.get('relay_gpio_pin')}")
 
         if self.relay_state.get('armed', False):
-            logger.warning("DEBUG arm_relay: Already armed, skipping")
+            logger.warning("DEBUG arm_relay: Already armed (power already cut), skipping")
             return False
 
         pin = self.config.get('relay_gpio_pin', 17)
 
-        # Activate the relay
-        logger.warning(f"DEBUG arm_relay: Attempting to activate relay on GPIO {pin}...")
-        if self._set_relay(True):
+        # Turn relay OFF to cut power
+        logger.warning(f"DEBUG arm_relay: Attempting to CUT POWER on GPIO {pin}...")
+        if self._set_relay(False):  # OFF = cut power
             self.relay_state['armed'] = True
             self.relay_state['armed_at'] = datetime.now().isoformat()
             self.relay_state['armed_reason'] = reason
@@ -325,14 +327,15 @@ class Plugin(ChitUIPlugin):
             # Emit update to clients
             self._emit_relay_update()
 
-            logger.warning(f"RELAY on GPIO {pin} ARMED due to: {reason}")
+            logger.warning(f"RELAY on GPIO {pin} ARMED - POWER CUT due to: {reason}")
             return True
 
         return False
 
     def disarm_relay(self, user=None):
         """
-        Disarm the relay (return to normal state).
+        Disarm the relay (RESTORE POWER - return to normal state).
+        Turns the relay back ON to restore power to the printer.
         Must be manually triggered by user.
         """
         if not self.relay_state.get('armed', False):
@@ -341,8 +344,8 @@ class Plugin(ChitUIPlugin):
 
         pin = self.config.get('relay_gpio_pin', 17)
 
-        # Deactivate the relay
-        if self._set_relay(False):
+        # Turn relay ON to restore power
+        if self._set_relay(True):  # ON = restore power
             armed_at = self.relay_state.get('armed_at')
             armed_reason = self.relay_state.get('armed_reason')
 
@@ -363,7 +366,7 @@ class Plugin(ChitUIPlugin):
             # Emit update to clients
             self._emit_relay_update()
 
-            logger.info(f"RELAY on GPIO {pin} DISARMED by: {user or 'user'}")
+            logger.warning(f"RELAY on GPIO {pin} DISARMED - POWER RESTORED by: {user or 'user'}")
             return True
 
         return False
