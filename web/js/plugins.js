@@ -388,9 +388,8 @@ function renderPluginManager() {
       const card = document.createElement('div');
       card.className = 'card mb-3';
 
-      // Check if plugin has settings endpoint - include ip_camera and leak_detector
-      const pluginsWithSettings = ['gpio_relay_control', 'ip_camera', 'leak_detector'];
-      const hasSettings = pluginsWithSettings.includes(plugin.id);
+      // Check if plugin has settings (dynamically detected by backend)
+      const hasSettings = plugin.has_settings === true;
 
       console.log(`Plugin ${plugin.id}: hasSettings = ${hasSettings}`);
 

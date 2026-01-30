@@ -61,6 +61,21 @@
             </div>
         </div>
 
+        <!-- Safety Relay Section (only visible when relay is enabled) -->
+        <div class="leak-panel-section" id="leak-relay-section" style="display: none;">
+            <div class="leak-section-title">Safety Relay</div>
+            <div class="leak-relay-status" id="leak-relay-status">
+                <div class="leak-relay-state" id="leak-relay-state">
+                    <span class="leak-relay-icon" id="leak-relay-icon"><i class="bi bi-plug"></i></span>
+                    <span class="leak-relay-label" id="leak-relay-label">Normal</span>
+                </div>
+                <div class="leak-relay-info" id="leak-relay-info"></div>
+                <button class="leak-relay-disarm-btn" id="leak-relay-disarm-btn" style="display: none;" onclick="disarmRelayFromToolbar()">
+                    <i class="bi bi-unlock-fill me-1"></i> Disarm Relay &amp; Restore Power
+                </button>
+            </div>
+        </div>
+
         <!-- Alerts Section -->
         <div class="leak-panel-section">
             <div class="leak-section-header">
@@ -372,6 +387,71 @@
         opacity: 0.7;
     }
 
+    /* Safety Relay */
+    .leak-relay-status {
+        background: var(--bs-dark, #1a1d20);
+        border: 1px solid var(--bs-border-color, #495057);
+        border-radius: 6px;
+        padding: 10px;
+    }
+
+    .leak-relay-state {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .leak-relay-icon {
+        font-size: 16px;
+    }
+
+    .leak-relay-label {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .leak-relay-status.armed {
+        border-color: var(--accent-color, #e63946);
+        background: rgba(230, 57, 70, 0.15);
+    }
+
+    .leak-relay-status.armed .leak-relay-icon {
+        color: var(--accent-color, #e63946);
+    }
+
+    .leak-relay-status.armed .leak-relay-label {
+        color: var(--accent-color, #e63946);
+    }
+
+    .leak-relay-status.normal .leak-relay-icon {
+        color: var(--success-color, #06d6a0);
+    }
+
+    .leak-relay-info {
+        font-size: 11px;
+        opacity: 0.7;
+        margin-bottom: 8px;
+    }
+
+    .leak-relay-disarm-btn {
+        width: 100%;
+        padding: 8px 12px;
+        background: var(--accent-color, #e63946);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .leak-relay-disarm-btn:hover {
+        opacity: 0.85;
+        transform: translateY(-1px);
+    }
+
     /* Alerts */
     .leak-alerts-container {
         max-height: 200px;
@@ -457,9 +537,13 @@
     };
     let sensorConfig = {};
 
+    let relayState = { armed: false };
+    let relayEnabled = false;
+
     // Initialize
     initLeakDetector();
     loadSensorConfig();
+    loadRelayStatus();
 
     function initLeakDetector() {
         console.log('[Leak Detector] Initializing plugin');
@@ -510,6 +594,13 @@
             console.log('[Leak Detector] Config updated:', config);
             sensorConfig = config;
             updateSensorLabels(config);
+        });
+
+        socket.on('leak_detector_relay_update', function(data) {
+            console.log('[Leak Detector] Relay update:', data);
+            relayState = data.relay_state || {};
+            relayEnabled = data.relay_enabled || false;
+            updateRelayUI();
         });
 
         // Load initial data
@@ -655,8 +746,13 @@
 
         if (sensorData) {
             valueEl.textContent = sensorData.value || '--';
-            if (sensorData.alert === true) {
+
+            if (sensorData.alert === true || sensorData.confirmed === true) {
+                // Confirmed leak - red danger state
                 card.classList.add('danger');
+            } else if (sensorData.leak === true && sensorData.count > 0) {
+                // Potential leak being confirmed - yellow warning state
+                card.classList.add('alert');
             }
         } else {
             valueEl.textContent = '--';
@@ -737,6 +833,88 @@
         }
     }
     window.resetDetection = resetDetection;
+
+    function loadRelayStatus() {
+        fetch('/plugin/leak_detector/relay/status')
+            .then(r => r.json())
+            .then(data => {
+                relayState = data.relay_state || {};
+                relayEnabled = data.relay_enabled || false;
+                updateRelayUI();
+            })
+            .catch(err => console.error('[Leak Detector] Error loading relay status:', err));
+    }
+
+    function updateRelayUI() {
+        const section = document.getElementById('leak-relay-section');
+        if (!section) return;
+
+        // Only show relay section if relay is enabled in config
+        if (!relayEnabled) {
+            section.style.display = 'none';
+            return;
+        }
+        section.style.display = '';
+
+        const statusDiv = document.getElementById('leak-relay-status');
+        const icon = document.getElementById('leak-relay-icon');
+        const label = document.getElementById('leak-relay-label');
+        const info = document.getElementById('leak-relay-info');
+        const disarmBtn = document.getElementById('leak-relay-disarm-btn');
+
+        if (!statusDiv || !icon || !label || !info || !disarmBtn) return;
+
+        statusDiv.classList.remove('armed', 'normal');
+
+        if (relayState.armed) {
+            statusDiv.classList.add('armed');
+            icon.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i>';
+            label.textContent = 'ARMED — Power Cut';
+            let infoText = '';
+            if (relayState.armed_reason) {
+                infoText += relayState.armed_reason;
+            }
+            if (relayState.armed_at) {
+                const armedTime = new Date(relayState.armed_at);
+                infoText += (infoText ? ' • ' : '') + 'Since: ' + armedTime.toLocaleTimeString();
+            }
+            info.textContent = infoText || 'Relay armed due to leak detection';
+            disarmBtn.style.display = '';
+        } else {
+            statusDiv.classList.add('normal');
+            icon.innerHTML = '<i class="bi bi-plug-fill"></i>';
+            label.textContent = 'Normal — Power On';
+            info.textContent = 'Printer power is active';
+            disarmBtn.style.display = 'none';
+        }
+    }
+
+    function disarmRelayFromToolbar() {
+        if (!confirm('Disarm safety relay and restore power to the printer?')) {
+            return;
+        }
+
+        fetch('/plugin/leak_detector/relay/disarm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: 'user' })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                relayState = data.relay_state || { armed: false };
+                updateRelayUI();
+                console.log('[Leak Detector] Relay disarmed successfully');
+            } else {
+                alert('Failed to disarm relay: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error('[Leak Detector] Error disarming relay:', err);
+            alert('Error disarming relay');
+        });
+    }
+    window.disarmRelayFromToolbar = disarmRelayFromToolbar;
 
     function showNotification(alert) {
         if ('Notification' in window && Notification.permission === 'granted') {

@@ -1,0 +1,549 @@
+<div class="card bg-dark border-secondary mt-3">
+    <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-bell-fill"></i> Chitu Notify Configuration</h6>
+
+        <!-- Service Section -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle mb-0"><i class="bi bi-broadcast"></i> Notification Service</h6>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="notify-enabled" checked>
+                        <label class="form-check-label" for="notify-enabled">Enabled</label>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Service Name</label>
+                        <input type="text" class="form-control" id="notify-service-name" placeholder="chitui">
+                        <div class="form-text">Your name for this service (used as topic prefix)</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">ntfy Server URL</label>
+                        <input type="text" class="form-control" id="notify-ntfy-url" value="https://ntfy.sh">
+                        <div class="form-text">Default: https://ntfy.sh (or your self-hosted server)</div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <label class="form-label">Topic</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="notify-topic" readonly>
+                            <button class="btn btn-outline-secondary" type="button" id="notify-copy-topic" title="Copy topic">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">Subscribe to this topic in the ntfy app on your phone</div>
+                    </div>
+                </div>
+
+                <!-- Printer Serial Selection -->
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <label class="form-label">Generate Topic Using Printer Serial</label>
+                        <div class="input-group">
+                            <select class="form-select" id="notify-printer-select">
+                                <option value="">-- Select a printer --</option>
+                            </select>
+                            <button class="btn btn-outline-primary" type="button" id="notify-use-printer-serial" title="Use selected printer's serial">
+                                <i class="bi bi-cpu"></i> Use Serial
+                            </button>
+                            <button class="btn btn-outline-warning" type="button" id="notify-use-random" title="Use random suffix instead">
+                                <i class="bi bi-shuffle"></i> Random
+                            </button>
+                        </div>
+                        <div class="form-text" id="notify-serial-info">Select a printer to use its serial number as the topic suffix (more memorable than random)</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mb-0">
+                    <small>
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Subscribe URL:</strong>
+                        <a href="#" id="notify-subscribe-link" target="_blank" class="text-info" style="word-break: break-all;"></a>
+                        <br>Open the ntfy app on your phone and subscribe to the topic above, or click the link.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Alarm Configuration -->
+        <h6 class="card-title mb-3"><i class="bi bi-exclamation-triangle"></i> Alarm Configuration</h6>
+        <p class="text-muted mb-3"><small>Customize alarm names, messages, priorities, and enable/disable individual notifications.</small></p>
+
+        <div id="notify-alarms-container">
+            <!-- Alarms will be dynamically populated here -->
+        </div>
+
+        <hr>
+
+        <!-- Test Notification -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-3"><i class="bi bi-send"></i> Test Notification</h6>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label">Select Alarm to Test</label>
+                        <select class="form-select" id="notify-test-alarm">
+                            <!-- Options populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-info" id="notify-send-test">
+                            <i class="bi bi-send"></i> Send Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" id="notify-cancel-settings">Cancel</button>
+            <button type="button" class="btn btn-primary" id="notify-save-settings">
+                <i class="bi bi-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .notify-alarm-card {
+        background: var(--bs-dark, #1a1d20);
+        border: 1px solid var(--bs-border-color, #495057);
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 8px;
+        transition: opacity 0.3s;
+    }
+
+    .notify-alarm-card.disabled {
+        opacity: 0.5;
+    }
+
+    .notify-alarm-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .notify-alarm-title {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .notify-alarm-id {
+        font-size: 11px;
+        color: #6c757d;
+        font-family: monospace;
+    }
+
+    .notify-priority-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .notify-priority-badge.urgent {
+        background-color: #e63946;
+        color: #fff;
+    }
+
+    .notify-priority-badge.high {
+        background-color: #ffd166;
+        color: #000;
+    }
+
+    .notify-priority-badge.default {
+        background-color: #118ab2;
+        color: #fff;
+    }
+
+    .notify-priority-badge.low {
+        background-color: #6c757d;
+        color: #fff;
+    }
+
+    .notify-priority-badge.min {
+        background-color: #495057;
+        color: #adb5bd;
+    }
+</style>
+
+<script>
+(function() {
+    let currentConfig = {};
+
+    // Load configuration
+    loadConfiguration();
+    loadPrinters();
+
+    function loadConfiguration() {
+        fetch('/plugin/chitu_notify/config')
+            .then(response => response.json())
+            .then(config => {
+                currentConfig = config;
+                populateFields(config);
+                populateAlarms(config.alarms || {});
+            })
+            .catch(error => {
+                console.error('Error loading chitu_notify config:', error);
+                alert('Failed to load notification configuration');
+            });
+    }
+
+    function loadPrinters() {
+        fetch('/plugin/chitu_notify/printers')
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('notify-printer-select');
+                const infoText = document.getElementById('notify-serial-info');
+
+                // Clear existing options except the first one
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+
+                if (data.printers && data.printers.length > 0) {
+                    data.printers.forEach(printer => {
+                        const option = document.createElement('option');
+                        option.value = printer.serial;
+                        option.textContent = `${printer.name} (${printer.serial})`;
+                        select.appendChild(option);
+                    });
+
+                    // Select the current printer if one is being used
+                    if (data.current_serial) {
+                        select.value = data.current_serial;
+                        infoText.innerHTML = `<i class="bi bi-check-circle text-success"></i> Currently using serial: <code>${data.current_serial}</code>`;
+                    }
+                } else {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No printers connected';
+                    option.disabled = true;
+                    select.appendChild(option);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading printers:', error);
+            });
+    }
+
+    function populateFields(config) {
+        document.getElementById('notify-enabled').checked = config.enabled !== false;
+        document.getElementById('notify-service-name').value = config.service_name || '';
+        document.getElementById('notify-ntfy-url').value = config.ntfy_url || 'https://ntfy.sh';
+        document.getElementById('notify-topic').value = config.topic || '';
+        updateSubscribeLink(config);
+    }
+
+    function updateSubscribeLink(config) {
+        const link = document.getElementById('notify-subscribe-link');
+        const url = (config.ntfy_url || 'https://ntfy.sh') + '/' + (config.topic || '');
+        link.href = url;
+        link.textContent = url;
+    }
+
+    function populateAlarms(alarms) {
+        const container = document.getElementById('notify-alarms-container');
+        const testSelect = document.getElementById('notify-test-alarm');
+
+        let html = '';
+        let optionsHtml = '';
+
+        // Define display order and group labels
+        const groups = {
+            'Power Relay': ['relay_on', 'relay_off'],
+            'Leak Detection': ['leak_detected', 'leak_reset', 'leak_relay_armed', 'leak_relay_disarmed'],
+            'Printer': ['printer_connected', 'printer_disconnected'],
+            'Print Job': ['print_started', 'print_paused', 'print_stopped', 'print_completed', 'print_failed'],
+            'System': ['system_boot']
+        };
+
+        for (const [groupName, alarmIds] of Object.entries(groups)) {
+            html += `<h6 class="text-muted mt-3 mb-2"><small>${groupName}</small></h6>`;
+
+            for (const alarmId of alarmIds) {
+                const alarm = alarms[alarmId];
+                if (!alarm) continue;
+
+                const isEnabled = alarm.enabled !== false;
+                const priorityClass = alarm.priority || 'default';
+
+                html += `
+                    <div class="notify-alarm-card ${isEnabled ? '' : 'disabled'}" data-alarm-id="${alarmId}">
+                        <div class="notify-alarm-header">
+                            <div>
+                                <span class="notify-alarm-title">${escapeHtml(alarm.name)}</span>
+                                <span class="notify-alarm-id">${alarmId}</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="notify-priority-badge ${priorityClass}">${priorityClass}</span>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input notify-alarm-enabled" type="checkbox"
+                                           data-alarm="${alarmId}" ${isEnabled ? 'checked' : ''}>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control form-control-sm notify-alarm-name"
+                                       data-alarm="${alarmId}" value="${escapeHtml(alarm.name)}" placeholder="Alarm name">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control form-control-sm notify-alarm-message"
+                                       data-alarm="${alarmId}" value="${escapeHtml(alarm.message || '')}" placeholder="Message">
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-select form-select-sm notify-alarm-priority" data-alarm="${alarmId}">
+                                    <option value="min" ${alarm.priority === 'min' ? 'selected' : ''}>Min</option>
+                                    <option value="low" ${alarm.priority === 'low' ? 'selected' : ''}>Low</option>
+                                    <option value="default" ${alarm.priority === 'default' ? 'selected' : ''}>Default</option>
+                                    <option value="high" ${alarm.priority === 'high' ? 'selected' : ''}>High</option>
+                                    <option value="urgent" ${alarm.priority === 'urgent' ? 'selected' : ''}>Urgent</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="text" class="form-control form-control-sm notify-alarm-tags"
+                                       data-alarm="${alarmId}" value="${escapeHtml(alarm.tags || '')}" placeholder="Tags"
+                                       title="Comma-separated ntfy tags (emoji shortcodes)">
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                optionsHtml += `<option value="${alarmId}">${escapeHtml(alarm.name)}</option>`;
+            }
+        }
+
+        container.innerHTML = html;
+        testSelect.innerHTML = optionsHtml;
+
+        // Add toggle listeners for visual feedback
+        container.querySelectorAll('.notify-alarm-enabled').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const card = this.closest('.notify-alarm-card');
+                if (this.checked) {
+                    card.classList.remove('disabled');
+                } else {
+                    card.classList.add('disabled');
+                }
+            });
+        });
+
+        // Update priority badge on change
+        container.querySelectorAll('.notify-alarm-priority').forEach(select => {
+            select.addEventListener('change', function() {
+                const card = this.closest('.notify-alarm-card');
+                const badge = card.querySelector('.notify-priority-badge');
+                badge.className = `notify-priority-badge ${this.value}`;
+                badge.textContent = this.value;
+            });
+        });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Use printer serial for topic
+    document.getElementById('notify-use-printer-serial').addEventListener('click', function() {
+        const select = document.getElementById('notify-printer-select');
+        const serial = select.value;
+
+        if (!serial) {
+            alert('Please select a printer first');
+            return;
+        }
+
+        if (!confirm('Generate a new topic using printer serial? You will need to resubscribe on your phone.')) return;
+
+        // Save service name first, then regenerate with serial
+        const serviceName = document.getElementById('notify-service-name').value.trim();
+        fetch('/plugin/chitu_notify/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ service_name: serviceName })
+        })
+        .then(() => {
+            return fetch('/plugin/chitu_notify/regenerate_topic', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ printer_serial: serial })
+            });
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('notify-topic').value = data.topic;
+                currentConfig.topic = data.topic;
+                updateSubscribeLink({ ...currentConfig, topic: data.topic });
+                document.getElementById('notify-serial-info').innerHTML =
+                    `<i class="bi bi-check-circle text-success"></i> Now using serial: <code>${serial}</code>`;
+                alert('Topic generated with printer serial: ' + data.topic);
+            }
+        })
+        .catch(err => {
+            console.error('Error generating topic:', err);
+            alert('Failed to generate topic');
+        });
+    });
+
+    // Use random suffix for topic
+    document.getElementById('notify-use-random').addEventListener('click', function() {
+        if (!confirm('Generate a new topic with random suffix? You will need to resubscribe on your phone.')) return;
+
+        const serviceName = document.getElementById('notify-service-name').value.trim();
+        fetch('/plugin/chitu_notify/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ service_name: serviceName })
+        })
+        .then(() => {
+            return fetch('/plugin/chitu_notify/regenerate_topic', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})  // No printer_serial = random
+            });
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('notify-topic').value = data.topic;
+                currentConfig.topic = data.topic;
+                updateSubscribeLink({ ...currentConfig, topic: data.topic });
+                document.getElementById('notify-serial-info').textContent =
+                    'Topic generated with random suffix';
+                document.getElementById('notify-printer-select').value = '';
+                alert('Topic generated with random suffix: ' + data.topic);
+            }
+        })
+        .catch(err => {
+            console.error('Error generating topic:', err);
+            alert('Failed to generate topic');
+        });
+    });
+
+    // Copy topic
+    document.getElementById('notify-copy-topic').addEventListener('click', function() {
+        const topic = document.getElementById('notify-topic').value;
+        navigator.clipboard.writeText(topic).then(() => {
+            const btn = document.getElementById('notify-copy-topic');
+            const icon = btn.querySelector('i');
+            icon.className = 'bi bi-check';
+            setTimeout(() => { icon.className = 'bi bi-clipboard'; }, 1500);
+        }).catch(() => {
+            // Fallback for older browsers
+            const input = document.getElementById('notify-topic');
+            input.removeAttribute('readonly');
+            input.select();
+            document.execCommand('copy');
+            input.setAttribute('readonly', '');
+        });
+    });
+
+    // Send test notification
+    document.getElementById('notify-send-test').addEventListener('click', function() {
+        const alarmId = document.getElementById('notify-test-alarm').value;
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending...';
+
+        fetch('/plugin/chitu_notify/test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ alarm_id: alarmId })
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send"></i> Send Test';
+            if (data.success) {
+                alert('Test notification sent!');
+            } else {
+                alert('Failed: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send"></i> Send Test';
+            console.error('Error sending test:', err);
+            alert('Error sending test notification');
+        });
+    });
+
+    // Save settings
+    document.getElementById('notify-save-settings').addEventListener('click', function() {
+        const newConfig = {
+            enabled: document.getElementById('notify-enabled').checked,
+            service_name: document.getElementById('notify-service-name').value.trim(),
+            ntfy_url: document.getElementById('notify-ntfy-url').value.trim(),
+            alarms: {}
+        };
+
+        // Collect alarm settings
+        const container = document.getElementById('notify-alarms-container');
+        container.querySelectorAll('.notify-alarm-card').forEach(card => {
+            const alarmId = card.dataset.alarmId;
+            newConfig.alarms[alarmId] = {
+                name: card.querySelector('.notify-alarm-name').value.trim(),
+                enabled: card.querySelector('.notify-alarm-enabled').checked,
+                priority: card.querySelector('.notify-alarm-priority').value,
+                tags: card.querySelector('.notify-alarm-tags').value.trim(),
+                message: card.querySelector('.notify-alarm-message').value.trim()
+            };
+
+            // Validate alarm name
+            if (!newConfig.alarms[alarmId].name) {
+                alert(`Alarm name for "${alarmId}" cannot be empty`);
+                return;
+            }
+        });
+
+        // Save
+        fetch('/plugin/chitu_notify/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newConfig)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert('Settings saved successfully!');
+                const panel = document.getElementById('plugin-settings-chitu_notify');
+                if (panel) panel.style.display = 'none';
+                setTimeout(() => window.location.reload(), 500);
+            } else {
+                alert('Failed to save settings: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error('Error saving settings:', err);
+            alert('Error saving settings');
+        });
+    });
+
+    // Cancel button
+    document.getElementById('notify-cancel-settings').addEventListener('click', function() {
+        const panel = document.getElementById('plugin-settings-chitu_notify');
+        if (panel) panel.style.display = 'none';
+    });
+
+    // Listen for config updates via WebSocket
+    if (typeof socket !== 'undefined') {
+        socket.on('chitu_notify_config_updated', function(config) {
+            currentConfig = config;
+            console.log('Chitu Notify config updated:', config);
+        });
+    }
+})();
+</script>

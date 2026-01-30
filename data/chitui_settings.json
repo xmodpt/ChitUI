@@ -1,0 +1,19 @@
+{
+  "auth": {
+    "password_hash": "scrypt:32768:8:1$XBuiP7PrSmIH17qE$ad226ce41fee75819bb96507bc1503edc7b4abed7684f7ef08ca3288e4e76425e697766b74326a93ac99062c5b3e9fbe8798961b0ee32d32ef3a0e5a9a944d9b",
+    "require_password_change": false,
+    "session_timeout": 0
+  },
+  "auto_discover": false,
+  "printers": {
+    "944047506c1e0100": {
+      "brand": "ELEGOO",
+      "enabled": true,
+      "ip": "192.168.1.67",
+      "manual": false,
+      "model": "Saturn 4 Ultra",
+      "name": "Saturn",
+      "usb_device_type": "virtual"
+    }
+  }
+}

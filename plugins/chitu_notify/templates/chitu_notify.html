@@ -1,0 +1,539 @@
+<!-- Chitu Notify Toolbar Icon -->
+<div class="chitu-notify-toolbar">
+    <button type="button" class="btn btn-sm chitu-notify-btn" id="chitu-notify-btn" title="Chitu Notify">
+        <i class="bi bi-bell-fill"></i>
+        <span class="chitu-notify-badge" id="chitu-notify-badge" style="display: none;">0</span>
+    </button>
+
+    <!-- Dropdown Panel -->
+    <div class="chitu-notify-panel" id="chitu-notify-panel">
+        <div class="chitu-notify-panel-header">
+            <div class="chitu-notify-panel-title">
+                <i class="bi bi-bell-fill me-2"></i>
+                <span>Chitu Notify</span>
+            </div>
+            <div class="chitu-notify-panel-actions">
+                <button class="chitu-notify-btn-action" onclick="clearNotifyLog()" title="Clear log">
+                    <i class="bi bi-trash"></i>
+                </button>
+                <button class="chitu-notify-panel-close" onclick="toggleNotifyPanel()">&times;</button>
+            </div>
+        </div>
+
+        <!-- Service Status -->
+        <div class="chitu-notify-section">
+            <div class="chitu-notify-service-info">
+                <div class="chitu-notify-status-row">
+                    <span class="chitu-notify-status-dot" id="chitu-notify-status-dot"></span>
+                    <span class="chitu-notify-status-text" id="chitu-notify-status-text">Loading...</span>
+                </div>
+                <div class="chitu-notify-topic-info" id="chitu-notify-topic-info">
+                    <small class="text-muted">Loading topic...</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Notifications -->
+        <div class="chitu-notify-section">
+            <div class="chitu-notify-section-header">
+                <div class="chitu-notify-section-title">Recent Notifications</div>
+            </div>
+            <div class="chitu-notify-log-container" id="chitu-notify-log-list">
+                <div class="chitu-notify-empty">No notifications sent yet</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Ensure toolbar plugins display inline */
+    .plugin-header-item {
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 8px;
+    }
+
+    /* Toolbar Button */
+    .chitu-notify-toolbar {
+        position: relative;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .chitu-notify-btn {
+        position: relative;
+        background-color: #118ab2 !important;
+        border-color: #118ab2 !important;
+        color: white !important;
+        transition: all 0.3s ease;
+    }
+
+    .chitu-notify-btn:hover {
+        opacity: 0.85;
+    }
+
+    .chitu-notify-btn.disabled-state {
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
+    }
+
+    .chitu-notify-btn.error-state {
+        background-color: #e63946 !important;
+        border-color: #e63946 !important;
+    }
+
+    .chitu-notify-btn.active-state {
+        background-color: var(--success-color, #06d6a0) !important;
+        border-color: var(--success-color, #06d6a0) !important;
+    }
+
+    .chitu-notify-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        background-color: var(--success-color, #06d6a0);
+        color: #000;
+        border-radius: 10px;
+        padding: 2px 6px;
+        font-size: 10px;
+        font-weight: bold;
+        min-width: 18px;
+        text-align: center;
+    }
+
+    /* Dropdown Panel */
+    .chitu-notify-panel {
+        display: none;
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        width: 360px;
+        max-height: 500px;
+        background: var(--bs-body-bg, #212529);
+        border: 1px solid var(--bs-border-color, #495057);
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+        overflow-y: auto;
+        color: var(--bs-body-color, #f8f9fa);
+    }
+
+    .chitu-notify-panel.show {
+        display: block;
+    }
+
+    .chitu-notify-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: var(--bs-dark, #1a1d20);
+        border-bottom: 1px solid var(--bs-border-color, #495057);
+        border-radius: 8px 8px 0 0;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .chitu-notify-panel-title {
+        font-weight: 600;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+    }
+
+    .chitu-notify-panel-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .chitu-notify-btn-action {
+        background: none;
+        border: none;
+        color: var(--bs-body-color, #f8f9fa);
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 4px;
+        width: 28px;
+        height: 28px;
+        opacity: 0.7;
+        border-radius: 4px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chitu-notify-btn-action:hover {
+        opacity: 1;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .chitu-notify-panel-close {
+        background: none;
+        border: none;
+        color: var(--bs-body-color, #f8f9fa);
+        font-size: 24px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        opacity: 0.7;
+    }
+
+    .chitu-notify-panel-close:hover {
+        opacity: 1;
+    }
+
+    .chitu-notify-section {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--bs-border-color, #495057);
+    }
+
+    .chitu-notify-section:last-child {
+        border-bottom: none;
+    }
+
+    .chitu-notify-section-title {
+        font-size: 13px;
+        font-weight: 600;
+        opacity: 0.9;
+    }
+
+    .chitu-notify-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    /* Status */
+    .chitu-notify-service-info {
+        font-size: 13px;
+    }
+
+    .chitu-notify-status-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .chitu-notify-status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #6c757d;
+    }
+
+    .chitu-notify-status-dot.active {
+        background-color: var(--success-color, #06d6a0);
+        animation: notify-pulse 2s infinite;
+    }
+
+    .chitu-notify-status-dot.disabled {
+        background-color: #6c757d;
+    }
+
+    .chitu-notify-status-dot.error {
+        background-color: #e63946;
+    }
+
+    @keyframes notify-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .chitu-notify-status-text {
+        font-weight: 600;
+    }
+
+    .chitu-notify-topic-info {
+        font-size: 11px;
+        opacity: 0.8;
+        margin-top: 2px;
+    }
+
+    /* Log */
+    .chitu-notify-log-container {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .chitu-notify-log-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chitu-notify-log-container::-webkit-scrollbar-track {
+        background: var(--bs-dark, #1a1d20);
+        border-radius: 3px;
+    }
+
+    .chitu-notify-log-container::-webkit-scrollbar-thumb {
+        background: var(--bs-border-color, #495057);
+        border-radius: 3px;
+    }
+
+    .chitu-notify-empty {
+        text-align: center;
+        padding: 16px;
+        font-size: 12px;
+        opacity: 0.6;
+    }
+
+    .chitu-notify-log-item {
+        background: var(--bs-dark, #1a1d20);
+        border-left: 3px solid var(--success-color, #06d6a0);
+        padding: 8px;
+        margin-bottom: 6px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+
+    .chitu-notify-log-item.failed {
+        border-left-color: #e63946;
+    }
+
+    .chitu-notify-log-title {
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+
+    .chitu-notify-log-message {
+        opacity: 0.8;
+        font-size: 11px;
+    }
+
+    .chitu-notify-log-time {
+        font-size: 10px;
+        opacity: 0.6;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .chitu-notify-log-error {
+        color: #e63946;
+        font-size: 11px;
+        margin-top: 2px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+        .chitu-notify-panel {
+            width: 320px;
+            right: -100px;
+        }
+    }
+</style>
+
+<script>
+(function() {
+    'use strict';
+
+    const socket = io();
+    let notifyData = {
+        enabled: true,
+        topic: '',
+        recent_log: []
+    };
+
+    // Initialize
+    initChituNotify();
+
+    function initChituNotify() {
+        console.log('[Chitu Notify] Initializing plugin');
+
+        // Button click handler
+        const btn = document.getElementById('chitu-notify-btn');
+        if (btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleNotifyPanel();
+            });
+        }
+
+        // Close panel when clicking outside
+        document.addEventListener('click', function(e) {
+            const panel = document.getElementById('chitu-notify-panel');
+            const btn = document.getElementById('chitu-notify-btn');
+            if (panel && panel.classList.contains('show')) {
+                if (!panel.contains(e.target) && !btn.contains(e.target)) {
+                    panel.classList.remove('show');
+                }
+            }
+        });
+
+        // Socket.IO listeners
+        socket.on('connect', function() {
+            console.log('[Chitu Notify] Connected to server');
+            socket.emit('chitu_notify_request_status');
+        });
+
+        socket.on('chitu_notify_status', function(data) {
+            console.log('[Chitu Notify] Status:', data);
+            updateNotifyUI(data);
+        });
+
+        socket.on('chitu_notify_log_update', function(data) {
+            console.log('[Chitu Notify] Log update:', data);
+            if (data.entry) {
+                notifyData.recent_log.unshift(data.entry);
+                if (notifyData.recent_log.length > 10) {
+                    notifyData.recent_log = notifyData.recent_log.slice(0, 10);
+                }
+                updateLogUI(notifyData.recent_log);
+                updateBadge();
+            }
+        });
+
+        socket.on('chitu_notify_config_updated', function(config) {
+            console.log('[Chitu Notify] Config updated:', config);
+            notifyData.enabled = config.enabled;
+            notifyData.topic = config.topic;
+            updateButton();
+        });
+
+        // Load initial status
+        loadNotifyStatus();
+    }
+
+    function toggleNotifyPanel() {
+        const panel = document.getElementById('chitu-notify-panel');
+        if (panel) {
+            panel.classList.toggle('show');
+            // Clear badge when opening
+            if (panel.classList.contains('show')) {
+                const badge = document.getElementById('chitu-notify-badge');
+                if (badge) badge.style.display = 'none';
+            }
+        }
+    }
+    window.toggleNotifyPanel = toggleNotifyPanel;
+
+    function loadNotifyStatus() {
+        fetch('/plugin/chitu_notify/status')
+            .then(r => r.json())
+            .then(data => updateNotifyUI(data))
+            .catch(err => console.error('[Chitu Notify] Error loading status:', err));
+    }
+
+    function updateNotifyUI(data) {
+        notifyData = data;
+        updateButton();
+        updateServiceStatus(data);
+        updateLogUI(data.recent_log || []);
+    }
+
+    function updateButton() {
+        const btn = document.getElementById('chitu-notify-btn');
+        if (!btn) return;
+
+        btn.classList.remove('active-state', 'disabled-state', 'error-state');
+
+        if (!notifyData.enabled) {
+            btn.classList.add('disabled-state');
+            btn.title = 'Chitu Notify - Disabled';
+        } else if (!notifyData.requests_available && notifyData.requests_available !== undefined) {
+            btn.classList.add('error-state');
+            btn.title = 'Chitu Notify - Error (requests library missing)';
+        } else {
+            btn.classList.add('active-state');
+            btn.title = 'Chitu Notify - Active';
+        }
+    }
+
+    function updateBadge() {
+        const badge = document.getElementById('chitu-notify-badge');
+        const panel = document.getElementById('chitu-notify-panel');
+        if (!badge) return;
+
+        // Only show badge if panel is closed
+        if (panel && !panel.classList.contains('show')) {
+            badge.style.display = 'block';
+            badge.textContent = '!';
+            // Auto-hide after 5 seconds
+            setTimeout(() => { badge.style.display = 'none'; }, 5000);
+        }
+    }
+
+    function updateServiceStatus(data) {
+        const dot = document.getElementById('chitu-notify-status-dot');
+        const text = document.getElementById('chitu-notify-status-text');
+        const topicInfo = document.getElementById('chitu-notify-topic-info');
+
+        if (!dot || !text || !topicInfo) return;
+
+        dot.classList.remove('active', 'disabled', 'error');
+
+        if (!data.enabled) {
+            dot.classList.add('disabled');
+            text.textContent = 'Disabled';
+            text.style.color = '#6c757d';
+        } else {
+            dot.classList.add('active');
+            text.textContent = 'Active';
+            text.style.color = 'var(--success-color, #06d6a0)';
+        }
+
+        if (data.topic) {
+            const url = (data.ntfy_url || 'https://ntfy.sh') + '/' + data.topic;
+            topicInfo.innerHTML = `<strong>Topic:</strong> <a href="${url}" target="_blank" style="color: var(--info-color, #118ab2); text-decoration: none;">${data.topic}</a>`;
+        } else {
+            topicInfo.innerHTML = '<small class="text-muted">No topic configured</small>';
+        }
+    }
+
+    function updateLogUI(log) {
+        const container = document.getElementById('chitu-notify-log-list');
+        if (!container) return;
+
+        if (!log || log.length === 0) {
+            container.innerHTML = '<div class="chitu-notify-empty">No notifications sent yet</div>';
+            return;
+        }
+
+        let html = '';
+        log.slice(0, 10).forEach(entry => {
+            const isSuccess = entry.success;
+            const time = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '';
+            html += `
+                <div class="chitu-notify-log-item ${isSuccess ? '' : 'failed'}">
+                    <div class="chitu-notify-log-title">${escapeHtml(entry.title || entry.alarm_id)}</div>
+                    <div class="chitu-notify-log-message">${escapeHtml(entry.message || '')}</div>
+                    ${!isSuccess && entry.error ? `<div class="chitu-notify-log-error">${escapeHtml(entry.error)}</div>` : ''}
+                    <span class="chitu-notify-log-time">${isSuccess ? 'Sent' : 'Failed'} - ${time}</span>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function clearNotifyLog() {
+        if (!confirm('Clear notification log?')) return;
+
+        fetch('/plugin/chitu_notify/log/clear', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    notifyData.recent_log = [];
+                    updateLogUI([]);
+                }
+            })
+            .catch(err => console.error('[Chitu Notify] Error clearing log:', err));
+    }
+    window.clearNotifyLog = clearNotifyLog;
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
+    }
+
+    console.log('[Chitu Notify] Plugin loaded');
+})();
+</script>

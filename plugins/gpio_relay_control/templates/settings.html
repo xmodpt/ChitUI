@@ -57,6 +57,20 @@
                         <input type="number" class="form-control" id="gpio-relay1-pin" min="2" max="27" placeholder="17">
                     </div>
                 </div>
+                <!-- Notification options (only visible if Chitu Notify is installed) -->
+                <div class="gpio-notify-options mt-3" id="gpio-relay1-notify-section" style="display: none;">
+                    <label class="form-label"><i class="bi bi-bell"></i> Push Notifications</label>
+                    <div class="d-flex gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay1-notify-on">
+                            <label class="form-check-label" for="gpio-relay1-notify-on">Notify when ON</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay1-notify-off">
+                            <label class="form-check-label" for="gpio-relay1-notify-off">Notify when OFF</label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -102,6 +116,20 @@
                     <div class="col-md-3">
                         <label class="form-label">GPIO Pin (BCM)</label>
                         <input type="number" class="form-control" id="gpio-relay2-pin" min="2" max="27" placeholder="27">
+                    </div>
+                </div>
+                <!-- Notification options -->
+                <div class="gpio-notify-options mt-3" id="gpio-relay2-notify-section" style="display: none;">
+                    <label class="form-label"><i class="bi bi-bell"></i> Push Notifications</label>
+                    <div class="d-flex gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay2-notify-on">
+                            <label class="form-check-label" for="gpio-relay2-notify-on">Notify when ON</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay2-notify-off">
+                            <label class="form-check-label" for="gpio-relay2-notify-off">Notify when OFF</label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -151,6 +179,20 @@
                         <input type="number" class="form-control" id="gpio-relay3-pin" min="2" max="27" placeholder="22">
                     </div>
                 </div>
+                <!-- Notification options -->
+                <div class="gpio-notify-options mt-3" id="gpio-relay3-notify-section" style="display: none;">
+                    <label class="form-label"><i class="bi bi-bell"></i> Push Notifications</label>
+                    <div class="d-flex gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay3-notify-on">
+                            <label class="form-check-label" for="gpio-relay3-notify-on">Notify when ON</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay3-notify-off">
+                            <label class="form-check-label" for="gpio-relay3-notify-off">Notify when OFF</label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -198,6 +240,20 @@
                         <input type="number" class="form-control" id="gpio-relay4-pin" min="2" max="27" placeholder="23">
                     </div>
                 </div>
+                <!-- Notification options -->
+                <div class="gpio-notify-options mt-3" id="gpio-relay4-notify-section" style="display: none;">
+                    <label class="form-label"><i class="bi bi-bell"></i> Push Notifications</label>
+                    <div class="d-flex gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay4-notify-on">
+                            <label class="form-check-label" for="gpio-relay4-notify-on">Notify when ON</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="gpio-relay4-notify-off">
+                            <label class="form-check-label" for="gpio-relay4-notify-off">Notify when OFF</label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -223,6 +279,22 @@
 
 <script>
 (function() {
+    // Check if Chitu Notify plugin is available
+    fetch('/plugin/gpio_relay_control/notify_available')
+        .then(response => response.json())
+        .then(data => {
+            if (data.available) {
+                // Show notification options for all relays
+                for (let i = 1; i <= 4; i++) {
+                    const section = document.getElementById(`gpio-relay${i}-notify-section`);
+                    if (section) section.style.display = 'block';
+                }
+            }
+        })
+        .catch(error => {
+            console.log('Chitu Notify not available:', error);
+        });
+
     // Load current configuration
     fetch('/plugin/gpio_relay_control/config')
         .then(response => response.json())
@@ -230,13 +302,16 @@
             // Populate display settings
             document.getElementById('gpio-show-text').checked = config.show_text !== false;
 
-            // Populate relay names, types, icons, enabled state, and label visibility
+            // Populate relay names, types, icons, enabled state, label visibility, and notifications
             for (let i = 1; i <= 4; i++) {
                 document.getElementById(`gpio-relay${i}-name`).value = config[`relay${i}_name`] || `Relay ${i}`;
                 document.getElementById(`gpio-relay${i}-type`).value = config[`relay${i}_type`] || 'NO';
                 document.getElementById(`gpio-relay${i}-icon`).value = config[`relay${i}_icon`] || 'fa-bolt';
                 document.getElementById(`gpio-relay${i}-enabled`).checked = config[`relay${i}_enabled`] !== false;
                 document.getElementById(`gpio-relay${i}-show-label`).checked = config[`relay${i}_show_label`] !== false;
+                // Load notification settings
+                document.getElementById(`gpio-relay${i}-notify-on`).checked = config[`relay${i}_notify_on`] === true;
+                document.getElementById(`gpio-relay${i}-notify-off`).checked = config[`relay${i}_notify_off`] === true;
             }
 
             // Populate GPIO pins
@@ -264,6 +339,9 @@
             newConfig[`relay${i}_pin`] = parseInt(document.getElementById(`gpio-relay${i}-pin`).value);
             newConfig[`relay${i}_enabled`] = document.getElementById(`gpio-relay${i}-enabled`).checked;
             newConfig[`relay${i}_show_label`] = document.getElementById(`gpio-relay${i}-show-label`).checked;
+            // Add notification settings
+            newConfig[`relay${i}_notify_on`] = document.getElementById(`gpio-relay${i}-notify-on`).checked;
+            newConfig[`relay${i}_notify_off`] = document.getElementById(`gpio-relay${i}-notify-off`).checked;
         }
 
         // Validate GPIO pins

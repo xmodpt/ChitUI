@@ -88,6 +88,10 @@ class PluginManager:
                 with open(manifest_path, 'r') as f:
                     manifest = json.load(f)
 
+                # Check if plugin has settings (settings.html template exists)
+                settings_template = os.path.join(plugin_path, 'templates', 'settings.html')
+                has_settings = os.path.exists(settings_template)
+
                 discovered[item] = {
                     'name': manifest.get('name', item),
                     'version': manifest.get('version', '0.0.0'),
@@ -95,7 +99,8 @@ class PluginManager:
                     'description': manifest.get('description', ''),
                     'path': plugin_path,
                     'manifest': manifest,
-                    'enabled': self.enabled_plugins.get(item, True)
+                    'enabled': self.enabled_plugins.get(item, True),
+                    'has_settings': has_settings
                 }
             except Exception as e:
                 logger.error(f"Failed to load plugin {item}: {e}")
@@ -219,7 +224,8 @@ class PluginManager:
                 'author': info['author'],
                 'description': info['description'],
                 'enabled': info['enabled'],
-                'loaded': plugin_name in self.plugins
+                'loaded': plugin_name in self.plugins,
+                'has_settings': info.get('has_settings', False)
             })
 
         return info_list

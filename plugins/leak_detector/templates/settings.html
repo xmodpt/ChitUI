@@ -195,6 +195,66 @@
             </div>
         </div>
 
+        <!-- Push Notification Options (only visible if Chitu Notify is installed) -->
+        <div id="leak-notify-section" style="display: none;">
+            <hr>
+            <h6 class="card-title mb-3"><i class="bi bi-bell-fill"></i> Push Notifications</h6>
+            <div class="alert alert-info mb-3">
+                <small>
+                    <i class="bi bi-info-circle"></i> These notifications are sent via the <strong>Chitu Notify</strong> plugin.
+                    Configure your notification topic and service in the Chitu Notify settings.
+                </small>
+            </div>
+
+            <div class="card bg-secondary mb-3">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3">Leak Detection Notifications</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="leak-notify-detected">
+                                <label class="form-check-label" for="leak-notify-detected">
+                                    <i class="bi bi-exclamation-triangle text-danger"></i> Notify when leak detected
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="leak-notify-reset">
+                                <label class="form-check-label" for="leak-notify-reset">
+                                    <i class="bi bi-check-circle text-success"></i> Notify when leak reset
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-secondary mb-3">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3">Relay Status Notifications</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="leak-notify-relay-armed">
+                                <label class="form-check-label" for="leak-notify-relay-armed">
+                                    <i class="bi bi-shield-exclamation text-warning"></i> Notify when relay armed
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="leak-notify-relay-disarmed">
+                                <label class="form-check-label" for="leak-notify-relay-disarmed">
+                                    <i class="bi bi-shield-check text-success"></i> Notify when relay disarmed
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-secondary" id="leak-cancel-settings">Cancel</button>
             <button type="button" class="btn btn-primary" id="leak-save-settings">
@@ -253,12 +313,16 @@
 (function() {
     let currentConfig = {};
     let knownDevices = [];
+    let notifyAvailable = false;
 
     // Load current configuration
     loadConfiguration();
 
     // Load relay status
     loadRelayStatus();
+
+    // Check if notifications are available
+    checkNotifyAvailable();
 
     function loadConfiguration() {
         fetch('/plugin/leak_detector/config')
@@ -277,6 +341,12 @@
                 document.getElementById('leak-relay-enabled').checked = config.relay_enabled || false;
                 document.getElementById('leak-relay-gpio-pin').value = config.relay_gpio_pin || '17';
                 document.getElementById('leak-relay-type').value = config.relay_type || 'NO';
+
+                // Populate notification settings
+                document.getElementById('leak-notify-detected').checked = config.notify_leak_detected || false;
+                document.getElementById('leak-notify-reset').checked = config.notify_leak_reset || false;
+                document.getElementById('leak-notify-relay-armed').checked = config.notify_relay_armed || false;
+                document.getElementById('leak-notify-relay-disarmed').checked = config.notify_relay_disarmed || false;
 
                 // Load and display devices
                 knownDevices = config.devices || [];
@@ -300,6 +370,20 @@
             })
             .catch(error => {
                 console.error('Error loading relay status:', error);
+            });
+    }
+
+    function checkNotifyAvailable() {
+        fetch('/plugin/leak_detector/notify_available')
+            .then(response => response.json())
+            .then(data => {
+                notifyAvailable = data.available;
+                if (notifyAvailable) {
+                    document.getElementById('leak-notify-section').style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error checking notify availability:', error);
             });
     }
 
@@ -457,6 +541,12 @@
         newConfig.relay_enabled = document.getElementById('leak-relay-enabled').checked;
         newConfig.relay_gpio_pin = parseInt(document.getElementById('leak-relay-gpio-pin').value);
         newConfig.relay_type = document.getElementById('leak-relay-type').value;
+
+        // Add notification configurations
+        newConfig.notify_leak_detected = document.getElementById('leak-notify-detected').checked;
+        newConfig.notify_leak_reset = document.getElementById('leak-notify-reset').checked;
+        newConfig.notify_relay_armed = document.getElementById('leak-notify-relay-armed').checked;
+        newConfig.notify_relay_disarmed = document.getElementById('leak-notify-relay-disarmed').checked;
 
         // Save configuration
         fetch('/plugin/leak_detector/config', {

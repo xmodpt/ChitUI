@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 from flask import Blueprint, jsonify, request
 from plugins.base import ChitUIPlugin
 
@@ -23,6 +24,7 @@ class Plugin(ChitUIPlugin):
         super().__init__(plugin_dir)
         self.plugin_dir = plugin_dir
         self.socketio = None
+        self.plugin_manager = None  # Reference to plugin manager for accessing other plugins
 
         # Configuration file path
         self.config_file = os.path.join(os.path.expanduser('~'), '.chitui', 'gpio_relay_config.json')
@@ -57,6 +59,15 @@ class Plugin(ChitUIPlugin):
             'relay2_show_label': True,
             'relay3_show_label': True,
             'relay4_show_label': True,
+            # Notification settings per relay
+            'relay1_notify_on': False,   # Send notification when turned ON
+            'relay1_notify_off': False,  # Send notification when turned OFF
+            'relay2_notify_on': False,
+            'relay2_notify_off': False,
+            'relay3_notify_on': False,
+            'relay3_notify_off': False,
+            'relay4_notify_on': False,
+            'relay4_notify_off': False,
             'show_text': True  # Global show text labels on buttons (deprecated, use per-relay settings)
         }
 
@@ -87,6 +98,46 @@ class Plugin(ChitUIPlugin):
             'title': 'GPIO Relays',
             'template': 'gpio_relay_control.html'
         }
+
+    def _get_chitu_notify_plugin(self):
+        """Get the Chitu Notify plugin instance if available"""
+        try:
+            # Try to get plugin manager from main module
+            main_module = sys.modules.get('main') or sys.modules.get('__main__')
+            if main_module:
+                plugin_manager = getattr(main_module, 'plugin_manager', None)
+                if plugin_manager:
+                    return plugin_manager.get_plugin('chitu_notify')
+        except Exception as e:
+            print(f"Error getting chitu_notify plugin: {e}")
+        return None
+
+    def _is_notify_available(self):
+        """Check if Chitu Notify plugin is available and enabled"""
+        notify_plugin = self._get_chitu_notify_plugin()
+        return notify_plugin is not None
+
+    def _send_notification(self, relay_num, state):
+        """Send notification via Chitu Notify plugin if enabled"""
+        notify_key = f'relay{relay_num}_notify_{"on" if state else "off"}'
+        if not self.config.get(notify_key, False):
+            return  # Notification not enabled for this action
+
+        notify_plugin = self._get_chitu_notify_plugin()
+        if not notify_plugin:
+            return  # Chitu Notify not available
+
+        relay_name = self.config.get(f'relay{relay_num}_name', f'Relay {relay_num}')
+        state_text = 'ON' if state else 'OFF'
+
+        # Use the generic relay_on/relay_off alarms from chitu_notify
+        alarm_id = 'relay_on' if state else 'relay_off'
+        extra_message = f"{relay_name} is now {state_text}"
+
+        try:
+            notify_plugin.send_notification(alarm_id, extra_message)
+        except Exception as e:
+            print(f"Error sending relay notification: {e}")
 
     def load_config(self):
         """Load configuration from file"""
@@ -169,6 +220,8 @@ class Plugin(ChitUIPlugin):
             # Update config even in simulation mode
             self.config[f'relay{relay_num}_state'] = state
             self.save_config()
+            # Send notification even in simulation mode
+            self._send_notification(relay_num, state)
             return True
 
         try:
@@ -192,6 +245,9 @@ class Plugin(ChitUIPlugin):
                     'relay': relay_num,
                     'state': state
                 })
+
+            # Send push notification if enabled
+            self._send_notification(relay_num, state)
 
             return True
         except Exception as e:
@@ -333,6 +389,15 @@ class Plugin(ChitUIPlugin):
                 if show_label_key in data:
                     self.config[show_label_key] = bool(data[show_label_key])
 
+            # Update notification settings if provided
+            for i in [1, 2, 3, 4]:
+                notify_on_key = f'relay{i}_notify_on'
+                notify_off_key = f'relay{i}_notify_off'
+                if notify_on_key in data:
+                    self.config[notify_on_key] = bool(data[notify_on_key])
+                if notify_off_key in data:
+                    self.config[notify_off_key] = bool(data[notify_off_key])
+
             # Update show_text if provided
             if 'show_text' in data:
                 self.config['show_text'] = bool(data['show_text'])
@@ -378,6 +443,13 @@ class Plugin(ChitUIPlugin):
                 with open(settings_template, 'r') as f:
                     return f.read()
             return 'Settings template not found', 404
+
+        @blueprint.route('/notify_available', methods=['GET'])
+        def notify_available():
+            """Check if Chitu Notify plugin is available"""
+            return jsonify({
+                'available': self._is_notify_available()
+            })
 
         # Register blueprint
         app.register_blueprint(blueprint, url_prefix='/plugin/gpio_relay_control')
