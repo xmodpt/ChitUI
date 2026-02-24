@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ChitUI Socket.IO Test</title>
+    <script src="/js/socket.io.min.js"></script>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .event { padding: 10px; margin: 5px 0; border-left: 3px solid #28a745; background: #f8f9fa; }
+        .event.error { border-color: #dc3545; }
+        h1 { color: #333; }
+        pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>ChitUI Socket.IO Connection Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="events"></div>
+
+    <script>
+        const socket = io();
+        const eventsDiv = document.getElementById('events');
+        const statusDiv = document.getElementById('status');
+
+        function addEvent(title, data, isError = false) {
+            const div = document.createElement('div');
+            div.className = 'event' + (isError ? ' error' : '');
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}: ${title}</strong>`;
+            if (data) {
+                const pre = document.createElement('pre');
+                pre.textContent = JSON.stringify(data, null, 2);
+                div.appendChild(pre);
+            }
+            eventsDiv.insertBefore(div, eventsDiv.firstChild);
+        }
+
+        socket.on('connect', () => {
+            statusDiv.textContent = '✓ Connected to server';
+            statusDiv.style.color = 'green';
+            addEvent('CONNECTED', { socketId: socket.id });
+        });
+
+        socket.on('disconnect', () => {
+            statusDiv.textContent = '✗ Disconnected';
+            statusDiv.style.color = 'red';
+            addEvent('DISCONNECTED', null, true);
+        });
+
+        socket.on('printers', (data) => {
+            addEvent('PRINTERS RECEIVED', data);
+            
+            // Automatically request info for first printer
+            const printerIds = Object.keys(data);
+            if (printerIds.length > 0) {
+                const printerId = printerIds[0];
+                addEvent('REQUESTING PRINTER INFO', { printerId });
+                socket.emit('printer_info', { id: printerId });
+            }
+        });
+
+        socket.on('printer_status', (data) => {
+            addEvent('PRINTER STATUS', data);
+        });
+
+        socket.on('printer_attributes', (data) => {
+            addEvent('PRINTER ATTRIBUTES', data);
+        });
+
+        socket.on('printer_response', (data) => {
+            addEvent('PRINTER RESPONSE', data);
+        });
+
+        // Listen for ALL events for debugging
+        const originalOn = socket.on.bind(socket);
+        socket.on = function(event, handler) {
+            return originalOn(event, function(...args) {
+                console.log(`Socket.IO Event: ${event}`, args);
+                return handler(...args);
+            });
+        };
+    </script>
+</body>
+</html>
