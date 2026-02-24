@@ -103,7 +103,7 @@ app = Flask(__name__,
 # Secret key for sessions - persist to file so sessions survive reboots
 def _get_or_create_secret_key():
     """Load secret key from file, or generate and save a new one."""
-    key_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', '.secret_key')
+    key_file = os.path.join(os.path.expanduser('~/.chitui'), '.secret_key')
     env_key = os.environ.get('SECRET_KEY')
     if env_key:
         return env_key
@@ -214,10 +214,12 @@ else:
     logger.info("ℹ Files will be uploaded directly to printer via network")
     USE_USB_GADGET = False
 
-# Data folder for settings - use fixed location in project directory
-# This ensures settings persist regardless of which user runs the app
+# Data folder for persistent settings - stored in the user's home directory
+# so it is always writable by the service user regardless of who owns the
+# project directory (avoids save failures when the project is owned by root).
+# The install script already creates ~/.chitui/ for this purpose.
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-DATA_FOLDER = os.path.join(PROJECT_ROOT, 'data')
+DATA_FOLDER = os.path.expanduser('~/.chitui')
 if not USE_USB_GADGET:
     UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads')
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -1064,16 +1066,18 @@ def proxy_thumbnail(printer_id):
 # ============ SETTINGS FUNCTIONS ============
 
 def migrate_old_settings():
-    """Migrate settings from old user home directory location to new project directory"""
-    # Check if settings already exist in new location
+    """Migrate settings from old storage locations to the current ~/.chitui/ directory"""
+    # Check if settings already exist in current location
     if os.path.exists(SETTINGS_FILE):
-        return  # Already migrated or using new location
+        return  # Already in the right place
 
-    # Check old locations for existing settings
+    # Check old locations in priority order:
+    #  1. PROJECT_ROOT/data/ — used by the previous code version
+    #  2. Explicit user home paths — used by even older versions
     old_locations = [
-        os.path.expanduser('~/.chitui/chitui_settings.json'),  # Current user
-        '/home/user/.chitui/chitui_settings.json',              # user account
-        '/root/.chitui/chitui_settings.json'                    # root account
+        os.path.join(PROJECT_ROOT, 'data', 'chitui_settings.json'),  # Previous code version
+        '/home/user/.chitui/chitui_settings.json',                    # user account (old)
+        '/root/.chitui/chitui_settings.json'                          # root account (old)
     ]
 
     for old_path in old_locations:
