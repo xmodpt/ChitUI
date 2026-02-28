@@ -112,14 +112,90 @@
 (function () {
   'use strict';
 
-  let _tlModal = null;
-  let _tlPendingCallback = null;
+  // ── Self-contained layout: create sidebar column if core files aren't updated ──
+
+  function tlEnsureSidebarLayout() {
+    // The plugin manager wraps this card in #plugin-timelapse
+    var card = document.getElementById('plugin-timelapse');
+    if (!card) return;
+
+    // If sidebar container already exists, ensure card is inside it
+    var sidebar = document.getElementById('plugin-sidebar-container');
+    if (sidebar) {
+      if (card.parentElement !== sidebar) {
+        sidebar.appendChild(card);
+      }
+      return;
+    }
+
+    // No sidebar — create one next to the file manager
+    // Find the file manager by looking for its distinctive icon
+    var fmIcon = document.querySelector('.bi-folder2-open');
+    if (!fmIcon) return;
+
+    var fmDashCard = fmIcon.closest('.dashboard-card');
+    if (!fmDashCard) return;
+
+    var fmCol = fmDashCard.parentElement;
+    if (!fmCol) return;
+
+    var fmRow = fmCol.parentElement;
+    if (!fmRow || !fmRow.classList.contains('row')) return;
+
+    // Resize the file manager column
+    fmCol.classList.remove('col-12');
+    fmCol.classList.add('col-12', 'col-lg-8');
+    fmRow.classList.add('align-items-start');
+
+    // Create sidebar column
+    sidebar = document.createElement('div');
+    sidebar.id = 'plugin-sidebar-container';
+    sidebar.className = 'col-12 col-lg-4';
+    fmRow.appendChild(sidebar);
+
+    // Move plugin card from .app-content into sidebar
+    sidebar.appendChild(card);
+  }
+
+  // Run after the DOM settles (card was just injected by plugins.js)
+  setTimeout(tlEnsureSidebarLayout, 0);
+
+  // ── Self-contained print interception ──────────────────────────────────────
+  // Intercept print button clicks in capture phase so we run before chitui.js.
+  // This handles both the old tableFiles and the new file-manager builder.
+  // If chitui.js already has the timelapsePrintHook check, stopPropagation
+  // prevents it from double-triggering.
+
+  document.addEventListener('click', function (e) {
+    if (typeof window.timelapsePrintHook !== 'function') return;
+
+    var target = e.target.closest('[data-action="print"]');
+    if (!target) return;
+
+    // Prevent chitui.js from also handling this click
+    e.stopPropagation();
+    e.preventDefault();
+
+    var file = target.getAttribute('data-file');
+    if (!file) return;
+
+    window.timelapsePrintHook(file, function (withTimelapse) {
+      var printer = (typeof currentPrinter !== 'undefined') ? currentPrinter : null;
+      if (withTimelapse && printer) {
+        socket.emit('timelapse_arm', { printer_id: printer });
+      }
+      socket.emit('action_print', { id: printer, data: file });
+    });
+  }, true /* capture phase */);
 
   // ── Modal helpers ────────────────────────────────────────────────────────
 
+  var _tlModal = null;
+  var _tlPendingCallback = null;
+
   function getTLModal() {
     if (!_tlModal) {
-      const el = document.getElementById('modalTimelapse');
+      var el = document.getElementById('modalTimelapse');
       if (el) _tlModal = new bootstrap.Modal(el);
     }
     return _tlModal;
@@ -129,7 +205,7 @@
 
   window.timelapsePrintHook = function (filename, callback) {
     _tlPendingCallback = callback;
-    const el = document.getElementById('tlPrintFileName');
+    var el = document.getElementById('tlPrintFileName');
     if (el) el.textContent = filename;
     getTLModal().show();
   };
@@ -156,10 +232,10 @@
   // ── Status updates from server ───────────────────────────────────────────
 
   socket.on('timelapse_status', function (data) {
-    const badge = document.getElementById('tlStatusBadge');
-    const recDiv = document.getElementById('tlRecordingStatus');
-    const asmDiv = document.getElementById('tlAssemblingStatus');
-    const errDiv = document.getElementById('tlErrorStatus');
+    var badge = document.getElementById('tlStatusBadge');
+    var recDiv = document.getElementById('tlRecordingStatus');
+    var asmDiv = document.getElementById('tlAssemblingStatus');
+    var errDiv = document.getElementById('tlErrorStatus');
 
     // Hide all first
     recDiv.classList.add('d-none');

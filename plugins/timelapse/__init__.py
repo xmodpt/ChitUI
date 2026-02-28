@@ -21,7 +21,11 @@ from pathlib import Path
 from flask import Blueprint, jsonify, request, send_file
 from plugins.base import ChitUIPlugin
 
-TIMELAPSE_DIR = '/timelapse'
+# Candidate directories for timelapse storage (tried in order)
+TIMELAPSE_DIR_CANDIDATES = [
+    '/timelapse',
+    os.path.join(os.path.expanduser('~'), 'timelapse'),
+]
 FRAMES_TMP_BASE = '/tmp'
 
 # SDCP print status codes
@@ -36,17 +40,16 @@ class Plugin(ChitUIPlugin):
     def __init__(self, plugin_dir):
         super().__init__(plugin_dir)
 
-        os.makedirs(TIMELAPSE_DIR, exist_ok=True)
-
         # Per-printer state keyed by printer_id
         self._lock = threading.Lock()
-        self.recording = {}          # printer_id -> bool
-        self.frames_dir = {}         # printer_id -> str (tmp dir path)
-        self.frame_count = {}        # printer_id -> int
-        self.last_layer = {}         # printer_id -> int
-        self.current_job = {}        # printer_id -> str (filename base)
+        self.timelapse_dir = None        # Set in on_startup()
+        self.recording = {}              # printer_id -> bool
+        self.frames_dir = {}             # printer_id -> str (tmp dir path)
+        self.frame_count = {}            # printer_id -> int
+        self.last_layer = {}             # printer_id -> int
+        self.current_job = {}            # printer_id -> str (filename base)
         self.camera_started_by_us = {}  # printer_id -> bool
-        self.pending_timelapse = {}  # printer_id -> bool (armed for next print)
+        self.pending_timelapse = {}      # printer_id -> bool (armed for next print)
 
         self.socketio = None
 
@@ -81,6 +84,20 @@ class Plugin(ChitUIPlugin):
     def on_startup(self, app, socketio):
         self.socketio = socketio
 
+        # Find/create timelapse storage directory — try candidates in order
+        for candidate in TIMELAPSE_DIR_CANDIDATES:
+            try:
+                os.makedirs(candidate, exist_ok=True)
+                self.timelapse_dir = candidate
+                print(f"[Timelapse] Storage directory: {candidate}")
+                break
+            except (PermissionError, OSError) as e:
+                print(f"[Timelapse] Cannot use {candidate}: {e}")
+
+        if not self.timelapse_dir:
+            print("[Timelapse] WARNING: No writable storage directory found. "
+                  "Timelapse saving will be disabled.")
+
         self.blueprint = Blueprint(
             'timelapse',
             __name__,
@@ -100,32 +117,37 @@ class Plugin(ChitUIPlugin):
                 'recording': any(self.recording.values()),
                 'printers': printers_status,
                 'pending': dict(self.pending_timelapse),
+                'storage_dir': self.timelapse_dir,
             })
 
         @self.blueprint.route('/list')
         def list_timelapses():
             files = []
-            try:
-                for f in sorted(
-                    Path(TIMELAPSE_DIR).glob('*.mp4'),
-                    key=lambda x: x.stat().st_mtime,
-                    reverse=True
-                ):
-                    files.append({
-                        'name': f.name,
-                        'size_mb': round(f.stat().st_size / (1024 * 1024), 1),
-                        'date': datetime.fromtimestamp(
-                            f.stat().st_mtime
-                        ).strftime('%Y-%m-%d %H:%M'),
-                    })
-            except Exception as e:
-                print(f"[Timelapse] Error listing files: {e}")
+            if self.timelapse_dir:
+                try:
+                    for f in sorted(
+                        Path(self.timelapse_dir).glob('*.mp4'),
+                        key=lambda x: x.stat().st_mtime,
+                        reverse=True
+                    ):
+                        files.append({
+                            'name': f.name,
+                            'size_mb': round(f.stat().st_size / (1024 * 1024), 1),
+                            'date': datetime.fromtimestamp(
+                                f.stat().st_mtime
+                            ).strftime('%Y-%m-%d %H:%M'),
+                        })
+                except Exception as e:
+                    print(f"[Timelapse] Error listing files: {e}")
             return jsonify(files)
 
         @self.blueprint.route('/download/<filename>')
         def download_timelapse(filename):
-            filepath = os.path.join(TIMELAPSE_DIR, filename)
-            if not os.path.abspath(filepath).startswith(os.path.abspath(TIMELAPSE_DIR)):
+            if not self.timelapse_dir:
+                return jsonify({'error': 'No storage directory configured'}), 503
+            filepath = os.path.join(self.timelapse_dir, filename)
+            if not os.path.abspath(filepath).startswith(
+                    os.path.abspath(self.timelapse_dir)):
                 return jsonify({'error': 'Invalid filename'}), 400
             if not os.path.exists(filepath):
                 return jsonify({'error': 'File not found'}), 404
@@ -133,8 +155,11 @@ class Plugin(ChitUIPlugin):
 
         @self.blueprint.route('/delete/<filename>', methods=['DELETE'])
         def delete_timelapse(filename):
-            filepath = os.path.join(TIMELAPSE_DIR, filename)
-            if not os.path.abspath(filepath).startswith(os.path.abspath(TIMELAPSE_DIR)):
+            if not self.timelapse_dir:
+                return jsonify({'error': 'No storage directory configured'}), 503
+            filepath = os.path.join(self.timelapse_dir, filename)
+            if not os.path.abspath(filepath).startswith(
+                    os.path.abspath(self.timelapse_dir)):
                 return jsonify({'error': 'Invalid filename'}), 400
             if os.path.exists(filepath):
                 os.remove(filepath)
@@ -321,10 +346,17 @@ class Plugin(ChitUIPlugin):
         t.start()
 
     def _assemble_video(self, printer_id, frames_dir, frame_count, job_name):
+        if not self.timelapse_dir:
+            print("[Timelapse] Cannot assemble: no storage directory")
+            shutil.rmtree(frames_dir, ignore_errors=True)
+            self._emit_status(printer_id, recording=False, assembling=False,
+                              error='No storage directory configured')
+            return
+
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         safe_name = ''.join(c if c.isalnum() or c in '-_' else '_' for c in job_name)
         output_name = f"{safe_name}_{timestamp}.mp4"
-        output_path = os.path.join(TIMELAPSE_DIR, output_name)
+        output_path = os.path.join(self.timelapse_dir, output_name)
 
         print(f"[Timelapse] Assembling {frame_count} frames -> {output_path}")
         success = False
