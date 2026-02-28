@@ -81,10 +81,21 @@ function executePluginScripts(container) {
 }
 
 /**
- * Inject a plugin as a card in the main content area
+ * Inject a plugin as a card in the main content area.
+ * Plugins with location='sidebar' are placed in the dedicated sidebar column
+ * next to the file manager; all others are appended to .app-content.
  */
 function injectCard(plugin) {
-  const container = document.querySelector('.app-content');
+  let container = null;
+
+  if (plugin.location === 'sidebar') {
+    container = document.getElementById('plugin-sidebar-container');
+  }
+
+  if (!container) {
+    container = document.querySelector('.app-content');
+  }
+
   if (!container) {
     console.error('Card container not found');
     return;

@@ -901,6 +901,17 @@ function addFileOptions() {
       return
     }
 
+    // Let the timelapse plugin intercept print actions when loaded
+    if (action === 'print' && typeof window.timelapsePrintHook === 'function') {
+      window.timelapsePrintHook(file, function (withTimelapse) {
+        if (withTimelapse && typeof currentPrinter !== 'undefined' && currentPrinter) {
+          socket.emit('timelapse_arm', { printer_id: currentPrinter })
+        }
+        socket.emit('action_print', { id: currentPrinter, data: file })
+      })
+      return
+    }
+
     // Show confirmation modal for other actions
     $('#modalConfirmTitle').text('Confirm ' + action)
     $('#modalConfirmAction').text(action)
@@ -2269,6 +2280,16 @@ function syncTableToFileManager(sourceTbody) {
             // Handle download directly
             if (action === 'download') {
               downloadFile(file);
+              return;
+            }
+            // Let the timelapse plugin intercept print actions when loaded
+            if (action === 'print' && typeof window.timelapsePrintHook === 'function') {
+              window.timelapsePrintHook(file, function (withTimelapse) {
+                if (withTimelapse && typeof currentPrinter !== 'undefined' && currentPrinter) {
+                  socket.emit('timelapse_arm', { printer_id: currentPrinter });
+                }
+                socket.emit('action_print', { id: currentPrinter, data: file });
+              });
               return;
             }
             // Show confirmation modal for other actions
