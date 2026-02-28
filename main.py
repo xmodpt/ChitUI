@@ -957,7 +957,7 @@ def camera_start():
         return jsonify({'ok': False, 'msg': 'Camera support not installed. Run: pip install opencv-python-headless'})
 
     if camera_stream_active:
-        return jsonify({'ok': False, 'msg': 'Camera already running'})
+        return jsonify({'ok': True, 'msg': 'Camera already running'})
 
     try:
         # Get printer IP from first available printer or use saved printer
