@@ -1,0 +1,14 @@
+{
+  "name": "Chitu Notify",
+  "version": "1.0.0",
+  "author": "ChitUI Developer",
+  "description": "Push notifications via ntfy.sh for relay events, leak alerts, printer status, and more",
+  "dependencies": ["requests"],
+  "ui_integration": {
+    "type": "toolbar",
+    "location": "top",
+    "icon": "bi-bell-fill",
+    "title": "Chitu Notify",
+    "template": "chitu_notify.html"
+  }
+}

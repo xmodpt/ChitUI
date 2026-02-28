@@ -1,0 +1,14 @@
+{
+  "name": "Raspberry Pi Stats",
+  "version": "1.0.0",
+  "author": "ChitUI",
+  "description": "Display Raspberry Pi system statistics and information",
+  "dependencies": ["psutil"],
+  "ui_integration": {
+    "type": "tab",
+    "location": "printer-info",
+    "icon": "bi-cpu",
+    "title": "System Stats",
+    "template": "rpi_stats.html"
+  }
+}
