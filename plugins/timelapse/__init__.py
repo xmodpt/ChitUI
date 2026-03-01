@@ -225,12 +225,25 @@ class Plugin(ChitUIPlugin):
 
         @self.blueprint.route('/detect', methods=['GET'])
         def detect_cameras():
-            """Return available USB cameras and ip_camera plugin cameras."""
-            return jsonify({
-                'ok': True,
-                'usb_cameras': _detect_usb_cameras(),
-                'ip_cameras': self._get_ip_cameras(),
-            })
+            """Return available USB cameras and/or ip_camera plugin cameras.
+
+            Optional query param ``type``:
+              - ``usb``  – only scan USB/v4l2 devices (skips IP camera lookup)
+              - ``ip``   – only list IP cameras (skips slow USB scan)
+              - ``all``  – both (default, legacy behaviour)
+            """
+            detect_type = request.args.get('type', 'all')
+            try:
+                usb_cameras = _detect_usb_cameras() if detect_type in ('usb', 'all') else []
+                ip_cameras = self._get_ip_cameras() if detect_type in ('ip', 'all') else []
+                return jsonify({
+                    'ok': True,
+                    'usb_cameras': usb_cameras,
+                    'ip_cameras': ip_cameras,
+                })
+            except Exception as e:
+                print(f"[Timelapse] Camera detect error: {e}")
+                return jsonify({'ok': False, 'usb_cameras': [], 'ip_cameras': []}), 500
 
         @self.blueprint.route('/settings', methods=['GET'])
         def get_settings():
@@ -336,24 +349,54 @@ class Plugin(ChitUIPlugin):
             return getattr(main, 'camera_latest_frame', None)
 
     def _get_ip_cameras(self):
-        """Return list of cameras configured in the ip_camera plugin, if loaded."""
-        main = self._get_main()
-        if not main:
-            return []
-        pm = getattr(main, 'plugin_manager', None)
-        if not pm:
-            return []
-        ip_plugin = pm.get_plugin('ip_camera')
-        if not ip_plugin:
-            return []
-        cameras = []
-        for i, cfg in enumerate(getattr(ip_plugin, 'camera_configs', [])):
-            cameras.append({
-                'id': f'camera_{i}',
-                'name': cfg.get('name', f'Camera {i}'),
-                'url': cfg.get('url', ''),
-            })
-        return cameras
+        """Return list of cameras configured in the ip_camera plugin.
+
+        Tries the live plugin instance first, then falls back to reading
+        the ip_camera plugin's config file directly so the list is always
+        available even if the plugin manager lookup fails.
+        """
+        # --- Try live plugin instance via plugin manager ---
+        try:
+            main = self._get_main()
+            if main:
+                pm = getattr(main, 'plugin_manager', None)
+                if pm:
+                    ip_plugin = pm.get_plugin('ip_camera')
+                    if ip_plugin:
+                        configs = getattr(ip_plugin, 'camera_configs', None) or []
+                        if configs:
+                            return [
+                                {
+                                    'id': f'camera_{i}',
+                                    'name': cfg.get('name', f'Camera {i}'),
+                                    'url': cfg.get('url', ''),
+                                }
+                                for i, cfg in enumerate(configs)
+                                if isinstance(cfg, dict)
+                            ]
+        except Exception as e:
+            print(f"[Timelapse] Plugin manager lookup failed: {e}")
+
+        # --- Fallback: read ip_camera config file directly ---
+        config_path = os.path.expanduser('~/.chitui/ip_camera_config.json')
+        try:
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    configs = json.load(f)
+                if isinstance(configs, list):
+                    return [
+                        {
+                            'id': f'camera_{i}',
+                            'name': cfg.get('name', f'Camera {i}'),
+                            'url': cfg.get('url', ''),
+                        }
+                        for i, cfg in enumerate(configs)
+                        if isinstance(cfg, dict)
+                    ]
+        except Exception as e:
+            print(f"[Timelapse] Could not read ip_camera config file: {e}")
+
+        return []
 
     def _get_ip_camera_url(self, camera_id):
         """Resolve a camera_id (e.g. 'camera_0') from the ip_camera plugin to its URL."""
