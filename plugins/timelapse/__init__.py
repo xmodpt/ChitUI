@@ -32,9 +32,26 @@ FRAMES_TMP_BASE = '/tmp'
 DEFAULT_CONFIG = {
     'fps': 30,
     'preset': 'fast',
-    'storage_dir': '',   # empty = auto-detect from candidates
-    'camera_url': '',    # empty = use printer's built-in RTSP camera
+    'storage_dir': '',       # empty = auto-detect from candidates
+    'camera_source': 'system',  # 'system' | 'usb' | 'ip_camera'
+    'camera_usb_index': 0,   # USB/v4l2 device index (source='usb')
+    'camera_ip_id': '',      # ip_camera plugin camera ID (source='ip_camera')
 }
+
+
+def _detect_usb_cameras():
+    """Probe OpenCV device indices 0-9 and return available USB cameras."""
+    cameras = []
+    try:
+        import cv2
+        for i in range(10):
+            cap = cv2.VideoCapture(i)
+            if cap.isOpened():
+                cameras.append({'index': i, 'name': f'Camera {i} (USB/v4l2)'})
+                cap.release()
+    except Exception:
+        pass
+    return cameras
 
 # SDCP print status codes
 PRINT_STATUS_IDLE = 0
@@ -61,7 +78,7 @@ class Plugin(ChitUIPlugin):
 
         self.socketio = None
 
-        # Custom RTSP camera capture state (used when camera_url is configured)
+        # Plugin-owned capture state (USB or ip_camera sources)
         self._custom_frame = {}          # printer_id -> bytes | None
         self._custom_frame_lock = {}     # printer_id -> threading.Lock
         self._custom_camera_running = {} # printer_id -> bool
@@ -206,6 +223,15 @@ class Plugin(ChitUIPlugin):
                 return jsonify({'ok': True})
             return jsonify({'error': 'File not found'}), 404
 
+        @self.blueprint.route('/detect', methods=['GET'])
+        def detect_cameras():
+            """Return available USB cameras and ip_camera plugin cameras."""
+            return jsonify({
+                'ok': True,
+                'usb_cameras': _detect_usb_cameras(),
+                'ip_cameras': self._get_ip_cameras(),
+            })
+
         @self.blueprint.route('/settings', methods=['GET'])
         def get_settings():
             settings_path = os.path.join(self.get_template_folder(), 'settings.html')
@@ -223,13 +249,17 @@ class Plugin(ChitUIPlugin):
                     'preset': self.config.get('preset', DEFAULT_CONFIG['preset']),
                     'storage_dir': self.config.get('storage_dir', DEFAULT_CONFIG['storage_dir']),
                     'active_storage_dir': self.timelapse_dir or '',
-                    'camera_url': self.config.get('camera_url', DEFAULT_CONFIG['camera_url']),
+                    'camera_source': self.config.get('camera_source', DEFAULT_CONFIG['camera_source']),
+                    'camera_usb_index': self.config.get('camera_usb_index', DEFAULT_CONFIG['camera_usb_index']),
+                    'camera_ip_id': self.config.get('camera_ip_id', DEFAULT_CONFIG['camera_ip_id']),
                 })
             data = request.get_json() or {}
             fps = data.get('fps', self.config.get('fps', DEFAULT_CONFIG['fps']))
             preset = data.get('preset', self.config.get('preset', DEFAULT_CONFIG['preset']))
             storage_dir = data.get('storage_dir', self.config.get('storage_dir', DEFAULT_CONFIG['storage_dir']))
-            camera_url = data.get('camera_url', self.config.get('camera_url', DEFAULT_CONFIG['camera_url']))
+            camera_source = data.get('camera_source', self.config.get('camera_source', DEFAULT_CONFIG['camera_source']))
+            camera_usb_index = data.get('camera_usb_index', self.config.get('camera_usb_index', DEFAULT_CONFIG['camera_usb_index']))
+            camera_ip_id = data.get('camera_ip_id', self.config.get('camera_ip_id', DEFAULT_CONFIG['camera_ip_id']))
             try:
                 fps = int(fps)
                 if fps < 1 or fps > 120:
@@ -238,10 +268,18 @@ class Plugin(ChitUIPlugin):
                 return jsonify({'ok': False, 'error': 'Invalid FPS value'}), 400
             if preset not in ('ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow'):
                 return jsonify({'ok': False, 'error': 'Invalid preset'}), 400
+            if camera_source not in ('system', 'usb', 'ip_camera'):
+                return jsonify({'ok': False, 'error': 'Invalid camera source'}), 400
+            try:
+                camera_usb_index = int(camera_usb_index)
+            except (ValueError, TypeError):
+                camera_usb_index = 0
             self.config['fps'] = fps
             self.config['preset'] = preset
             self.config['storage_dir'] = storage_dir.strip()
-            self.config['camera_url'] = camera_url.strip()
+            self.config['camera_source'] = camera_source
+            self.config['camera_usb_index'] = camera_usb_index
+            self.config['camera_ip_id'] = str(camera_ip_id).strip()
             self._save_config()
             return jsonify({'ok': True})
 
@@ -297,24 +335,60 @@ class Plugin(ChitUIPlugin):
         with lock:
             return getattr(main, 'camera_latest_frame', None)
 
-    def _start_custom_camera(self, printer_id, rtsp_url):
-        """Start a dedicated RTSP capture thread for a custom camera URL."""
+    def _get_ip_cameras(self):
+        """Return list of cameras configured in the ip_camera plugin, if loaded."""
+        main = self._get_main()
+        if not main:
+            return []
+        pm = getattr(main, 'plugin_manager', None)
+        if not pm:
+            return []
+        ip_plugin = pm.get_plugin('ip_camera')
+        if not ip_plugin:
+            return []
+        cameras = []
+        for i, cfg in enumerate(getattr(ip_plugin, 'camera_configs', [])):
+            cameras.append({
+                'id': f'camera_{i}',
+                'name': cfg.get('name', f'Camera {i}'),
+                'url': cfg.get('url', ''),
+            })
+        return cameras
+
+    def _get_ip_camera_url(self, camera_id):
+        """Resolve a camera_id (e.g. 'camera_0') from the ip_camera plugin to its URL."""
+        for cam in self._get_ip_cameras():
+            if cam['id'] == camera_id:
+                return cam['url']
+        return ''
+
+    def _start_capture(self, printer_id, source):
+        """Start a plugin-owned capture thread.
+
+        source: int  → USB/v4l2 device index
+                str  → RTSP/HTTP URL
+        """
         try:
             import cv2
         except ImportError:
-            print("[Timelapse] OpenCV not available for custom camera capture")
+            print("[Timelapse] OpenCV not available")
             return False
 
         self._custom_frame[printer_id] = None
         self._custom_frame_lock[printer_id] = threading.Lock()
         self._custom_camera_running[printer_id] = True
 
+        is_url = isinstance(source, str)
+
         def _capture():
             try:
-                os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
-                cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
+                if is_url:
+                    os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
+                    cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
+                else:
+                    cap = cv2.VideoCapture(int(source))
                 if not cap.isOpened():
-                    print(f"[Timelapse] Cannot open custom camera: {rtsp_url}")
+                    print(f"[Timelapse] Cannot open camera source: {source}")
                     self._custom_camera_running[printer_id] = False
                     return
                 cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
@@ -334,7 +408,7 @@ class Plugin(ChitUIPlugin):
                         time.sleep(0.05)
                 cap.release()
             except Exception as e:
-                print(f"[Timelapse] Custom camera capture error: {e}")
+                print(f"[Timelapse] Capture error: {e}")
                 self._custom_camera_running[printer_id] = False
 
         t = threading.Thread(target=_capture, daemon=True)
@@ -346,23 +420,38 @@ class Plugin(ChitUIPlugin):
     def _ensure_camera(self, printer_id):
         """Ensure a camera is running and frames are available.
 
-        If a custom RTSP URL is configured, starts the plugin's own capture
-        thread for that URL.  Otherwise joins the main app's shared camera
-        (starting it if needed).
+        Three modes (set in config['camera_source']):
+          'system'    – printer's built-in RTSP, via main app's shared buffer
+          'usb'       – USB/v4l2 device by index (plugin-owned capture thread)
+          'ip_camera' – camera from the ip_camera plugin (plugin-owned thread)
         """
-        camera_url = self.config.get('camera_url', '').strip()
+        source = self.config.get('camera_source', 'system')
 
-        if camera_url:
-            # Use the explicitly configured camera URL
+        if source == 'usb':
             if self._custom_camera_running.get(printer_id):
-                return True  # Already running
-            print(f"[Timelapse] Starting custom camera: {camera_url}")
-            ok = self._start_custom_camera(printer_id, camera_url)
+                return True
+            index = int(self.config.get('camera_usb_index', 0))
+            print(f"[Timelapse] Starting USB camera index {index}")
+            ok = self._start_capture(printer_id, index)
             if not ok:
-                print("[Timelapse] Failed to start custom camera")
+                print(f"[Timelapse] Failed to open USB camera {index}")
             return ok
 
-        # --- Printer built-in camera (shared buffer) ---
+        if source == 'ip_camera':
+            if self._custom_camera_running.get(printer_id):
+                return True
+            cam_id = self.config.get('camera_ip_id', '')
+            url = self._get_ip_camera_url(cam_id)
+            if not url:
+                print(f"[Timelapse] IP camera '{cam_id}' not found or has no URL")
+                return False
+            print(f"[Timelapse] Starting IP camera '{cam_id}': {url}")
+            ok = self._start_capture(printer_id, url)
+            if not ok:
+                print(f"[Timelapse] Failed to open IP camera {url}")
+            return ok
+
+        # --- 'system': printer built-in RTSP via main app's shared buffer ---
         main = self._get_main()
         if not main:
             return False
