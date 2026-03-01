@@ -1,0 +1,142 @@
+<div class="card bg-dark border-secondary mt-3">
+    <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-camera-reels"></i> Timelapse Configuration</h6>
+
+        <!-- Video Output Settings -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-film"></i> Video Output</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Output FPS</label>
+                        <input type="number" class="form-control" id="tl-fps"
+                               min="1" max="120" step="1" value="30">
+                        <div class="form-text">Frames per second for assembled video (1–120)</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Encoding Preset</label>
+                        <select class="form-select" id="tl-preset">
+                            <option value="ultrafast">ultrafast (largest file, fastest)</option>
+                            <option value="superfast">superfast</option>
+                            <option value="veryfast">veryfast</option>
+                            <option value="faster">faster</option>
+                            <option value="fast" selected>fast (default)</option>
+                            <option value="medium">medium</option>
+                            <option value="slow">slow (smallest file, slowest)</option>
+                        </select>
+                        <div class="form-text">ffmpeg libx264 preset (slower = smaller file)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage Settings -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-folder2-open"></i> Storage</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Custom Storage Directory <small class="text-muted">(optional)</small></label>
+                        <input type="text" class="form-control" id="tl-storage-dir"
+                               placeholder="/timelapse">
+                        <div class="form-text">
+                            Leave empty to auto-detect (<code>/timelapse</code> or <code>~/timelapse</code>).
+                            Current active directory: <code id="tl-active-dir">—</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tl-settings-error" class="alert alert-danger d-none" role="alert"></div>
+        <div id="tl-settings-success" class="alert alert-success d-none" role="alert">Settings saved.</div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" id="tl-cancel-settings">Close</button>
+            <button type="button" class="btn btn-primary" id="tl-save-settings">
+                <i class="bi bi-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var errDiv = document.getElementById('tl-settings-error');
+    var okDiv  = document.getElementById('tl-settings-success');
+
+    function showErr(msg) {
+        errDiv.textContent = msg;
+        errDiv.classList.remove('d-none');
+        okDiv.classList.add('d-none');
+    }
+    function showOk() {
+        okDiv.classList.remove('d-none');
+        errDiv.classList.add('d-none');
+        setTimeout(function () { okDiv.classList.add('d-none'); }, 3000);
+    }
+
+    // Load current config
+    fetch('/plugin/timelapse/config')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (!d.ok) return;
+            document.getElementById('tl-fps').value = d.fps || 30;
+            var presetSel = document.getElementById('tl-preset');
+            if (d.preset) presetSel.value = d.preset;
+            document.getElementById('tl-storage-dir').value = d.storage_dir || '';
+            document.getElementById('tl-active-dir').textContent = d.active_storage_dir || '—';
+        })
+        .catch(function (e) { console.error('[Timelapse] Config load error:', e); });
+
+    // Save settings
+    document.getElementById('tl-save-settings').addEventListener('click', function () {
+        var fps = parseInt(document.getElementById('tl-fps').value, 10);
+        var preset = document.getElementById('tl-preset').value;
+        var storageDir = document.getElementById('tl-storage-dir').value.trim();
+
+        if (isNaN(fps) || fps < 1 || fps > 120) {
+            showErr('FPS must be a number between 1 and 120.');
+            return;
+        }
+
+        fetch('/plugin/timelapse/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fps: fps, preset: preset, storage_dir: storageDir })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (d.ok) {
+                showOk();
+                // Refresh active dir display
+                return fetch('/plugin/timelapse/config')
+                    .then(function (r) { return r.json(); })
+                    .then(function (cfg) {
+                        if (cfg.active_storage_dir) {
+                            document.getElementById('tl-active-dir').textContent = cfg.active_storage_dir;
+                        }
+                    });
+            } else {
+                showErr(d.error || 'Failed to save settings.');
+            }
+        })
+        .catch(function (e) {
+            console.error('[Timelapse] Save error:', e);
+            showErr('Error saving settings.');
+        });
+    });
+
+    // Close button
+    document.getElementById('tl-cancel-settings').addEventListener('click', function () {
+        var panel = document.getElementById('plugin-settings-timelapse');
+        if (panel) panel.style.display = 'none';
+    });
+})();
+</script>

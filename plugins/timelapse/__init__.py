@@ -11,6 +11,7 @@ the live camera view remains available simultaneously.
 
 import os
 import sys
+import json
 import time
 import shutil
 import threading
@@ -27,6 +28,12 @@ TIMELAPSE_DIR_CANDIDATES = [
     os.path.join(os.path.expanduser('~'), 'timelapse'),
 ]
 FRAMES_TMP_BASE = '/tmp'
+
+DEFAULT_CONFIG = {
+    'fps': 30,
+    'preset': 'fast',
+    'storage_dir': '',  # empty = auto-detect from candidates
+}
 
 # SDCP print status codes
 PRINT_STATUS_IDLE = 0
@@ -52,6 +59,28 @@ class Plugin(ChitUIPlugin):
         self.pending_timelapse = {}      # printer_id -> bool (armed for next print)
 
         self.socketio = None
+        self.config_file = os.path.expanduser('~/.chitui/timelapse_config.json')
+        self.config = dict(DEFAULT_CONFIG)
+        self._load_config()
+
+    # ── Config persistence ────────────────────────────────────────────────────
+
+    def _load_config(self):
+        try:
+            if os.path.exists(self.config_file):
+                with open(self.config_file, 'r') as f:
+                    saved = json.load(f)
+                self.config.update(saved)
+        except Exception as e:
+            print(f"[Timelapse] Could not load config: {e}")
+
+    def _save_config(self):
+        try:
+            os.makedirs(os.path.dirname(self.config_file), exist_ok=True)
+            with open(self.config_file, 'w') as f:
+                json.dump(self.config, f, indent=2)
+        except Exception as e:
+            print(f"[Timelapse] Could not save config: {e}")
 
     # ── Plugin metadata ──────────────────────────────────────────────────────
 
@@ -84,8 +113,11 @@ class Plugin(ChitUIPlugin):
     def on_startup(self, app, socketio):
         self.socketio = socketio
 
-        # Find/create timelapse storage directory — try candidates in order
-        for candidate in TIMELAPSE_DIR_CANDIDATES:
+        # Find/create timelapse storage directory
+        # If a custom path is configured, try that first before the defaults
+        custom_dir = self.config.get('storage_dir', '').strip()
+        candidates = ([custom_dir] if custom_dir else []) + list(TIMELAPSE_DIR_CANDIDATES)
+        for candidate in candidates:
             try:
                 os.makedirs(candidate, exist_ok=True)
                 self.timelapse_dir = candidate
@@ -165,6 +197,42 @@ class Plugin(ChitUIPlugin):
                 os.remove(filepath)
                 return jsonify({'ok': True})
             return jsonify({'error': 'File not found'}), 404
+
+        @self.blueprint.route('/settings', methods=['GET'])
+        def get_settings():
+            settings_path = os.path.join(self.get_template_folder(), 'settings.html')
+            if os.path.exists(settings_path):
+                with open(settings_path, 'r') as f:
+                    return f.read()
+            return 'Settings template not found', 404
+
+        @self.blueprint.route('/config', methods=['GET', 'POST'])
+        def timelapse_config():
+            if request.method == 'GET':
+                return jsonify({
+                    'ok': True,
+                    'fps': self.config.get('fps', DEFAULT_CONFIG['fps']),
+                    'preset': self.config.get('preset', DEFAULT_CONFIG['preset']),
+                    'storage_dir': self.config.get('storage_dir', DEFAULT_CONFIG['storage_dir']),
+                    'active_storage_dir': self.timelapse_dir or '',
+                })
+            data = request.get_json() or {}
+            fps = data.get('fps', self.config.get('fps', DEFAULT_CONFIG['fps']))
+            preset = data.get('preset', self.config.get('preset', DEFAULT_CONFIG['preset']))
+            storage_dir = data.get('storage_dir', self.config.get('storage_dir', DEFAULT_CONFIG['storage_dir']))
+            try:
+                fps = int(fps)
+                if fps < 1 or fps > 120:
+                    return jsonify({'ok': False, 'error': 'FPS must be between 1 and 120'}), 400
+            except (ValueError, TypeError):
+                return jsonify({'ok': False, 'error': 'Invalid FPS value'}), 400
+            if preset not in ('ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow'):
+                return jsonify({'ok': False, 'error': 'Invalid preset'}), 400
+            self.config['fps'] = fps
+            self.config['preset'] = preset
+            self.config['storage_dir'] = storage_dir.strip()
+            self._save_config()
+            return jsonify({'ok': True})
 
     # ── Socket handlers ───────────────────────────────────────────────────────
 
@@ -361,17 +429,20 @@ class Plugin(ChitUIPlugin):
         print(f"[Timelapse] Assembling {frame_count} frames -> {output_path}")
         success = False
 
+        fps = self.config.get('fps', DEFAULT_CONFIG['fps'])
+        preset = self.config.get('preset', DEFAULT_CONFIG['preset'])
+
         # Try ffmpeg first (better quality / codec support)
         if shutil.which('ffmpeg'):
             try:
                 frame_pattern = os.path.join(frames_dir, 'frame_%06d.jpg')
                 cmd = [
                     'ffmpeg', '-y',
-                    '-framerate', '30',
+                    '-framerate', str(fps),
                     '-i', frame_pattern,
                     '-c:v', 'libx264',
                     '-pix_fmt', 'yuv420p',
-                    '-preset', 'fast',
+                    '-preset', preset,
                     output_path,
                 ]
                 result = subprocess.run(cmd, capture_output=True, timeout=300)
@@ -392,7 +463,7 @@ class Plugin(ChitUIPlugin):
                 if first is not None:
                     h, w = first.shape[:2]
                     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                    out = cv2.VideoWriter(output_path, fourcc, 30.0, (w, h))
+                    out = cv2.VideoWriter(output_path, fourcc, float(fps), (w, h))
                     for i in range(frame_count):
                         fp = os.path.join(frames_dir, f'frame_{i:06d}.jpg')
                         if os.path.exists(fp):
