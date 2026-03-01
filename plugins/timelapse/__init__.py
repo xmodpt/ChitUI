@@ -225,12 +225,25 @@ class Plugin(ChitUIPlugin):
 
         @self.blueprint.route('/detect', methods=['GET'])
         def detect_cameras():
-            """Return available USB cameras and ip_camera plugin cameras."""
-            return jsonify({
-                'ok': True,
-                'usb_cameras': _detect_usb_cameras(),
-                'ip_cameras': self._get_ip_cameras(),
-            })
+            """Return available USB cameras and/or ip_camera plugin cameras.
+
+            Optional query param ``type``:
+              - ``usb``  – only scan USB/v4l2 devices (skips IP camera lookup)
+              - ``ip``   – only list IP cameras (skips slow USB scan)
+              - ``all``  – both (default, legacy behaviour)
+            """
+            detect_type = request.args.get('type', 'all')
+            try:
+                usb_cameras = _detect_usb_cameras() if detect_type in ('usb', 'all') else []
+                ip_cameras = self._get_ip_cameras() if detect_type in ('ip', 'all') else []
+                return jsonify({
+                    'ok': True,
+                    'usb_cameras': usb_cameras,
+                    'ip_cameras': ip_cameras,
+                })
+            except Exception as e:
+                print(f"[Timelapse] Camera detect error: {e}")
+                return jsonify({'ok': False, 'usb_cameras': [], 'ip_cameras': []}), 500
 
         @self.blueprint.route('/settings', methods=['GET'])
         def get_settings():

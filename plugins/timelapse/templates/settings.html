@@ -175,7 +175,7 @@
         noneMsg.classList.add('d-none');
         sel.innerHTML = '<option value="">Scanning…</option>';
 
-        fetch('/plugin/timelapse/detect')
+        fetch('/plugin/timelapse/detect?type=usb')
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 spinner.classList.add('d-none');
@@ -209,7 +209,7 @@
         var warning = document.getElementById('tl-ip-unavailable');
         sel.innerHTML = '<option value="">Loading…</option>';
 
-        fetch('/plugin/timelapse/detect')
+        fetch('/plugin/timelapse/detect?type=ip')
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 var cams = d.ip_cameras || [];
@@ -229,7 +229,8 @@
             })
             .catch(function (e) {
                 console.error('[Timelapse] IP cam load error:', e);
-                sel.innerHTML = '<option value="">Failed to load</option>';
+                _ipLoaded = false; // allow retry on next selection
+                sel.innerHTML = '<option value="">Failed to load — try again</option>';
             });
     }
 
