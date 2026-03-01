@@ -1,0 +1,198 @@
+/* GPIO Relay Control Toolbar Styling */
+
+.gpio-relay-toolbar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gpio-relay-buttons {
+    display: flex;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+}
+
+.gpio-relay-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 4px;
+    position: relative;
+}
+
+.gpio-relay-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.gpio-relay-btn i {
+    font-size: 20px;
+    margin-bottom: 2px;
+}
+
+.gpio-relay-btn .relay-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Relay OFF state */
+.gpio-relay-btn.relay-off {
+    background: #fff;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+.gpio-relay-btn.relay-off:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+/* Relay ON state */
+.gpio-relay-btn.relay-on {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    border-color: #28a745;
+    box-shadow: 0 0 15px rgba(40, 167, 69, 0.5);
+}
+
+.gpio-relay-btn.relay-on:hover {
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.7);
+}
+
+.gpio-relay-btn.relay-on i {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Settings button */
+.gpio-relay-btn.relay-settings {
+    background: #fff;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+.gpio-relay-btn.relay-settings:hover {
+    background: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+/* Loading state */
+.gpio-relay-btn.loading {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.gpio-relay-btn.loading i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Disabled state */
+.gpio-relay-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .gpio-relay-toolbar {
+        top: 10px;
+        right: 10px;
+    }
+
+    .gpio-relay-buttons {
+        padding: 6px;
+        gap: 6px;
+    }
+
+    .gpio-relay-btn {
+        width: 45px;
+        height: 45px;
+    }
+
+    .gpio-relay-btn i {
+        font-size: 18px;
+    }
+
+    .gpio-relay-btn .relay-label {
+        font-size: 9px;
+    }
+}
+
+/* Modal styling enhancements */
+#gpioRelaySettingsModal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+#gpioRelaySettingsModal .modal-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: #fff;
+    border-radius: 12px 12px 0 0;
+}
+
+#gpioRelaySettingsModal .modal-header .btn-close {
+    filter: invert(1);
+}
+
+#gpioRelaySettingsModal .form-control {
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    transition: border-color 0.3s ease;
+}
+
+#gpioRelaySettingsModal .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Status indicator */
+.relay-status-indicator {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #dc3545;
+}
+
+.gpio-relay-btn.relay-on .relay-status-indicator {
+    background: #28a745;
+}

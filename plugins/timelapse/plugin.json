@@ -1,0 +1,13 @@
+{
+  "name": "Timelapse",
+  "version": "1.0.0",
+  "author": "ChitUI",
+  "description": "Record timelapses of your 3D prints — one frame per layer, assembled into MP4",
+  "dependencies": ["opencv-python-headless"],
+  "ui_integration": {
+    "type": "card",
+    "location": "sidebar",
+    "icon": "bi-camera-reels",
+    "title": "Timelapse"
+  }
+}

@@ -1,0 +1,602 @@
+<div class="card bg-dark border-secondary mt-3">
+    <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-droplet-fill"></i> Leak Detector Configuration</h6>
+
+        <!-- ESP32 Devices Section -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-3"><i class="bi bi-cpu"></i> ESP32 Devices</h6>
+
+                <div id="leak-devices-list" class="mb-3">
+                    <div class="alert alert-info mb-0">
+                        <small><i class="bi bi-info-circle"></i> No devices registered yet. Devices will appear here once they connect to ChitUI.</small>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Connected devices are automatically detected and added</small>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="leak-refresh-devices">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="card-title mb-3"><i class="bi bi-thermometer"></i> Sensor Configuration</h6>
+
+        <!-- Sensor 1 -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle mb-0">Sensor 1</h6>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="leak-sensor1-enabled" checked>
+                        <label class="form-check-label" for="leak-sensor1-enabled">Enabled</label>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Sensor Name</label>
+                        <input type="text" class="form-control" id="leak-sensor1-name" placeholder="Sensor 1">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-control" id="leak-sensor1-location" placeholder="Vat Center">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sensor 2 -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle mb-0">Sensor 2</h6>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="leak-sensor2-enabled" checked>
+                        <label class="form-check-label" for="leak-sensor2-enabled">Enabled</label>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Sensor Name</label>
+                        <input type="text" class="form-control" id="leak-sensor2-name" placeholder="Sensor 2">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-control" id="leak-sensor2-location" placeholder="Front Edge">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sensor 3 -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle mb-0">Sensor 3</h6>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="leak-sensor3-enabled" checked>
+                        <label class="form-check-label" for="leak-sensor3-enabled">Enabled</label>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Sensor Name</label>
+                        <input type="text" class="form-control" id="leak-sensor3-name" placeholder="Sensor 3">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-control" id="leak-sensor3-location" placeholder="Build Plate">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info mb-3">
+            <small>
+                <i class="bi bi-info-circle"></i> <strong>Note:</strong> Sensor configurations are used for display purposes.
+                The ESP32 device handles actual leak detection logic and thresholds.
+            </small>
+        </div>
+
+        <hr>
+
+        <!-- Relay Configuration Section -->
+        <h6 class="card-title mb-3"><i class="bi bi-lightning-charge"></i> Relay Safety Shutoff</h6>
+
+        <div id="leak-relay-warning" class="alert alert-info mb-3" style="display: none;">
+            <i class="bi bi-info-circle"></i> <span id="leak-relay-warning-reason">GPIO not available - running in simulation mode</span>
+        </div>
+
+        <div id="leak-relay-config" class="card bg-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="card-subtitle mb-0">Activate Relay on Leak Detection</h6>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="leak-relay-enabled">
+                        <label class="form-check-label" for="leak-relay-enabled">Enabled</label>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mb-3">
+                    <small>
+                        <i class="bi bi-info-circle"></i> When enabled, the relay will automatically activate when a leak is detected.
+                        The relay stays ON even after system reboot until you manually disarm it.
+                        Use this to cut power to your printer or activate an alarm.
+                    </small>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">GPIO Pin (BCM)</label>
+                        <select class="form-select" id="leak-relay-gpio-pin">
+                            <option value="2">GPIO 2</option>
+                            <option value="3">GPIO 3</option>
+                            <option value="4">GPIO 4</option>
+                            <option value="5">GPIO 5</option>
+                            <option value="6">GPIO 6</option>
+                            <option value="7">GPIO 7</option>
+                            <option value="8">GPIO 8</option>
+                            <option value="9">GPIO 9</option>
+                            <option value="10">GPIO 10</option>
+                            <option value="11">GPIO 11</option>
+                            <option value="12">GPIO 12</option>
+                            <option value="13">GPIO 13</option>
+                            <option value="14">GPIO 14</option>
+                            <option value="15">GPIO 15</option>
+                            <option value="16">GPIO 16</option>
+                            <option value="17" selected>GPIO 17</option>
+                            <option value="18">GPIO 18</option>
+                            <option value="19">GPIO 19</option>
+                            <option value="20">GPIO 20</option>
+                            <option value="21">GPIO 21</option>
+                            <option value="22">GPIO 22</option>
+                            <option value="23">GPIO 23</option>
+                            <option value="24">GPIO 24</option>
+                            <option value="25">GPIO 25</option>
+                            <option value="26">GPIO 26</option>
+                            <option value="27">GPIO 27</option>
+                        </select>
+                        <div class="form-text">Select the GPIO pin connected to the power relay</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Relay Type</label>
+                        <select class="form-select" id="leak-relay-type">
+                            <option value="NO">Normally Open (NO)</option>
+                            <option value="NC">Normally Closed (NC)</option>
+                        </select>
+                        <div class="form-text">Match your relay module's configuration</div>
+                    </div>
+                </div>
+
+                <!-- Relay Status Panel -->
+                <div id="leak-relay-status-panel" class="mt-3" style="display: none;">
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Relay Status:</strong>
+                            <span id="leak-relay-status-badge" class="badge bg-success ms-2">Disarmed</span>
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm" id="leak-relay-disarm-btn" style="display: none;">
+                            <i class="bi bi-shield-x"></i> Disarm Relay
+                        </button>
+                    </div>
+                    <div id="leak-relay-armed-info" class="mt-2 text-warning" style="display: none;">
+                        <small>
+                            <i class="bi bi-exclamation-triangle"></i> <strong>ARMED:</strong>
+                            <span id="leak-relay-armed-reason"></span>
+                            <br>Armed at: <span id="leak-relay-armed-at"></span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Push Notification Options (only visible if Chitu Notify is installed) -->
+        <div id="leak-notify-section" style="display: none;">
+            <hr>
+            <h6 class="card-title mb-3"><i class="bi bi-bell-fill"></i> Push Notifications</h6>
+            <div class="alert alert-info mb-3">
+                <small>
+                    <i class="bi bi-info-circle"></i> These notifications are sent via the <strong>Chitu Notify</strong> plugin.
+                    Configure your notification topic and service in the Chitu Notify settings.
+                </small>
+            </div>
+
+            <div class="card bg-secondary mb-3">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3">Leak Detection Notifications</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="leak-notify-detected">
+                                <label class="form-check-label" for="leak-notify-detected">
+                                    <i class="bi bi-exclamation-triangle text-danger"></i> Notify when leak detected
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="leak-notify-reset">
+                                <label class="form-check-label" for="leak-notify-reset">
+                                    <i class="bi bi-check-circle text-success"></i> Notify when leak reset
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-secondary mb-3">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3">Relay Status Notifications</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="leak-notify-relay-armed">
+                                <label class="form-check-label" for="leak-notify-relay-armed">
+                                    <i class="bi bi-shield-exclamation text-warning"></i> Notify when relay armed
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="leak-notify-relay-disarmed">
+                                <label class="form-check-label" for="leak-notify-relay-disarmed">
+                                    <i class="bi bi-shield-check text-success"></i> Notify when relay disarmed
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" id="leak-cancel-settings">Cancel</button>
+            <button type="button" class="btn btn-primary" id="leak-save-settings">
+                <i class="bi bi-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .leak-device-card {
+        background: var(--bs-dark, #1a1d20);
+        border: 1px solid var(--bs-border-color, #495057);
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 8px;
+    }
+
+    .leak-device-card .leak-device-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .leak-device-card .leak-device-title {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .leak-device-card .leak-device-status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .leak-device-card .leak-device-status.online {
+        background-color: var(--success-color, #06d6a0);
+        color: #000;
+    }
+
+    .leak-device-card .leak-device-status.offline {
+        background-color: #6c757d;
+        color: #fff;
+    }
+
+    .leak-device-card .leak-device-info {
+        font-size: 12px;
+        opacity: 0.8;
+    }
+</style>
+
+<script>
+(function() {
+    let currentConfig = {};
+    let knownDevices = [];
+    let notifyAvailable = false;
+
+    // Load current configuration
+    loadConfiguration();
+
+    // Load relay status
+    loadRelayStatus();
+
+    // Check if notifications are available
+    checkNotifyAvailable();
+
+    function loadConfiguration() {
+        fetch('/plugin/leak_detector/config')
+            .then(response => response.json())
+            .then(config => {
+                currentConfig = config;
+
+                // Populate sensor settings
+                for (let i = 1; i <= 3; i++) {
+                    document.getElementById(`leak-sensor${i}-name`).value = config[`sensor${i}_name`] || `Sensor ${i}`;
+                    document.getElementById(`leak-sensor${i}-location`).value = config[`sensor${i}_location`] || '';
+                    document.getElementById(`leak-sensor${i}-enabled`).checked = config[`sensor${i}_enabled`] !== false;
+                }
+
+                // Populate relay settings
+                document.getElementById('leak-relay-enabled').checked = config.relay_enabled || false;
+                document.getElementById('leak-relay-gpio-pin').value = config.relay_gpio_pin || '17';
+                document.getElementById('leak-relay-type').value = config.relay_type || 'NO';
+
+                // Populate notification settings
+                document.getElementById('leak-notify-detected').checked = config.notify_leak_detected || false;
+                document.getElementById('leak-notify-reset').checked = config.notify_leak_reset || false;
+                document.getElementById('leak-notify-relay-armed').checked = config.notify_relay_armed || false;
+                document.getElementById('leak-notify-relay-disarmed').checked = config.notify_relay_disarmed || false;
+
+                // Load and display devices
+                knownDevices = config.devices || [];
+                updateDevicesList();
+            })
+            .catch(error => {
+                console.error('Error loading config:', error);
+                alert('Failed to load configuration');
+            });
+    }
+
+    function loadRelayStatus() {
+        fetch('/plugin/leak_detector/relay/status')
+            .then(response => response.json())
+            .then(data => {
+                // Show warning if GPIO not available
+                if (!data.gpio_available) {
+                    document.getElementById('leak-relay-warning').style.display = 'block';
+                }
+                updateRelayStatusUI(data);
+            })
+            .catch(error => {
+                console.error('Error loading relay status:', error);
+            });
+    }
+
+    function checkNotifyAvailable() {
+        fetch('/plugin/leak_detector/notify_available')
+            .then(response => response.json())
+            .then(data => {
+                notifyAvailable = data.available;
+                if (notifyAvailable) {
+                    document.getElementById('leak-notify-section').style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error checking notify availability:', error);
+            });
+    }
+
+    function updateRelayStatusUI(data) {
+        const statusPanel = document.getElementById('leak-relay-status-panel');
+        const statusBadge = document.getElementById('leak-relay-status-badge');
+        const disarmBtn = document.getElementById('leak-relay-disarm-btn');
+        const armedInfo = document.getElementById('leak-relay-armed-info');
+        const armedReason = document.getElementById('leak-relay-armed-reason');
+        const armedAt = document.getElementById('leak-relay-armed-at');
+
+        // Only show status panel if relay is enabled
+        if (data.relay_enabled) {
+            statusPanel.style.display = 'block';
+
+            if (data.relay_state && data.relay_state.armed) {
+                statusBadge.textContent = 'ARMED';
+                statusBadge.className = 'badge bg-danger ms-2';
+                disarmBtn.style.display = 'inline-block';
+                armedInfo.style.display = 'block';
+                armedReason.textContent = data.relay_state.armed_reason || 'Unknown';
+                armedAt.textContent = data.relay_state.armed_at ? new Date(data.relay_state.armed_at).toLocaleString() : 'Unknown';
+            } else {
+                statusBadge.textContent = 'Disarmed';
+                statusBadge.className = 'badge bg-success ms-2';
+                disarmBtn.style.display = 'none';
+                armedInfo.style.display = 'none';
+            }
+        } else {
+            statusPanel.style.display = 'none';
+        }
+    }
+
+    function updateDevicesList() {
+        const container = document.getElementById('leak-devices-list');
+
+        if (!knownDevices || knownDevices.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-info mb-0">
+                    <small><i class="bi bi-info-circle"></i> No devices registered yet. Devices will appear here once they connect to ChitUI.</small>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        knownDevices.forEach(device => {
+            const isOnline = device.online || false;
+            html += `
+                <div class="leak-device-card">
+                    <div class="leak-device-header">
+                        <div class="leak-device-title">
+                            <i class="bi bi-cpu"></i> ${device.chip || 'ESP32'}
+                        </div>
+                        <span class="leak-device-status ${isOnline ? 'online' : 'offline'}">
+                            ${isOnline ? 'Online' : 'Offline'}
+                        </span>
+                    </div>
+                    <div class="leak-device-info">
+                        <div><strong>IP:</strong> ${device.ip || 'N/A'}</div>
+                        <div><strong>Version:</strong> ${device.version || 'N/A'}</div>
+                        ${device.last_update ? `<div><strong>Last Update:</strong> ${new Date(device.last_update).toLocaleString()}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // Refresh devices button
+    document.getElementById('leak-refresh-devices').addEventListener('click', function() {
+        fetch('/plugin/leak_detector/status')
+            .then(response => response.json())
+            .then(data => {
+                // Update devices list if there's a connected device
+                if (data.device && data.device.online && data.device.ip) {
+                    const existingDevice = knownDevices.find(d => d.ip === data.device.ip);
+                    if (existingDevice) {
+                        Object.assign(existingDevice, data.device);
+                    } else {
+                        knownDevices.push(data.device);
+                    }
+                    updateDevicesList();
+                } else {
+                    alert('No devices currently connected');
+                }
+            })
+            .catch(error => {
+                console.error('Error refreshing devices:', error);
+                alert('Failed to refresh devices');
+            });
+    });
+
+    // Disarm relay button handler
+    document.getElementById('leak-relay-disarm-btn').addEventListener('click', function() {
+        if (!confirm('Are you sure you want to disarm the relay? This will deactivate the safety shutoff.')) {
+            return;
+        }
+
+        fetch('/plugin/leak_detector/relay/disarm', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ user: 'user' })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Relay disarmed successfully!');
+                loadRelayStatus();
+            } else {
+                alert('Failed to disarm relay: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error disarming relay:', error);
+            alert('Error disarming relay');
+        });
+    });
+
+    // Relay enabled toggle - show/hide status panel
+    document.getElementById('leak-relay-enabled').addEventListener('change', function() {
+        const statusPanel = document.getElementById('leak-relay-status-panel');
+        if (this.checked) {
+            statusPanel.style.display = 'block';
+        } else {
+            statusPanel.style.display = 'none';
+        }
+    });
+
+    // Save button handler
+    document.getElementById('leak-save-settings').addEventListener('click', function() {
+        const newConfig = {
+            devices: knownDevices
+        };
+
+        // Add sensor configurations
+        for (let i = 1; i <= 3; i++) {
+            newConfig[`sensor${i}_name`] = document.getElementById(`leak-sensor${i}-name`).value;
+            newConfig[`sensor${i}_location`] = document.getElementById(`leak-sensor${i}-location`).value;
+            newConfig[`sensor${i}_enabled`] = document.getElementById(`leak-sensor${i}-enabled`).checked;
+        }
+
+        // Validate sensor names
+        for (let i = 1; i <= 3; i++) {
+            if (!newConfig[`sensor${i}_name`].trim()) {
+                alert(`Sensor ${i} name cannot be empty`);
+                return;
+            }
+        }
+
+        // Add relay configurations
+        newConfig.relay_enabled = document.getElementById('leak-relay-enabled').checked;
+        newConfig.relay_gpio_pin = parseInt(document.getElementById('leak-relay-gpio-pin').value);
+        newConfig.relay_type = document.getElementById('leak-relay-type').value;
+
+        // Add notification configurations
+        newConfig.notify_leak_detected = document.getElementById('leak-notify-detected').checked;
+        newConfig.notify_leak_reset = document.getElementById('leak-notify-reset').checked;
+        newConfig.notify_relay_armed = document.getElementById('leak-notify-relay-armed').checked;
+        newConfig.notify_relay_disarmed = document.getElementById('leak-notify-relay-disarmed').checked;
+
+        // Save configuration
+        fetch('/plugin/leak_detector/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newConfig)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Settings saved successfully!');
+                // Hide settings panel
+                const panel = document.getElementById('plugin-settings-leak_detector');
+                if (panel) panel.style.display = 'none';
+
+                // Reload the page to reflect changes
+                setTimeout(() => window.location.reload(), 500);
+            } else {
+                alert('Failed to save settings: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error saving settings:', error);
+            alert('Error saving settings');
+        });
+    });
+
+    // Cancel button handler
+    document.getElementById('leak-cancel-settings').addEventListener('click', function() {
+        const panel = document.getElementById('plugin-settings-leak_detector');
+        if (panel) panel.style.display = 'none';
+    });
+
+    // Listen for config updates via WebSocket
+    if (typeof socket !== 'undefined') {
+        socket.on('leak_detector_config_updated', function(config) {
+            currentConfig = config;
+            console.log('Leak detector config updated:', config);
+        });
+
+        // Listen for relay state updates
+        socket.on('leak_detector_relay_update', function(data) {
+            console.log('Leak detector relay update:', data);
+            updateRelayStatusUI({
+                relay_state: data.relay_state,
+                relay_enabled: data.relay_enabled
+            });
+        });
+    }
+})();
+</script>

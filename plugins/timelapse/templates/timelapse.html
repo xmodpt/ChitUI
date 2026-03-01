@@ -1,0 +1,362 @@
+<!-- Timelapse Plugin Card -->
+<div class="dashboard-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="card-title mb-0">
+      <i class="bi bi-camera-reels me-2"></i>Timelapse
+    </h4>
+    <span id="tlStatusBadge" class="badge bg-secondary">Idle</span>
+  </div>
+
+  <!-- Recording indicator -->
+  <div id="tlRecordingStatus" class="alert alert-danger py-2 mb-3 d-none" role="alert" style="font-size: 0.85rem;">
+    <i class="bi bi-record-circle me-1 tl-blink"></i>
+    <strong>Recording</strong> &mdash;
+    <span id="tlFrameCount">0</span> frames
+    &nbsp;<span class="text-muted">(<span id="tlLayerCurrent">0</span>/<span id="tlLayerTotal">0</span> layers)</span>
+  </div>
+
+  <!-- Assembling indicator -->
+  <div id="tlAssemblingStatus" class="alert alert-warning py-2 mb-3 d-none" role="alert" style="font-size: 0.85rem;">
+    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+    Assembling video&hellip;
+  </div>
+
+  <!-- Error indicator -->
+  <div id="tlErrorStatus" class="alert alert-danger py-2 mb-3 d-none" role="alert" style="font-size: 0.85rem;">
+    <i class="bi bi-exclamation-triangle me-1"></i>
+    <span id="tlErrorMsg"></span>
+  </div>
+
+  <!-- Saved timelapses list -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <small class="text-muted fw-semibold">Saved Timelapses</small>
+    <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="tlRefreshList()" title="Refresh list">
+      <i class="bi bi-arrow-clockwise"></i>
+    </button>
+  </div>
+
+  <div id="tlFileList" style="max-height: 320px; overflow-y: auto;">
+    <p class="text-muted text-center small py-3 mb-0" id="tlEmptyMsg">No timelapses yet</p>
+  </div>
+</div>
+
+<!-- Print + Timelapse decision modal (injected once, used every time) -->
+<div class="modal fade" id="modalTimelapse" tabindex="-1" aria-labelledby="modalTimelapseLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTimelapseLabel">
+          <i class="bi bi-printer me-2"></i>Start Print
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-1">File:</p>
+        <p class="font-monospace badge bg-secondary text-wrap mb-3" id="tlPrintFileName" style="font-size: 0.85rem; word-break: break-all;"></p>
+        <p class="mb-0">Record a timelapse for this print?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-outline-primary" id="btnTLPrintOnly">
+          <i class="bi bi-printer me-1"></i>Print only
+        </button>
+        <button type="button" class="btn btn-accent" id="btnTLPrintWithTimelapse">
+          <i class="bi bi-camera-reels me-1"></i>Print + Timelapse
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes tl-blink { 50% { opacity: 0.2; } }
+.tl-blink { animation: tl-blink 1s step-start infinite; }
+
+.tl-file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--bs-border-color);
+  gap: 0.5rem;
+}
+
+.tl-file-item:last-child {
+  border-bottom: none;
+}
+
+.tl-file-name {
+  font-size: 0.78rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.tl-file-meta {
+  font-size: 0.72rem;
+  color: var(--bs-secondary-color);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tl-file-actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Self-contained layout: create sidebar column if core files aren't updated ──
+
+  function tlEnsureSidebarLayout() {
+    // The plugin manager wraps this card in #plugin-timelapse
+    var card = document.getElementById('plugin-timelapse');
+    if (!card) return;
+
+    // If sidebar container already exists, ensure card is inside it
+    var sidebar = document.getElementById('plugin-sidebar-container');
+    if (sidebar) {
+      if (card.parentElement !== sidebar) {
+        sidebar.appendChild(card);
+      }
+      return;
+    }
+
+    // No sidebar — create one next to the file manager
+    // Find the file manager by looking for its distinctive icon
+    var fmIcon = document.querySelector('.bi-folder2-open');
+    if (!fmIcon) return;
+
+    var fmDashCard = fmIcon.closest('.dashboard-card');
+    if (!fmDashCard) return;
+
+    var fmCol = fmDashCard.parentElement;
+    if (!fmCol) return;
+
+    var fmRow = fmCol.parentElement;
+    if (!fmRow || !fmRow.classList.contains('row')) return;
+
+    // Resize the file manager column
+    fmCol.classList.remove('col-12');
+    fmCol.classList.add('col-12', 'col-lg-8');
+    fmRow.classList.add('align-items-start');
+
+    // Create sidebar column
+    sidebar = document.createElement('div');
+    sidebar.id = 'plugin-sidebar-container';
+    sidebar.className = 'col-12 col-lg-4';
+    fmRow.appendChild(sidebar);
+
+    // Move plugin card from .app-content into sidebar
+    sidebar.appendChild(card);
+  }
+
+  // Run after the DOM settles (card was just injected by plugins.js)
+  setTimeout(tlEnsureSidebarLayout, 0);
+
+  // ── Self-contained print interception ──────────────────────────────────────
+  // Intercept print button clicks in capture phase so we run before chitui.js.
+  // This handles both the old tableFiles and the new file-manager builder.
+  // If chitui.js already has the timelapsePrintHook check, stopPropagation
+  // prevents it from double-triggering.
+
+  document.addEventListener('click', function (e) {
+    if (typeof window.timelapsePrintHook !== 'function') return;
+
+    var target = e.target.closest('[data-action="print"]');
+    if (!target) return;
+
+    // Prevent chitui.js from also handling this click
+    e.stopPropagation();
+    e.preventDefault();
+
+    var file = target.getAttribute('data-file');
+    if (!file) return;
+
+    window.timelapsePrintHook(file, function (withTimelapse) {
+      var printer = (typeof currentPrinter !== 'undefined') ? currentPrinter : null;
+      if (withTimelapse && printer) {
+        socket.emit('timelapse_arm', { printer_id: printer });
+      }
+      socket.emit('action_print', { id: printer, data: file });
+    });
+  }, true /* capture phase */);
+
+  // ── Modal helpers ────────────────────────────────────────────────────────
+
+  var _tlModal = null;
+  var _tlPendingCallback = null;
+
+  function getTLModal() {
+    if (!_tlModal) {
+      var el = document.getElementById('modalTimelapse');
+      if (el) _tlModal = new bootstrap.Modal(el);
+    }
+    return _tlModal;
+  }
+
+  // ── Global hook called by chitui.js when user clicks Print ──────────────
+
+  window.timelapsePrintHook = function (filename, callback) {
+    _tlPendingCallback = callback;
+    var el = document.getElementById('tlPrintFileName');
+    if (el) el.textContent = filename;
+    getTLModal().show();
+  };
+
+  // "Print only" button
+  document.getElementById('btnTLPrintOnly').addEventListener('click', function () {
+    getTLModal().hide();
+    if (_tlPendingCallback) _tlPendingCallback(false);
+    _tlPendingCallback = null;
+  });
+
+  // "Print + Timelapse" button
+  document.getElementById('btnTLPrintWithTimelapse').addEventListener('click', function () {
+    getTLModal().hide();
+    if (_tlPendingCallback) _tlPendingCallback(true);
+    _tlPendingCallback = null;
+  });
+
+  // Cancel / close = do nothing (no print)
+  document.getElementById('modalTimelapse').addEventListener('hidden.bs.modal', function () {
+    _tlPendingCallback = null;
+  });
+
+  // ── Status updates from server ───────────────────────────────────────────
+
+  socket.on('timelapse_status', function (data) {
+    var badge = document.getElementById('tlStatusBadge');
+    var recDiv = document.getElementById('tlRecordingStatus');
+    var asmDiv = document.getElementById('tlAssemblingStatus');
+    var errDiv = document.getElementById('tlErrorStatus');
+
+    // Hide all first
+    recDiv.classList.add('d-none');
+    asmDiv.classList.add('d-none');
+    errDiv.classList.add('d-none');
+
+    if (data.recording) {
+      badge.textContent = 'Recording';
+      badge.className = 'badge bg-danger';
+      recDiv.classList.remove('d-none');
+      document.getElementById('tlFrameCount').textContent = data.frame_count || 0;
+      document.getElementById('tlLayerCurrent').textContent = data.current_layer || 0;
+      document.getElementById('tlLayerTotal').textContent = data.total_layer || 0;
+    } else if (data.assembling) {
+      badge.textContent = 'Assembling';
+      badge.className = 'badge bg-warning text-dark';
+      asmDiv.classList.remove('d-none');
+    } else if (data.error) {
+      badge.textContent = 'Error';
+      badge.className = 'badge bg-danger';
+      errDiv.classList.remove('d-none');
+      document.getElementById('tlErrorMsg').textContent = data.error;
+    } else {
+      badge.textContent = 'Idle';
+      badge.className = 'badge bg-secondary';
+    }
+  });
+
+  socket.on('timelapse_complete', function (data) {
+    console.log('[Timelapse] Complete:', data.filename);
+    tlRefreshList();
+  });
+
+  // ── File list ────────────────────────────────────────────────────────────
+
+  window.tlRefreshList = function () {
+    fetch('/plugin/timelapse/list')
+      .then(function (r) { return r.json(); })
+      .then(function (files) {
+        var list = document.getElementById('tlFileList');
+        var emptyMsg = document.getElementById('tlEmptyMsg');
+
+        if (!files.length) {
+          list.innerHTML = '';
+          emptyMsg.classList.remove('d-none');
+          list.appendChild(emptyMsg);
+          return;
+        }
+
+        emptyMsg.classList.add('d-none');
+        list.innerHTML = '';
+
+        files.forEach(function (f) {
+          var item = document.createElement('div');
+          item.className = 'tl-file-item';
+
+          var nameEl = document.createElement('div');
+          nameEl.className = 'tl-file-name';
+          nameEl.title = f.name;
+          nameEl.innerHTML = '<i class="bi bi-film me-1 text-muted"></i>' + escTL(f.name);
+
+          var metaEl = document.createElement('div');
+          metaEl.className = 'tl-file-meta';
+          metaEl.textContent = f.size_mb + ' MB';
+
+          var actionsEl = document.createElement('div');
+          actionsEl.className = 'tl-file-actions';
+
+          var dlBtn = document.createElement('a');
+          dlBtn.href = '/plugin/timelapse/download/' + encodeURIComponent(f.name);
+          dlBtn.className = 'btn btn-sm btn-outline-secondary py-0 px-1';
+          dlBtn.title = 'Download';
+          dlBtn.innerHTML = '<i class="bi bi-download"></i>';
+
+          var delBtn = document.createElement('button');
+          delBtn.className = 'btn btn-sm btn-outline-danger py-0 px-1';
+          delBtn.title = 'Delete';
+          delBtn.innerHTML = '<i class="bi bi-trash"></i>';
+          delBtn.addEventListener('click', (function (name) {
+            return function () { tlDeleteFile(name); };
+          })(f.name));
+
+          actionsEl.appendChild(dlBtn);
+          actionsEl.appendChild(delBtn);
+
+          item.appendChild(nameEl);
+          item.appendChild(metaEl);
+          item.appendChild(actionsEl);
+          list.appendChild(item);
+        });
+      })
+      .catch(function (e) { console.error('[Timelapse] List error:', e); });
+  };
+
+  window.tlDeleteFile = function (filename) {
+    if (!confirm('Delete timelapse "' + filename + '"?')) return;
+    fetch('/plugin/timelapse/delete/' + encodeURIComponent(filename), { method: 'DELETE' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d.ok) tlRefreshList(); })
+      .catch(function (e) { console.error('[Timelapse] Delete error:', e); });
+  };
+
+  function escTL(str) {
+    var d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ── Initialise ───────────────────────────────────────────────────────────
+
+  tlRefreshList();
+
+  // Sync status on load
+  fetch('/plugin/timelapse/status')
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.recording) {
+        socket.emit('timelapse_status', { recording: true, frame_count: 0 });
+      }
+    })
+    .catch(function () {});
+
+})();
+</script>

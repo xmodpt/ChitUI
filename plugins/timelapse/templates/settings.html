@@ -1,0 +1,334 @@
+<div class="card bg-dark border-secondary mt-3">
+    <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-camera-reels"></i> Timelapse Configuration</h6>
+
+        <!-- Video Output Settings -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-film"></i> Video Output</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Output FPS</label>
+                        <input type="number" class="form-control" id="tl-fps"
+                               min="1" max="120" step="1" value="30">
+                        <div class="form-text">Frames per second for assembled video (1–120)</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Encoding Preset</label>
+                        <select class="form-select" id="tl-preset">
+                            <option value="ultrafast">ultrafast (largest file, fastest)</option>
+                            <option value="superfast">superfast</option>
+                            <option value="veryfast">veryfast</option>
+                            <option value="faster">faster</option>
+                            <option value="fast" selected>fast (default)</option>
+                            <option value="medium">medium</option>
+                            <option value="slow">slow (smallest file, slowest)</option>
+                        </select>
+                        <div class="form-text">ffmpeg libx264 preset (slower = smaller file)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camera Source -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-camera-video"></i> Camera Source</h6>
+            </div>
+            <div class="card-body">
+
+                <!-- Option 1: System Camera -->
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="radio" name="tl-camera-source"
+                           id="tl-src-system" value="system" checked>
+                    <label class="form-check-label" for="tl-src-system">
+                        <strong>System Camera</strong>
+                        <span class="text-muted small d-block">
+                            Uses the printer's built-in RTSP stream, auto-detected from its IP address
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Option 2: USB Camera -->
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="tl-camera-source"
+                           id="tl-src-usb" value="usb">
+                    <label class="form-check-label" for="tl-src-usb">
+                        <strong>USB Camera</strong>
+                        <span class="text-muted small d-block">
+                            Any USB or v4l2 camera physically attached to this machine
+                        </span>
+                    </label>
+                </div>
+                <div id="tl-usb-panel" class="ms-4 mb-3 d-none">
+                    <div class="d-flex gap-2 align-items-center mt-2">
+                        <select class="form-select form-select-sm" id="tl-usb-select"
+                                style="max-width:280px;">
+                            <option value="">— click Detect to scan —</option>
+                        </select>
+                        <button type="button" class="btn btn-sm btn-outline-info" id="tl-usb-detect">
+                            <i class="bi bi-search"></i> Detect
+                        </button>
+                        <span id="tl-usb-spinner" class="spinner-border spinner-border-sm text-info d-none" role="status"></span>
+                    </div>
+                    <div id="tl-usb-none" class="text-muted small mt-1 d-none">No USB cameras detected.</div>
+                </div>
+
+                <!-- Option 3: IP Camera plugin -->
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="tl-camera-source"
+                           id="tl-src-ip" value="ip_camera">
+                    <label class="form-check-label" for="tl-src-ip">
+                        <strong>IP Camera</strong>
+                        <span class="text-muted small d-block">
+                            Camera configured in the IP Camera plugin
+                        </span>
+                    </label>
+                </div>
+                <div id="tl-ip-panel" class="ms-4 mb-2 d-none">
+                    <div id="tl-ip-unavailable" class="alert alert-warning py-2 small d-none">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        IP Camera plugin is not installed or has no cameras configured.
+                    </div>
+                    <select class="form-select form-select-sm mt-2" id="tl-ip-select"
+                            style="max-width:280px;">
+                        <option value="">— loading… —</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Storage Settings -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-folder2-open"></i> Storage</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Custom Storage Directory <small class="text-muted">(optional)</small></label>
+                        <input type="text" class="form-control" id="tl-storage-dir"
+                               placeholder="/timelapse">
+                        <div class="form-text">
+                            Leave empty to auto-detect (<code>/timelapse</code> or <code>~/timelapse</code>).
+                            Current active directory: <code id="tl-active-dir">—</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tl-settings-error" class="alert alert-danger d-none" role="alert"></div>
+        <div id="tl-settings-success" class="alert alert-success d-none" role="alert">Settings saved.</div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" id="tl-cancel-settings">Close</button>
+            <button type="button" class="btn btn-primary" id="tl-save-settings">
+                <i class="bi bi-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var errDiv = document.getElementById('tl-settings-error');
+    var okDiv  = document.getElementById('tl-settings-success');
+
+    function showErr(msg) {
+        errDiv.textContent = msg;
+        errDiv.classList.remove('d-none');
+        okDiv.classList.add('d-none');
+    }
+    function showOk() {
+        okDiv.classList.remove('d-none');
+        errDiv.classList.add('d-none');
+        setTimeout(function () { okDiv.classList.add('d-none'); }, 3000);
+    }
+
+    // ── Panel visibility ──────────────────────────────────────────────────────
+    var usbPanel = document.getElementById('tl-usb-panel');
+    var ipPanel  = document.getElementById('tl-ip-panel');
+
+    function updatePanels() {
+        var val = document.querySelector('input[name="tl-camera-source"]:checked').value;
+        usbPanel.classList.toggle('d-none', val !== 'usb');
+        ipPanel.classList.toggle('d-none',  val !== 'ip_camera');
+        if (val === 'ip_camera') loadIpCameras();
+    }
+
+    document.querySelectorAll('input[name="tl-camera-source"]').forEach(function (r) {
+        r.addEventListener('change', updatePanels);
+    });
+
+    // ── USB camera detection ──────────────────────────────────────────────────
+    document.getElementById('tl-usb-detect').addEventListener('click', function () {
+        var spinner = document.getElementById('tl-usb-spinner');
+        var noneMsg = document.getElementById('tl-usb-none');
+        var sel     = document.getElementById('tl-usb-select');
+        spinner.classList.remove('d-none');
+        noneMsg.classList.add('d-none');
+        sel.innerHTML = '<option value="">Scanning…</option>';
+
+        fetch('/plugin/timelapse/detect')
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                spinner.classList.add('d-none');
+                sel.innerHTML = '';
+                var cams = d.usb_cameras || [];
+                if (cams.length === 0) {
+                    noneMsg.classList.remove('d-none');
+                    sel.innerHTML = '<option value="">No cameras found</option>';
+                } else {
+                    cams.forEach(function (c) {
+                        var opt = document.createElement('option');
+                        opt.value = c.index;
+                        opt.textContent = c.name;
+                        sel.appendChild(opt);
+                    });
+                }
+            })
+            .catch(function (e) {
+                spinner.classList.add('d-none');
+                console.error('[Timelapse] USB detect error:', e);
+                sel.innerHTML = '<option value="">Detection failed</option>';
+            });
+    });
+
+    // ── IP camera list ────────────────────────────────────────────────────────
+    var _ipLoaded = false;
+    function loadIpCameras() {
+        if (_ipLoaded) return;
+        _ipLoaded = true;
+        var sel     = document.getElementById('tl-ip-select');
+        var warning = document.getElementById('tl-ip-unavailable');
+        sel.innerHTML = '<option value="">Loading…</option>';
+
+        fetch('/plugin/timelapse/detect')
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                var cams = d.ip_cameras || [];
+                sel.innerHTML = '';
+                if (cams.length === 0) {
+                    warning.classList.remove('d-none');
+                    sel.innerHTML = '<option value="">No IP cameras available</option>';
+                } else {
+                    warning.classList.add('d-none');
+                    cams.forEach(function (c) {
+                        var opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.textContent = c.name + ' (' + c.url + ')';
+                        sel.appendChild(opt);
+                    });
+                }
+            })
+            .catch(function (e) {
+                console.error('[Timelapse] IP cam load error:', e);
+                sel.innerHTML = '<option value="">Failed to load</option>';
+            });
+    }
+
+    // ── Load current config ───────────────────────────────────────────────────
+    fetch('/plugin/timelapse/config')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (!d.ok) return;
+            document.getElementById('tl-fps').value = d.fps || 30;
+            if (d.preset) document.getElementById('tl-preset').value = d.preset;
+            document.getElementById('tl-storage-dir').value = d.storage_dir || '';
+            document.getElementById('tl-active-dir').textContent = d.active_storage_dir || '—';
+
+            var src = d.camera_source || 'system';
+            var radio = document.getElementById(
+                src === 'usb' ? 'tl-src-usb' :
+                src === 'ip_camera' ? 'tl-src-ip' : 'tl-src-system'
+            );
+            if (radio) radio.checked = true;
+            updatePanels();
+
+            // Pre-select saved USB index once the panel might be visible
+            if (src === 'usb') {
+                // Trigger detect so the select is populated, then pick saved value
+                document.getElementById('tl-usb-detect').click();
+                // After detect, select saved index (may need a small delay)
+                setTimeout(function () {
+                    var sel = document.getElementById('tl-usb-select');
+                    sel.value = String(d.camera_usb_index || 0);
+                }, 2500);
+            }
+
+            if (src === 'ip_camera') {
+                // loadIpCameras already called by updatePanels; select saved id after load
+                setTimeout(function () {
+                    document.getElementById('tl-ip-select').value = d.camera_ip_id || '';
+                }, 1000);
+            }
+        })
+        .catch(function (e) { console.error('[Timelapse] Config load error:', e); });
+
+    // ── Save ──────────────────────────────────────────────────────────────────
+    document.getElementById('tl-save-settings').addEventListener('click', function () {
+        var fps        = parseInt(document.getElementById('tl-fps').value, 10);
+        var preset     = document.getElementById('tl-preset').value;
+        var storageDir = document.getElementById('tl-storage-dir').value.trim();
+        var src        = document.querySelector('input[name="tl-camera-source"]:checked').value;
+        var usbIndex   = parseInt(document.getElementById('tl-usb-select').value, 10);
+        var ipId       = document.getElementById('tl-ip-select').value;
+
+        if (isNaN(fps) || fps < 1 || fps > 120) {
+            showErr('FPS must be a number between 1 and 120.');
+            return;
+        }
+        if (src === 'usb' && isNaN(usbIndex)) {
+            showErr('Please detect and select a USB camera first.');
+            return;
+        }
+        if (src === 'ip_camera' && !ipId) {
+            showErr('Please select an IP camera first.');
+            return;
+        }
+
+        fetch('/plugin/timelapse/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fps: fps,
+                preset: preset,
+                storage_dir: storageDir,
+                camera_source: src,
+                camera_usb_index: isNaN(usbIndex) ? 0 : usbIndex,
+                camera_ip_id: ipId
+            })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (d.ok) {
+                showOk();
+                fetch('/plugin/timelapse/config')
+                    .then(function (r) { return r.json(); })
+                    .then(function (cfg) {
+                        if (cfg.active_storage_dir)
+                            document.getElementById('tl-active-dir').textContent = cfg.active_storage_dir;
+                    });
+            } else {
+                showErr(d.error || 'Failed to save settings.');
+            }
+        })
+        .catch(function (e) {
+            console.error('[Timelapse] Save error:', e);
+            showErr('Error saving settings.');
+        });
+    });
+
+    // ── Close ─────────────────────────────────────────────────────────────────
+    document.getElementById('tl-cancel-settings').addEventListener('click', function () {
+        var panel = document.getElementById('plugin-settings-timelapse');
+        if (panel) panel.style.display = 'none';
+    });
+})();
+</script>
