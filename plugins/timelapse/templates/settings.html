@@ -32,6 +32,39 @@
             </div>
         </div>
 
+        <!-- Camera Source -->
+        <div class="card bg-secondary mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-camera-video"></i> Camera Source</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="tl-camera-source"
+                               id="tl-camera-printer" value="printer" checked>
+                        <label class="form-check-label" for="tl-camera-printer">
+                            <strong>Printer built-in camera</strong>
+                            <span class="text-muted small d-block">Uses the printer's RTSP stream (auto-detected from its IP address)</span>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="tl-camera-source"
+                               id="tl-camera-custom" value="custom">
+                        <label class="form-check-label" for="tl-camera-custom">
+                            <strong>Custom RTSP URL</strong>
+                            <span class="text-muted small d-block">Use any RTSP camera stream (e.g. an IP camera on the network)</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="tl-custom-url-row" class="mt-2" style="display:none;">
+                    <label class="form-label">RTSP Stream URL</label>
+                    <input type="text" class="form-control" id="tl-camera-url"
+                           placeholder="rtsp://192.168.1.100:554/stream">
+                    <div class="form-text">Full RTSP URL for the camera stream</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Storage Settings -->
         <div class="card bg-secondary mb-3">
             <div class="card-header">
@@ -82,6 +115,14 @@
         setTimeout(function () { okDiv.classList.add('d-none'); }, 3000);
     }
 
+    // Camera source toggle
+    var customUrlRow = document.getElementById('tl-custom-url-row');
+    document.querySelectorAll('input[name="tl-camera-source"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            customUrlRow.style.display = this.value === 'custom' ? '' : 'none';
+        });
+    });
+
     // Load current config
     fetch('/plugin/timelapse/config')
         .then(function (r) { return r.json(); })
@@ -92,6 +133,16 @@
             if (d.preset) presetSel.value = d.preset;
             document.getElementById('tl-storage-dir').value = d.storage_dir || '';
             document.getElementById('tl-active-dir').textContent = d.active_storage_dir || '—';
+
+            var cameraUrl = d.camera_url || '';
+            if (cameraUrl) {
+                document.getElementById('tl-camera-custom').checked = true;
+                document.getElementById('tl-camera-url').value = cameraUrl;
+                customUrlRow.style.display = '';
+            } else {
+                document.getElementById('tl-camera-printer').checked = true;
+                customUrlRow.style.display = 'none';
+            }
         })
         .catch(function (e) { console.error('[Timelapse] Config load error:', e); });
 
@@ -100,16 +151,22 @@
         var fps = parseInt(document.getElementById('tl-fps').value, 10);
         var preset = document.getElementById('tl-preset').value;
         var storageDir = document.getElementById('tl-storage-dir').value.trim();
+        var useCustom = document.getElementById('tl-camera-custom').checked;
+        var cameraUrl = useCustom ? document.getElementById('tl-camera-url').value.trim() : '';
 
         if (isNaN(fps) || fps < 1 || fps > 120) {
             showErr('FPS must be a number between 1 and 120.');
+            return;
+        }
+        if (useCustom && !cameraUrl) {
+            showErr('Please enter a custom RTSP URL or switch back to printer camera.');
             return;
         }
 
         fetch('/plugin/timelapse/config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fps: fps, preset: preset, storage_dir: storageDir })
+            body: JSON.stringify({ fps: fps, preset: preset, storage_dir: storageDir, camera_url: cameraUrl })
         })
         .then(function (r) { return r.json(); })
         .then(function (d) {

@@ -32,7 +32,8 @@ FRAMES_TMP_BASE = '/tmp'
 DEFAULT_CONFIG = {
     'fps': 30,
     'preset': 'fast',
-    'storage_dir': '',  # empty = auto-detect from candidates
+    'storage_dir': '',   # empty = auto-detect from candidates
+    'camera_url': '',    # empty = use printer's built-in RTSP camera
 }
 
 # SDCP print status codes
@@ -59,6 +60,13 @@ class Plugin(ChitUIPlugin):
         self.pending_timelapse = {}      # printer_id -> bool (armed for next print)
 
         self.socketio = None
+
+        # Custom RTSP camera capture state (used when camera_url is configured)
+        self._custom_frame = {}          # printer_id -> bytes | None
+        self._custom_frame_lock = {}     # printer_id -> threading.Lock
+        self._custom_camera_running = {} # printer_id -> bool
+        self._custom_camera_thread = {}  # printer_id -> Thread
+
         self.config_file = os.path.expanduser('~/.chitui/timelapse_config.json')
         self.config = dict(DEFAULT_CONFIG)
         self._load_config()
@@ -215,11 +223,13 @@ class Plugin(ChitUIPlugin):
                     'preset': self.config.get('preset', DEFAULT_CONFIG['preset']),
                     'storage_dir': self.config.get('storage_dir', DEFAULT_CONFIG['storage_dir']),
                     'active_storage_dir': self.timelapse_dir or '',
+                    'camera_url': self.config.get('camera_url', DEFAULT_CONFIG['camera_url']),
                 })
             data = request.get_json() or {}
             fps = data.get('fps', self.config.get('fps', DEFAULT_CONFIG['fps']))
             preset = data.get('preset', self.config.get('preset', DEFAULT_CONFIG['preset']))
             storage_dir = data.get('storage_dir', self.config.get('storage_dir', DEFAULT_CONFIG['storage_dir']))
+            camera_url = data.get('camera_url', self.config.get('camera_url', DEFAULT_CONFIG['camera_url']))
             try:
                 fps = int(fps)
                 if fps < 1 or fps > 120:
@@ -231,6 +241,7 @@ class Plugin(ChitUIPlugin):
             self.config['fps'] = fps
             self.config['preset'] = preset
             self.config['storage_dir'] = storage_dir.strip()
+            self.config['camera_url'] = camera_url.strip()
             self._save_config()
             return jsonify({'ok': True})
 
@@ -255,13 +266,26 @@ class Plugin(ChitUIPlugin):
                     self.pending_timelapse[printer_id] = False
             return {'ok': True}
 
-    # ── Camera access (shared buffer) ─────────────────────────────────────────
+    # ── Camera access ─────────────────────────────────────────────────────────
 
     def _get_main(self):
         return sys.modules.get('__main__') or sys.modules.get('main')
 
-    def _get_camera_frame(self):
-        """Read the latest JPEG frame from the main app's shared camera buffer."""
+    def _get_camera_frame(self, printer_id=None):
+        """Return the latest JPEG frame for this printer.
+
+        If a custom camera URL is configured and running, reads from the
+        plugin's own capture buffer.  Otherwise falls back to the shared
+        buffer maintained by the main app.
+        """
+        # Custom camera path
+        if printer_id and self._custom_camera_running.get(printer_id):
+            lock = self._custom_frame_lock.get(printer_id)
+            if lock:
+                with lock:
+                    return self._custom_frame.get(printer_id)
+
+        # Main-app shared buffer path
         main = self._get_main()
         if not main:
             return None
@@ -273,12 +297,72 @@ class Plugin(ChitUIPlugin):
         with lock:
             return getattr(main, 'camera_latest_frame', None)
 
+    def _start_custom_camera(self, printer_id, rtsp_url):
+        """Start a dedicated RTSP capture thread for a custom camera URL."""
+        try:
+            import cv2
+        except ImportError:
+            print("[Timelapse] OpenCV not available for custom camera capture")
+            return False
+
+        self._custom_frame[printer_id] = None
+        self._custom_frame_lock[printer_id] = threading.Lock()
+        self._custom_camera_running[printer_id] = True
+
+        def _capture():
+            try:
+                os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
+                cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
+                if not cap.isOpened():
+                    print(f"[Timelapse] Cannot open custom camera: {rtsp_url}")
+                    self._custom_camera_running[printer_id] = False
+                    return
+                cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                while self._custom_camera_running.get(printer_id, False):
+                    for _ in range(3):
+                        if not self._custom_camera_running.get(printer_id, False):
+                            break
+                        cap.grab()
+                    ret, frame = cap.retrieve()
+                    if ret and frame is not None:
+                        ok, buf = cv2.imencode('.jpg', frame,
+                                              [cv2.IMWRITE_JPEG_QUALITY, 80])
+                        if ok:
+                            with self._custom_frame_lock[printer_id]:
+                                self._custom_frame[printer_id] = buf.tobytes()
+                    else:
+                        time.sleep(0.05)
+                cap.release()
+            except Exception as e:
+                print(f"[Timelapse] Custom camera capture error: {e}")
+                self._custom_camera_running[printer_id] = False
+
+        t = threading.Thread(target=_capture, daemon=True)
+        t.start()
+        self._custom_camera_thread[printer_id] = t
+        time.sleep(2.0)  # Allow first frames to arrive
+        return self._custom_camera_running.get(printer_id, False)
+
     def _ensure_camera(self, printer_id):
+        """Ensure a camera is running and frames are available.
+
+        If a custom RTSP URL is configured, starts the plugin's own capture
+        thread for that URL.  Otherwise joins the main app's shared camera
+        (starting it if needed).
         """
-        Ensure the camera is running. If already running, returns True immediately
-        (the timelapse reads from the shared buffer without interference).
-        If not running, starts it and marks that we started it.
-        """
+        camera_url = self.config.get('camera_url', '').strip()
+
+        if camera_url:
+            # Use the explicitly configured camera URL
+            if self._custom_camera_running.get(printer_id):
+                return True  # Already running
+            print(f"[Timelapse] Starting custom camera: {camera_url}")
+            ok = self._start_custom_camera(printer_id, camera_url)
+            if not ok:
+                print("[Timelapse] Failed to start custom camera")
+            return ok
+
+        # --- Printer built-in camera (shared buffer) ---
         main = self._get_main()
         if not main:
             return False
@@ -297,7 +381,8 @@ class Plugin(ChitUIPlugin):
             return False
 
         printers = getattr(main, 'printers', {})
-        printer = printers.get(printer_id) or (next(iter(printers.values()), None) if printers else None)
+        printer = printers.get(printer_id) or (
+            next(iter(printers.values()), None) if printers else None)
         if not printer:
             return False
 
@@ -315,7 +400,7 @@ class Plugin(ChitUIPlugin):
                 t = Thread(target=camera_capture_frames, daemon=True)
                 t.start()
                 main.camera_capture_thread = t
-                time.sleep(1.5)  # Allow first frames to arrive
+                time.sleep(1.5)
                 self.camera_started_by_us[printer_id] = True
                 print(f"[Timelapse] Camera started by timelapse plugin for {printer_ip}")
                 return True
@@ -325,7 +410,18 @@ class Plugin(ChitUIPlugin):
             return False
 
     def _stop_camera_if_ours(self, printer_id):
-        """Stop the camera only if the timelapse plugin was the one that started it."""
+        """Stop whatever camera this plugin started for the given printer."""
+        # Stop custom camera thread if running
+        if self._custom_camera_running.get(printer_id):
+            self._custom_camera_running[printer_id] = False
+            t = self._custom_camera_thread.pop(printer_id, None)
+            if t and t.is_alive():
+                t.join(timeout=2.0)
+            self._custom_frame.pop(printer_id, None)
+            self._custom_frame_lock.pop(printer_id, None)
+            return
+
+        # Stop shared main-app camera if we were the ones who started it
         if not self.camera_started_by_us.get(printer_id):
             return
         main = self._get_main()
@@ -363,7 +459,7 @@ class Plugin(ChitUIPlugin):
         self._emit_status(printer_id, recording=True, frame_count=0)
 
     def _capture_frame(self, printer_id):
-        frame_data = self._get_camera_frame()
+        frame_data = self._get_camera_frame(printer_id)
         if not frame_data:
             return False
 
