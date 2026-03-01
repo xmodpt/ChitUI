@@ -1,0 +1,17 @@
+{
+  "auth": {
+    "require_password_change": false
+  },
+  "auto_discover": false,
+  "printers": {
+    "944047506c1e0100": {
+      "brand": "ELEGOO",
+      "enabled": true,
+      "ip": "192.168.1.67",
+      "manual": false,
+      "model": "Saturn 4 Ultra",
+      "name": "Saturn",
+      "usb_device_type": "virtual"
+    }
+  }
+}
