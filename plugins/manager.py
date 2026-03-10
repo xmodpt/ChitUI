@@ -159,11 +159,26 @@ class PluginManager:
             # Temporarily bypass Flask's post-startup registration guard so
             # plugins that call app.register_blueprint() inside on_startup()
             # (or via get_blueprint()) work correctly when hot-loaded.
+            # Also skip re-registration of blueprints that were already registered
+            # on a previous load (e.g. when a plugin is disabled then re-enabled
+            # without a server restart) — the existing URL rules remain active.
             # Safe for a single-worker application.
             _orig_check = getattr(app, '_check_setup_finished', None)
+            _orig_register_blueprint = app.register_blueprint
+
+            def _safe_register_blueprint(bp, **opts):
+                if bp.name in app.blueprints:
+                    logger.info(
+                        f"Blueprint '{bp.name}' already registered, "
+                        f"skipping re-registration for plugin '{plugin_name}'"
+                    )
+                    return
+                _orig_register_blueprint(bp, **opts)
+
             try:
                 if _orig_check is not None:
                     app._check_setup_finished = lambda *a, **kw: None
+                app.register_blueprint = _safe_register_blueprint
 
                 plugin_instance.on_startup(app, socketio)
 
@@ -178,6 +193,7 @@ class PluginManager:
             finally:
                 if _orig_check is not None:
                     app._check_setup_finished = _orig_check
+                app.register_blueprint = _orig_register_blueprint
 
             self.plugins[plugin_name] = plugin_instance
             logger.info(f"Plugin loaded: {plugin_name} v{plugin_instance.get_version()}")
