@@ -157,22 +157,6 @@ bash ./scripts/check_usb_gadget.sh
 Manage plugins under **Settings → Plugins**. You can enable and disable them,
 install from the Plugin Store, or upload your own as a `.zip`.
 
-Bundled plugins:
-
-| Plugin | Description |
-| --- | --- |
-| **GPIO Relay Control** | Control 3 GPIO relays from the toolbar with real-time status |
-| **IP Camera** | Stream RTSP/HTTP cameras via OpenCV, GStreamer or FFmpeg |
-| **Terminal** | Monitor printer communication and send raw commands |
-| **Raspberry Pi Stats** | CPU, memory, disk and network statistics |
-| **Print Analytics** | Print history, resin cost tracking, FEP and LCD life monitoring |
-| **Timelapse** | One frame per layer, assembled into an MP4 |
-| **Chitu Notify** | Push notifications via ntfy.sh for printer status, relays and alerts |
-| **Tapo P100 Smart Plugs** | Control up to 5 TP-Link Tapo P100/P105/P110 plugs |
-| **Leak Detector** | ESP32-based resin leak detection with real-time alerts |
-| **Tailscale Remote Access** | Secure remote access without port forwarding |
-
-See each plugin's README in `plugins/` for details.
 
 ## Themes
 
