@@ -1,0 +1,808 @@
+2026-08-24 23:29:22.452 | INFO     | __main__:<module>:239 - ✓ USB gadget found and writable at /mnt/usb_share
+2026-08-24 23:29:22.455 | INFO     | __main__:<module>:307 - Data folder: /home/pi/ChitUI/data
+2026-08-24 23:29:22.455 | INFO     | __main__:<module>:308 - Temp folder: /home/pi/ChitUI/data/temp
+2026-08-24 23:29:22.456 | INFO     | __main__:<module>:309 - Thumbnails folder: /home/pi/ChitUI/data/thumbnails
+2026-08-24 23:29:22.456 | INFO     | __main__:<module>:310 - Upload folder: /mnt/usb_share
+2026-08-24 23:29:22.457 | INFO     | __main__:<module>:311 - Settings file: /home/pi/ChitUI/data/chitui_settings.json
+2026-08-24 23:29:22.457 | INFO     | __main__:<module>:312 - Running as user: pi (UID: 1000)
+2026-08-24 23:29:22.588 | INFO     | __main__:main:4655 - Initializing authentication...
+2026-08-24 23:29:22.590 | INFO     | __main__:load_settings:1533 - Loaded settings: 1 printers configured
+2026-08-24 23:29:22.590 | INFO     | __main__:init_auth:1598 - ✓ Authentication initialized successfully
+2026-08-24 23:29:22.591 | INFO     | __main__:main:4661 - Mounting USB gadget on startup...
+2026-08-24 23:29:22.591 | INFO     | __main__:mount_usb_gadget:3927 - Mounting USB gadget...
+2026-08-24 23:29:22.651 | INFO     | __main__:mount_usb_gadget:3953 - USB gadget already mounted as read-write
+2026-08-24 23:29:22.652 | INFO     | __main__:main:4663 - ✓ USB gadget mounted successfully
+2026-08-24 23:29:22.653 | INFO     | __main__:main:4671 - ✓ USB gadget is writable
+2026-08-24 23:29:22.654 | INFO     | __main__:load_settings:1533 - Loaded settings: 1 printers configured
+2026-08-24 23:29:22.655 | INFO     | __main__:main:4684 - Loading plugins...
+2026-08-24 23:29:22.695 | INFO     | plugins.manager:load_all_plugins:200 - Loading plugin: chitu_notify (priority - notification service)
+2026-08-24 23:29:22.994 | INFO     | plugins.chitu_notify:load_config:253 - Chitu Notify configuration loaded
+2026-08-24 23:29:22.999 | INFO     | plugins.manager:load_plugin:155 - Installing dependencies for chitu_notify...
+2026-08-24 23:29:23.038 | INFO     | plugins.chitu_notify:on_startup:673 - Chitu Notify plugin started
+2026-08-24 23:29:23.038 | INFO     | plugins.manager:load_plugin:184 - Plugin loaded: chitu_notify v1.1.5
+2026-08-24 23:29:23.039 | INFO     | plugins.manager:load_all_plugins:207 - Loading plugin: ip_camera
+2026-08-24 23:29:23.065 | INFO     | plugins.manager:load_plugin:155 - Installing dependencies for ip_camera...
+2026-08-24 23:29:23.099 | INFO     | plugins.manager:load_plugin:184 - Plugin loaded: ip_camera v1.0.0
+2026-08-24 23:29:23.100 | INFO     | plugins.manager:load_all_plugins:207 - Loading plugin: timelapse
+2026-08-24 23:29:23.122 | INFO     | plugins.manager:load_plugin:155 - Installing dependencies for timelapse...
+[Timelapse] Storage directory: /home/pi/timelapse
+2026-08-24 23:29:23.179 | INFO     | plugins.manager:load_plugin:184 - Plugin loaded: timelapse v1.0.0
+2026-08-24 23:29:23.180 | INFO     | plugins.manager:load_all_plugins:207 - Loading plugin: terminal
+2026-08-24 23:29:23.218 | INFO     | plugins.manager:load_plugin:155 - Installing dependencies for terminal...
+2026-08-24 23:29:23.235 | INFO     | plugins.manager:load_plugin:184 - Plugin loaded: terminal v1.0.0
+2026-08-24 23:29:23.236 | INFO     | plugins.manager:load_all_plugins:207 - Loading plugin: leak_detector
+2026-08-31 00:55:41.865 | INFO     | __main__:<module>:248 - ✓ USB gadget found and writable at /mnt/usb_share
+2026-08-31 00:55:41.867 | INFO     | __main__:<module>:339 - Data folder: /home/pi/ChitUI/data
+2026-08-31 00:55:41.868 | INFO     | __main__:<module>:340 - Temp folder: /home/pi/ChitUI/data/temp
+2026-08-31 00:55:41.868 | INFO     | __main__:<module>:341 - Thumbnails folder: /home/pi/ChitUI/data/thumbnails
+2026-08-31 00:55:41.868 | INFO     | __main__:<module>:342 - Upload folder: /mnt/usb_share
+2026-08-31 00:55:41.869 | INFO     | __main__:<module>:343 - Settings file: /home/pi/ChitUI/data/chitui_settings.json
+2026-08-31 00:55:41.870 | INFO     | __main__:<module>:344 - Running as user: pi (UID: 1000)
+2026-08-31 00:55:42.027 | INFO     | __main__:main:5115 - Initializing authentication...
+2026-08-31 00:55:42.029 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:42.030 | INFO     | __main__:init_auth:1630 - ✓ Authentication initialized successfully
+2026-08-31 00:55:42.030 | INFO     | __main__:main:5121 - Mounting USB gadget on startup...
+2026-08-31 00:55:42.031 | INFO     | __main__:mount_usb_gadget:4376 - Mounting USB gadget...
+2026-08-31 00:55:42.085 | INFO     | __main__:mount_usb_gadget:4402 - USB gadget already mounted as read-write
+2026-08-31 00:55:42.085 | INFO     | __main__:main:5123 - ✓ USB gadget mounted successfully
+2026-08-31 00:55:42.086 | INFO     | __main__:main:5131 - ✓ USB gadget is writable
+2026-08-31 00:55:42.087 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:42.088 | INFO     | __main__:main:5144 - Loading plugins...
+2026-08-31 00:55:42.092 | INFO     | plugins.manager:load_all_plugins:207 - Loading plugin: terminal
+2026-08-31 00:55:42.098 | INFO     | plugins.manager:load_plugin:155 - Installing dependencies for terminal...
+2026-08-31 00:55:42.114 | INFO     | plugins.manager:load_plugin:184 - Plugin loaded: terminal v1.0.0
+2026-08-31 00:55:42.147 | INFO     | themes:init_themes:427 - Theme system initialised (themes folder: /home/pi/ChitUI/data/themes)
+2026-08-31 00:55:42.147 | INFO     | __main__:main:5163 - ✓ Theme routes registered (/themes/*)
+2026-08-31 00:55:42.152 | INFO     | raspicam:init_raspicam:376 - raspicam: using rpicam-vid (/usr/bin/rpicam-vid)
+2026-08-31 00:55:42.169 | INFO     | __main__:main:5174 - ✓ Pi Camera routes registered (/raspicam/*)
+2026-08-31 00:55:42.274 | INFO     | __main__:main:5186 - ✓ UART routes registered (/uart/*) - pyserial available: True
+2026-08-31 00:55:42.275 | INFO     | __main__:main:5222 - Starting printer connection health monitor...
+2026-08-31 00:55:42.277 | INFO     | __main__:main:5227 - Starting thumbnail scan for externally-copied files...
+2026-08-31 00:55:42.279 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:42.281 | INFO     | __main__:load_saved_printers:5101 - Loaded saved printer: Saturn 4 Ultra (192.168.1.73) - USB type: physical
+2026-08-31 00:55:42.281 | INFO     | __main__:connect_printers:4855 - Connecting to: Saturn 4 Ultra
+2026-08-31 00:55:42.287 | INFO     | __main__:scan_and_extract_missing_thumbnails:1059 - [scan] All files already have thumbnails
+2026-08-31 00:55:42.291 | INFO     | __main__:main:5245 - File watcher started
+2026-08-31 00:55:42.292 | INFO     | __main__:<module>:5255 - ============================================================
+2026-08-31 00:55:42.293 | INFO     | __main__:<module>:5256 - ChitUI 2.3.0 Starting
+2026-08-31 00:55:42.293 | INFO     | __main__:<module>:5257 - ============================================================
+2026-08-31 00:55:42.294 | INFO     | __main__:<module>:5262 - Python Environment:
+2026-08-31 00:55:42.294 | INFO     | __main__:<module>:5263 -   → Python executable: /usr/bin/python3
+2026-08-31 00:55:42.295 | INFO     | __main__:<module>:5264 -   → Python version: 3.13.5
+2026-08-31 00:55:42.295 | INFO     | __main__:<module>:5265 -   → Running as user: pi
+2026-08-31 00:55:42.295 | INFO     | __main__:<module>:5269 - Features:
+2026-08-31 00:55:42.296 | INFO     | __main__:<module>:5270 -   ✓ Printer Management
+2026-08-31 00:55:42.296 | INFO     | __main__:<module>:5272 -   ✓ File Upload (USB Gadget Mode)
+2026-08-31 00:55:42.297 | INFO     | __main__:<module>:5273 -      → Files saved to: /mnt/usb_share
+2026-08-31 00:55:42.297 | INFO     | __main__:<module>:5274 -      → Connect USB to printer to access files
+2026-08-31 00:55:42.297 | INFO     | __main__:<module>:5279 -      → Auto-refresh: DISABLED (manual refresh needed)
+2026-08-31 00:55:42.298 | INFO     | __main__:<module>:5280 -      → Set USB_AUTO_REFRESH=true to enable
+2026-08-31 00:55:42.298 | INFO     | __main__:<module>:5285 -   ✓ Camera Streaming (RTSP)
+2026-08-31 00:55:42.299 | INFO     | __main__:<module>:5288 - ============================================================
+2026-08-31 00:55:42.299 | INFO     | __main__:<module>:5289 - Data folder: /home/pi/ChitUI/data
+2026-08-31 00:55:42.299 | INFO     | __main__:<module>:5290 - Settings file: /home/pi/ChitUI/data/chitui_settings.json
+2026-08-31 00:55:42.300 | INFO     | __main__:<module>:5291 - ============================================================
+ * Serving Flask app 'main'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://192.168.1.80:8080
+[33mPress CTRL+C to quit[0m
+2026-08-31 00:55:42.611 | INFO     | __main__:ws_connected_handler:4900 - Connected to: Saturn 4 Ultra
+192.168.1.74 - - [31/Aug/2026 00:55:42] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:43] "[33mGET /plugin/rpi_stats/stats HTTP/1.1[0m" 404 -
+192.168.1.74 - - [31/Aug/2026 00:55:43] "[33mGET /plugin/ip_camera/cameras HTTP/1.1[0m" 404 -
+192.168.1.74 - - [31/Aug/2026 00:55:45] "GET /socket.io/?EIO=4&transport=polling&t=Q1L6RYy HTTP/1.1" 200 -
+2026-08-31 00:55:45.689 | INFO     | __main__:sio_handle_connect:4325 - Client connected
+2026-08-31 00:55:45.689 | INFO     | __main__:sio_handle_connect:4326 - Available printers: ['944047506c1e0100']
+192.168.1.74 - - [31/Aug/2026 00:55:45] "POST /socket.io/?EIO=4&transport=polling&t=Q1L6Rc6&sid=UnKOrCtGKeUw2NhpAAAA HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:45] "GET /socket.io/?EIO=4&transport=polling&t=Q1L6Rc7&sid=UnKOrCtGKeUw2NhpAAAA HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:45] "GET /socket.io/?EIO=4&transport=polling&t=Q1L6RcY HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:45] "GET /socket.io/?EIO=4&transport=polling&t=Q1L6Rfe&sid=UnKOrCtGKeUw2NhpAAAA HTTP/1.1" 200 -
+2026-08-31 00:55:45.886 | INFO     | __main__:sio_handle_connect:4325 - Client connected
+2026-08-31 00:55:45.886 | INFO     | __main__:sio_handle_connect:4326 - Available printers: ['944047506c1e0100']
+192.168.1.74 - - [31/Aug/2026 00:55:45] "POST /socket.io/?EIO=4&transport=polling&t=Q1L6Rff&sid=ADOpivQzemZUuYrMAAAC HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:45] "GET /socket.io/?EIO=4&transport=polling&t=Q1L6Rff.0&sid=ADOpivQzemZUuYrMAAAC HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:46] "GET /socket.io/?EIO=4&transport=polling&t=Q1L6Rof HTTP/1.1" 200 -
+2026-08-31 00:55:46.490 | INFO     | __main__:sio_handle_connect:4325 - Client connected
+2026-08-31 00:55:46.491 | INFO     | __main__:sio_handle_connect:4326 - Available printers: ['944047506c1e0100']
+192.168.1.74 - - [31/Aug/2026 00:55:46] "POST /socket.io/?EIO=4&transport=polling&t=Q1L6RpA&sid=-NeP8tzyjwwK6QQaAAAE HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:46] "GET /socket.io/?EIO=4&transport=polling&t=Q1L6RpA.0&sid=-NeP8tzyjwwK6QQaAAAE HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:46] "GET /socket.io/?EIO=4&transport=polling&t=Q1L6Rpr&sid=-NeP8tzyjwwK6QQaAAAE HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:47] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:48] "[33mGET /plugin/rpi_stats/stats HTTP/1.1[0m" 404 -
+192.168.1.74 - - [31/Aug/2026 00:55:48] "[33mGET /plugin/ip_camera/cameras HTTP/1.1[0m" 404 -
+192.168.1.74 - - [31/Aug/2026 00:55:49] "GET / HTTP/1.1" 200 -
+2026-08-31 00:55:49.039 | INFO     | __main__:sio_handle_disconnect:4332 - Client disconnected
+2026-08-31 00:55:49.044 | INFO     | __main__:sio_handle_disconnect:4332 - Client disconnected
+2026-08-31 00:55:49.048 | INFO     | __main__:sio_handle_disconnect:4332 - Client disconnected
+192.168.1.74 - - [31/Aug/2026 00:55:49] "GET /js/color-modes.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:49] "GET /css/bootstrap.min.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:49] "GET /js/bootstrap.bundle.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:49] "GET /css/bootstrap-icons.min.css HTTP/1.1" 200 -
+2026-08-31 00:55:49.105 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 00:55:49] "GET /themes/active.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:49] "GET /js/jquery-3.7.1.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:49] "GET /css/fonts/bootstrap-icons.woff2?dd67030699838ea613ee6dbda90effa6 HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:49] "GET /assets/favicon-48x48.png HTTP/1.1" 200 -
+2026-08-31 00:55:55.267 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:55.808 | INFO     | __main__:auth_login:1719 - User logged in successfully
+192.168.1.74 - - [31/Aug/2026 00:55:55] "POST /auth/login HTTP/1.1" 200 -
+2026-08-31 00:55:55.856 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 00:55:55] "GET / HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:55] "GET /js/color-modes.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:55] "GET /css/bootstrap.min.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:55] "GET /css/bootstrap-icons.min.css HTTP/1.1" 200 -
+2026-08-31 00:55:55.966 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 00:55:55] "GET /css/chitui.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:55] "GET /themes/active.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /js/jquery-3.7.1.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /js/bootstrap.bundle.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /js/socket.io.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /js/sdcp.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /js/uart.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "[36mGET /css/fonts/bootstrap-icons.woff2?dd67030699838ea613ee6dbda90effa6 HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /js/settings.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /js/chitui.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /js/network.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /js/plugins.js?v=3 HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /js/updates.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /js/themes.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /assets/site.webmanifest HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /socket.io/?EIO=4&transport=polling&t=Q1L6UEl HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /plugins/ui HTTP/1.1" 200 -
+2026-08-31 00:55:56.478 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:56.485 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:56.490 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /plugins/store/settings HTTP/1.1" 200 -
+2026-08-31 00:55:56.490 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:56.499 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /plugins HTTP/1.1" 200 -
+2026-08-31 00:55:56.507 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /updates/status?on_load=1 HTTP/1.1" 200 -
+2026-08-31 00:55:56.512 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:56.518 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 00:55:56.664 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:56.669 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:56.676 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /settings HTTP/1.1" 200 -
+2026-08-31 00:55:56.692 | INFO     | __main__:sio_handle_connect:4325 - Client connected
+2026-08-31 00:55:56.692 | INFO     | __main__:sio_handle_connect:4326 - Available printers: ['944047506c1e0100']
+192.168.1.74 - - [31/Aug/2026 00:55:56] "POST /socket.io/?EIO=4&transport=polling&t=Q1L6UFN&sid=s5TKqIBDdzBCuaX-AAAG HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /assets/favicon.ico HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /printer/images HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /socket.io/?EIO=4&transport=polling&t=Q1L6UFO&sid=s5TKqIBDdzBCuaX-AAAG HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /plugin/terminal/filter HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /plugin/terminal/messages HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /assets/favicon.svg HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /img/Elegoo%20Mars%202.png HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /img/Elegoo%20Mars%205%20Ultra.png HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:56] "GET /img/Elegoo%20Mars%205.png HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:57] "GET /img/elegoo_saturn4ultra.webp HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:57] "GET /raspicam/status HTTP/1.1" 200 -
+2026-08-31 00:55:57.662 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:57.663 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 00:55:57] "GET /settings HTTP/1.1" 200 -
+2026-08-31 00:55:57.694 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:57.695 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 00:55:57] "GET /auth/session-timeout HTTP/1.1" 200 -
+2026-08-31 00:55:57.786 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:57.787 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:57.789 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:55:57.794 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 00:55:57] "GET /img/Elegoo%20Saturn%203%20Ultra.png HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:57] "GET /raspicam/status HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:58] "GET /img/Elegoo%20Saturn%204%20Ultra%2016k.png HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:58] "GET /img/Elegoo%20Saturn%204%20Ultra.webp HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:58] "GET /img/Elegoo%20Saturn%204.png HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:58] "GET /img/mars2.png HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:58] "GET /img/theme_default_preview.png HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:58] "GET /network/status HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:55:59] "[36mGET /thumbnails/goblin_big.png HTTP/1.1[0m" 304 -
+2026-08-31 00:55:59.634 | INFO     | plugin_store:_fallback_or_fail:193 - Plugin store: no JSON catalog at https://www.chitui.net/plugins.json, read 9 plugins from the store page instead
+192.168.1.74 - - [31/Aug/2026 00:55:59] "GET /plugins/store/updates?on_load=1 HTTP/1.1" 200 -
+2026-08-31 00:56:00.130 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 00:56:00.131 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 00:56:00] "GET /plugins/store/catalog HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:56:01] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:56:06] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:56:11] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:56:16] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:56:21] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:56:26] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:56:31] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:56:36] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:56:41] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:56:46] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:56:51] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:56:56] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:57:01] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:57:06] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:57:11] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:57:16] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:57:21] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:57:26] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:57:31] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:57:36] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:57:41] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:57:46] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:57:51] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:57:56] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:58:01] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:58:06] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:58:11] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:58:16] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:58:21] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:58:26] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:58:31] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:58:36] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:58:41] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:58:46] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:58:51] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:58:56] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:59:01] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:59:06] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:59:11] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:59:16] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:59:21] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:59:26] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:59:31] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:59:36] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:59:41] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:59:46] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:59:51] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 00:59:56] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:00:01] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:00:06] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:00:11] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:00:16] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:00:21] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:00:26] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:00:31] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:00:36] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:00:41] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:00:46] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:00:52] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:00:57] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:01:02] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:01:07] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:01:12] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:01:17] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:01:22] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:01:27] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:01:32] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:01:37] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:01:42] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:01:47] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:02:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:03:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:04:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:05:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:06:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:07:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:08:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:08:32.881 | INFO     | __main__:sio_handle_disconnect:4332 - Client disconnected
+2026-08-31 01:11:53.174 | INFO     | __main__:<module>:248 - ✓ USB gadget found and writable at /mnt/usb_share
+2026-08-31 01:11:53.176 | INFO     | __main__:<module>:339 - Data folder: /home/pi/ChitUI/data
+2026-08-31 01:11:53.177 | INFO     | __main__:<module>:340 - Temp folder: /home/pi/ChitUI/data/temp
+2026-08-31 01:11:53.177 | INFO     | __main__:<module>:341 - Thumbnails folder: /home/pi/ChitUI/data/thumbnails
+2026-08-31 01:11:53.178 | INFO     | __main__:<module>:342 - Upload folder: /mnt/usb_share
+2026-08-31 01:11:53.178 | INFO     | __main__:<module>:343 - Settings file: /home/pi/ChitUI/data/chitui_settings.json
+2026-08-31 01:11:53.179 | INFO     | __main__:<module>:344 - Running as user: pi (UID: 1000)
+2026-08-31 01:11:53.378 | INFO     | __main__:main:5115 - Initializing authentication...
+2026-08-31 01:11:53.379 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:53.380 | INFO     | __main__:init_auth:1630 - ✓ Authentication initialized successfully
+2026-08-31 01:11:53.380 | INFO     | __main__:main:5121 - Mounting USB gadget on startup...
+2026-08-31 01:11:53.381 | INFO     | __main__:mount_usb_gadget:4376 - Mounting USB gadget...
+2026-08-31 01:11:53.400 | INFO     | __main__:mount_usb_gadget:4402 - USB gadget already mounted as read-write
+2026-08-31 01:11:53.401 | INFO     | __main__:main:5123 - ✓ USB gadget mounted successfully
+2026-08-31 01:11:53.402 | INFO     | __main__:main:5131 - ✓ USB gadget is writable
+2026-08-31 01:11:53.403 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:53.403 | INFO     | __main__:main:5144 - Loading plugins...
+2026-08-31 01:11:53.405 | INFO     | plugins.manager:load_all_plugins:207 - Loading plugin: terminal
+2026-08-31 01:11:53.410 | INFO     | plugins.manager:load_plugin:155 - Installing dependencies for terminal...
+2026-08-31 01:11:53.426 | INFO     | plugins.manager:load_plugin:184 - Plugin loaded: terminal v1.0.0
+2026-08-31 01:11:53.460 | INFO     | themes:init_themes:427 - Theme system initialised (themes folder: /home/pi/ChitUI/data/themes)
+2026-08-31 01:11:53.461 | INFO     | __main__:main:5163 - ✓ Theme routes registered (/themes/*)
+2026-08-31 01:11:53.465 | INFO     | raspicam:init_raspicam:376 - raspicam: using rpicam-vid (/usr/bin/rpicam-vid)
+2026-08-31 01:11:53.484 | INFO     | __main__:main:5174 - ✓ Pi Camera routes registered (/raspicam/*)
+2026-08-31 01:11:53.550 | INFO     | __main__:main:5186 - ✓ UART routes registered (/uart/*) - pyserial available: True
+2026-08-31 01:11:53.552 | INFO     | __main__:main:5222 - Starting printer connection health monitor...
+2026-08-31 01:11:53.553 | INFO     | __main__:main:5227 - Starting thumbnail scan for externally-copied files...
+2026-08-31 01:11:53.555 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:53.555 | INFO     | __main__:load_saved_printers:5101 - Loaded saved printer: Saturn 4 Ultra (192.168.1.73) - USB type: physical
+2026-08-31 01:11:53.556 | INFO     | __main__:connect_printers:4855 - Connecting to: Saturn 4 Ultra
+2026-08-31 01:11:53.564 | INFO     | __main__:scan_and_extract_missing_thumbnails:1059 - [scan] All files already have thumbnails
+2026-08-31 01:11:53.567 | INFO     | __main__:main:5245 - File watcher started
+2026-08-31 01:11:53.568 | INFO     | __main__:<module>:5255 - ============================================================
+2026-08-31 01:11:53.569 | INFO     | __main__:<module>:5256 - ChitUI 2.3.0 Starting
+2026-08-31 01:11:53.569 | INFO     | __main__:<module>:5257 - ============================================================
+2026-08-31 01:11:53.571 | INFO     | __main__:<module>:5262 - Python Environment:
+2026-08-31 01:11:53.571 | INFO     | __main__:<module>:5263 -   → Python executable: /usr/bin/python3
+2026-08-31 01:11:53.572 | INFO     | __main__:<module>:5264 -   → Python version: 3.13.5
+2026-08-31 01:11:53.572 | INFO     | __main__:<module>:5265 -   → Running as user: pi
+2026-08-31 01:11:53.573 | INFO     | __main__:<module>:5269 - Features:
+2026-08-31 01:11:53.574 | INFO     | __main__:<module>:5270 -   ✓ Printer Management
+2026-08-31 01:11:53.574 | INFO     | __main__:<module>:5272 -   ✓ File Upload (USB Gadget Mode)
+2026-08-31 01:11:53.575 | INFO     | __main__:<module>:5273 -      → Files saved to: /mnt/usb_share
+2026-08-31 01:11:53.575 | INFO     | __main__:<module>:5274 -      → Connect USB to printer to access files
+2026-08-31 01:11:53.576 | INFO     | __main__:<module>:5279 -      → Auto-refresh: DISABLED (manual refresh needed)
+2026-08-31 01:11:53.576 | INFO     | __main__:<module>:5280 -      → Set USB_AUTO_REFRESH=true to enable
+2026-08-31 01:11:53.577 | INFO     | __main__:<module>:5285 -   ✓ Camera Streaming (RTSP)
+2026-08-31 01:11:53.577 | INFO     | __main__:<module>:5288 - ============================================================
+2026-08-31 01:11:53.578 | INFO     | __main__:<module>:5289 - Data folder: /home/pi/ChitUI/data
+2026-08-31 01:11:53.579 | INFO     | __main__:<module>:5290 - Settings file: /home/pi/ChitUI/data/chitui_settings.json
+2026-08-31 01:11:53.579 | INFO     | __main__:<module>:5291 - ============================================================
+ * Serving Flask app 'main'
+ * Debug mode: off
+2026-08-31 01:11:53.587 | INFO     | __main__:ws_connected_handler:4900 - Connected to: Saturn 4 Ultra
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://192.168.1.80:8080
+[33mPress CTRL+C to quit[0m
+2026-08-31 01:11:56.545 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:11:56] "[36mGET / HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /js/color-modes.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /css/bootstrap.min.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /css/bootstrap-icons.min.css HTTP/1.1" 200 -
+2026-08-31 01:11:56.651 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /themes/active.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /css/chitui.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /js/bootstrap.bundle.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /js/jquery-3.7.1.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /js/socket.io.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /js/uart.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /js/sdcp.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /js/chitui.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /js/settings.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /js/network.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "[36mGET /css/fonts/bootstrap-icons.woff2?dd67030699838ea613ee6dbda90effa6 HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /js/plugins.js?v=3 HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /js/themes.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "[36mGET /assets/site.webmanifest HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /js/updates.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:56] "GET /socket.io/?EIO=4&transport=polling&t=Q1LA8l3 HTTP/1.1" 200 -
+2026-08-31 01:11:57.052 | INFO     | __main__:sio_handle_connect:4325 - Client connected
+2026-08-31 01:11:57.054 | INFO     | __main__:sio_handle_connect:4326 - Available printers: ['944047506c1e0100']
+192.168.1.74 - - [31/Aug/2026 01:11:57] "POST /socket.io/?EIO=4&transport=polling&t=Q1LA8lg&sid=b9d6qREawHScc5pPAAAA HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /socket.io/?EIO=4&transport=polling&t=Q1LA8lh&sid=b9d6qREawHScc5pPAAAA HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /plugins/ui HTTP/1.1" 200 -
+2026-08-31 01:11:57.092 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:57.093 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /plugins HTTP/1.1" 200 -
+2026-08-31 01:11:57.099 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:57.100 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /plugins/store/settings HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /updates/status?on_load=1 HTTP/1.1" 200 -
+2026-08-31 01:11:57.123 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:57.125 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /plugins/store/updates?on_load=1 HTTP/1.1" 200 -
+2026-08-31 01:11:57.142 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:11:57.150 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:57.156 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /settings HTTP/1.1" 200 -
+2026-08-31 01:11:57.157 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:57.165 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:11:57] "[36mGET /assets/favicon.ico HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /printer/images HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /plugin/terminal/filter HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "[36mGET /img/elegoo_saturn4ultra.webp HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /plugin/terminal/messages HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "[36mGET /assets/favicon.svg HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "[36mGET /img/Elegoo%20Mars%202.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "[36mGET /img/Elegoo%20Mars%205%20Ultra.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "[36mGET /img/Elegoo%20Saturn%203%20Ultra.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "[36mGET /img/Elegoo%20Mars%205.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "[36mGET /img/Elegoo%20Saturn%204%20Ultra.webp HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "[36mGET /img/Elegoo%20Saturn%204%20Ultra%2016k.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "[36mGET /img/Elegoo%20Saturn%204.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /raspicam/status HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "[36mGET /img/mars2.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:11:57] "[36mGET /img/theme_default_preview.png HTTP/1.1[0m" 304 -
+2026-08-31 01:11:57.376 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:57.377 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:11:57] "GET /raspicam/status HTTP/1.1" 200 -
+2026-08-31 01:11:58.407 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:58.408 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:58.414 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:58.416 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:11:58] "GET /settings HTTP/1.1" 200 -
+2026-08-31 01:11:58.423 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:58.424 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:11:58] "GET /auth/session-timeout HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:59] "GET /network/status HTTP/1.1" 200 -
+2026-08-31 01:11:59.937 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:11:59.938 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:11:59] "GET /themes HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:11:59] "[36mGET /thumbnails/goblin_big.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:12:02] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:12:02.777 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:12:02.779 | INFO     | themes:themes_apply:255 - UI theme changed to 'default' (mode: light)
+192.168.1.74 - - [31/Aug/2026 01:12:02] "POST /themes/apply HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:02] "GET /themes/active.css?v=1788135121550 HTTP/1.1" 200 -
+2026-08-31 01:12:02.842 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:12:02] "GET /themes HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:07] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:11] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:12:12.500 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:12:12.503 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:12:12.507 | INFO     | __main__:save_settings:1585 - Settings saved successfully to /home/pi/ChitUI/data/chitui_settings.json
+192.168.1.74 - - [31/Aug/2026 01:12:12] "POST /settings HTTP/1.1" 200 -
+2026-08-31 01:12:12.545 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:12:15.179 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:12:15.181 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:12:15.183 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:12:15.184 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:12:15] "GET /auth/session-timeout HTTP/1.1" 200 -
+2026-08-31 01:12:15.191 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:12:15.193 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:12:15] "GET /settings HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:15] "GET /network/status HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:17] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:12:17.014 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:12:17.016 | INFO     | themes:themes_apply:255 - UI theme changed to 'default' (mode: dark)
+192.168.1.74 - - [31/Aug/2026 01:12:17] "POST /themes/apply HTTP/1.1" 200 -
+2026-08-31 01:12:17.058 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:12:17] "GET /themes/active.css?v=1788135135772 HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:17] "GET /themes HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:22] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:27] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:32] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:37] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:42] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:47] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:52] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:12:57] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:02] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:07] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:12] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:17] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:22] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:27] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:32] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:37] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:42] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:47] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:52] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:13:56.125 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:13:56.151 | INFO     | themes:themes_upload:400 - Theme 'bamboo_labs' installed (v1.1.0 by xmodpt)
+192.168.1.74 - - [31/Aug/2026 01:13:56] "POST /themes/upload HTTP/1.1" 200 -
+2026-08-31 01:13:56.185 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:13:56] "GET /themes HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:56] "GET /themes/bamboo_labs/assets/preview.png HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:57] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:13:59.288 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:13:59.291 | INFO     | themes:themes_apply:255 - UI theme changed to 'bamboo_labs' (mode: dark)
+192.168.1.74 - - [31/Aug/2026 01:13:59] "POST /themes/apply HTTP/1.1" 200 -
+2026-08-31 01:13:59.326 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:13:59] "GET /themes/active.css?v=1788135238048 HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:13:59] "GET /themes HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:02] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:14:04.454 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:14:04.458 | INFO     | themes:themes_apply:255 - UI theme changed to 'bamboo_labs' (mode: light)
+192.168.1.74 - - [31/Aug/2026 01:14:04] "POST /themes/apply HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:04] "GET /themes/active.css?v=1788135243214 HTTP/1.1" 200 -
+2026-08-31 01:14:04.514 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:14:04] "GET /themes HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:07] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:14:08.341 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:14:08.345 | INFO     | themes:themes_apply:255 - UI theme changed to 'bamboo_labs' (mode: dark)
+192.168.1.74 - - [31/Aug/2026 01:14:08] "POST /themes/apply HTTP/1.1" 200 -
+2026-08-31 01:14:08.395 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:14:08] "GET /themes/active.css?v=1788135247102 HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:08] "GET /themes HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:12] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:14:16.651 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:14:16.656 | INFO     | themes:themes_delete:282 - Theme 'bamboo_labs' deleted (was active, reverted to default)
+192.168.1.74 - - [31/Aug/2026 01:14:16] "POST /themes/bamboo_labs/delete HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:16] "GET /themes/active.css?v=1788135255414 HTTP/1.1" 200 -
+2026-08-31 01:14:16.710 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:14:16] "GET /themes HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:17] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:22] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:27] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:32] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:37] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:42] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:47] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:52] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:14:57] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:02] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:07] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:12] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:17] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:22] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:34] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:15:36.509 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET / HTTP/1.1" 200 -
+2026-08-31 01:15:36.537 | INFO     | __main__:sio_handle_disconnect:4332 - Client disconnected
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /js/color-modes.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /css/bootstrap.min.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /css/bootstrap-icons.min.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /css/chitui.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /themes/active.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /js/bootstrap.bundle.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /js/jquery-3.7.1.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /js/socket.io.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /js/sdcp.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /js/uart.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /js/chitui.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /css/fonts/bootstrap-icons.woff2?dd67030699838ea613ee6dbda90effa6 HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /js/settings.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /js/network.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /js/plugins.js?v=3 HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /js/themes.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:36] "GET /js/updates.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /assets/site.webmanifest HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /socket.io/?EIO=4&transport=polling&t=Q1LA-VO HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /plugins/ui HTTP/1.1" 200 -
+2026-08-31 01:15:37.199 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /plugins HTTP/1.1" 200 -
+2026-08-31 01:15:37.209 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:15:37.211 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /plugins/store/settings HTTP/1.1" 200 -
+2026-08-31 01:15:37.218 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:15:37.221 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:15:37.225 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:15:37.228 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /updates/status?on_load=1 HTTP/1.1" 200 -
+2026-08-31 01:15:37.234 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /plugins/store/updates?on_load=1 HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:15:37.291 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:15:37.293 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /settings HTTP/1.1" 200 -
+2026-08-31 01:15:37.325 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /printer/images HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /raspicam/status HTTP/1.1" 200 -
+2026-08-31 01:15:37.360 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:15:37.361 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /raspicam/status HTTP/1.1" 200 -
+2026-08-31 01:15:37.559 | INFO     | __main__:sio_handle_connect:4325 - Client connected
+2026-08-31 01:15:37.560 | INFO     | __main__:sio_handle_connect:4326 - Available printers: ['944047506c1e0100']
+192.168.1.74 - - [31/Aug/2026 01:15:37] "POST /socket.io/?EIO=4&transport=polling&t=Q1LA-Vx&sid=iFiu9fxg9ejf8YCwAAAC HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /assets/favicon.ico HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /socket.io/?EIO=4&transport=polling&t=Q1LA-Vx.0&sid=iFiu9fxg9ejf8YCwAAAC HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /plugin/terminal/filter HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "GET /plugin/terminal/messages HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "[36mGET /assets/favicon.svg HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "[36mGET /img/Elegoo%20Mars%202.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "[36mGET /img/Elegoo%20Mars%205%20Ultra.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "[36mGET /img/Elegoo%20Mars%205.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "[36mGET /img/Elegoo%20Saturn%203%20Ultra.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "[36mGET /img/Elegoo%20Saturn%204%20Ultra%2016k.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "[36mGET /img/Elegoo%20Saturn%204%20Ultra.webp HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "[36mGET /img/elegoo_saturn4ultra.webp HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "[36mGET /img/Elegoo%20Saturn%204.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:15:37] "[36mGET /img/mars2.png HTTP/1.1[0m" 304 -
+2026-08-31 01:15:38.367 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:15:38.369 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:15:38.370 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:15:38.371 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:15:38.372 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:15:38.374 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:15:38] "GET /settings HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:38] "GET /auth/session-timeout HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:39] "GET /network/status HTTP/1.1" 200 -
+2026-08-31 01:15:39.571 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:15:39] "GET /themes HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:40] "[36mGET /thumbnails/goblin_big.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:15:42] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:47] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:52] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:15:57] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:16:02] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:16:07] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:16:12] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:16:17] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:16:22] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:16:27] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:16:32] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:16:37] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:17:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:18:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:18:25] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:18:27] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:18:32] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:18:32.434 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:18:32.453 | INFO     | themes:themes_upload:400 - Theme 'bamboo_labs' installed (v1.1.0 by xmodpt)
+192.168.1.74 - - [31/Aug/2026 01:18:32] "POST /themes/upload HTTP/1.1" 200 -
+2026-08-31 01:18:32.495 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:18:32] "GET /themes HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:18:32] "GET /themes/bamboo_labs/assets/preview.png HTTP/1.1" 200 -
+2026-08-31 01:18:33.686 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:18:33.688 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:18:33.691 | INFO     | __main__:save_settings:1585 - Settings saved successfully to /home/pi/ChitUI/data/chitui_settings.json
+192.168.1.74 - - [31/Aug/2026 01:18:33] "POST /settings HTTP/1.1" 200 -
+2026-08-31 01:18:33.721 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:18:35.526 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:18:35.534 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:18:35.535 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:18:35.538 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:18:35] "GET /auth/session-timeout HTTP/1.1" 200 -
+2026-08-31 01:18:35.543 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:18:35] "GET /settings HTTP/1.1" 200 -
+2026-08-31 01:18:35.550 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:18:36] "GET /network/status HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:18:37] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:18:42] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:18:47] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:18:52] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:18:57] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:19:02] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:19:07] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:19:12] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:19:17] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:19:22] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:19:27] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:19:32] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:19:37] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:19:42] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:19:47] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:19:52] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:19:57] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:20:02] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:20:07] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:20:12] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:20:17] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:21:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:22:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:23:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:24:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:27:10.227 | INFO     | __main__:<module>:248 - ✓ USB gadget found and writable at /mnt/usb_share
+2026-08-31 01:27:10.229 | INFO     | __main__:<module>:339 - Data folder: /home/pi/ChitUI/data
+2026-08-31 01:27:10.229 | INFO     | __main__:<module>:340 - Temp folder: /home/pi/ChitUI/data/temp
+2026-08-31 01:27:10.230 | INFO     | __main__:<module>:341 - Thumbnails folder: /home/pi/ChitUI/data/thumbnails
+2026-08-31 01:27:10.230 | INFO     | __main__:<module>:342 - Upload folder: /mnt/usb_share
+2026-08-31 01:27:10.231 | INFO     | __main__:<module>:343 - Settings file: /home/pi/ChitUI/data/chitui_settings.json
+2026-08-31 01:27:10.231 | INFO     | __main__:<module>:344 - Running as user: pi (UID: 1000)
+2026-08-31 01:27:10.416 | INFO     | __main__:main:5136 - Initializing authentication...
+2026-08-31 01:27:10.417 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:27:10.418 | INFO     | __main__:init_auth:1630 - ✓ Authentication initialized successfully
+2026-08-31 01:27:10.418 | INFO     | __main__:main:5142 - Mounting USB gadget on startup...
+2026-08-31 01:27:10.418 | INFO     | __main__:mount_usb_gadget:4397 - Mounting USB gadget...
+2026-08-31 01:27:10.438 | INFO     | __main__:mount_usb_gadget:4423 - USB gadget already mounted as read-write
+2026-08-31 01:27:10.439 | INFO     | __main__:main:5144 - ✓ USB gadget mounted successfully
+2026-08-31 01:27:10.440 | INFO     | __main__:main:5152 - ✓ USB gadget is writable
+2026-08-31 01:27:10.441 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:27:10.442 | INFO     | __main__:main:5165 - Loading plugins...
+2026-08-31 01:27:10.443 | INFO     | plugins.manager:load_all_plugins:207 - Loading plugin: terminal
+2026-08-31 01:27:10.448 | INFO     | plugins.manager:load_plugin:155 - Installing dependencies for terminal...
+2026-08-31 01:27:10.468 | INFO     | plugins.manager:load_plugin:184 - Plugin loaded: terminal v1.0.0
+2026-08-31 01:27:10.540 | INFO     | themes:init_themes:439 - Theme system initialised (themes folder: /home/pi/ChitUI/data/themes)
+2026-08-31 01:27:10.540 | INFO     | __main__:main:5184 - ✓ Theme routes registered (/themes/*)
+2026-08-31 01:27:10.543 | INFO     | raspicam:init_raspicam:376 - raspicam: using rpicam-vid (/usr/bin/rpicam-vid)
+2026-08-31 01:27:10.561 | INFO     | __main__:main:5195 - ✓ Pi Camera routes registered (/raspicam/*)
+2026-08-31 01:27:10.612 | INFO     | __main__:main:5207 - ✓ UART routes registered (/uart/*) - pyserial available: True
+2026-08-31 01:27:10.614 | INFO     | __main__:main:5243 - Starting printer connection health monitor...
+2026-08-31 01:27:10.615 | INFO     | __main__:main:5248 - Starting thumbnail scan for externally-copied files...
+2026-08-31 01:27:10.619 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:27:10.621 | INFO     | __main__:load_saved_printers:5122 - Loaded saved printer: Saturn 4 Ultra (192.168.1.73) - USB type: physical
+2026-08-31 01:27:10.621 | INFO     | __main__:connect_printers:4876 - Connecting to: Saturn 4 Ultra
+2026-08-31 01:27:10.626 | INFO     | __main__:scan_and_extract_missing_thumbnails:1059 - [scan] All files already have thumbnails
+2026-08-31 01:27:10.631 | INFO     | __main__:main:5266 - File watcher started
+2026-08-31 01:27:10.632 | INFO     | __main__:<module>:5276 - ============================================================
+2026-08-31 01:27:10.635 | INFO     | __main__:<module>:5277 - ChitUI 2.3.0 Starting
+2026-08-31 01:27:10.636 | INFO     | __main__:<module>:5278 - ============================================================
+2026-08-31 01:27:10.637 | INFO     | __main__:<module>:5283 - Python Environment:
+2026-08-31 01:27:10.638 | INFO     | __main__:<module>:5284 -   → Python executable: /usr/bin/python3
+2026-08-31 01:27:10.640 | INFO     | __main__:<module>:5285 -   → Python version: 3.13.5
+2026-08-31 01:27:10.641 | INFO     | __main__:<module>:5286 -   → Running as user: pi
+2026-08-31 01:27:10.642 | INFO     | __main__:<module>:5290 - Features:
+2026-08-31 01:27:10.642 | INFO     | __main__:<module>:5291 -   ✓ Printer Management
+2026-08-31 01:27:10.643 | INFO     | __main__:<module>:5293 -   ✓ File Upload (USB Gadget Mode)
+2026-08-31 01:27:10.644 | INFO     | __main__:<module>:5294 -      → Files saved to: /mnt/usb_share
+2026-08-31 01:27:10.645 | INFO     | __main__:<module>:5295 -      → Connect USB to printer to access files
+2026-08-31 01:27:10.646 | INFO     | __main__:<module>:5300 -      → Auto-refresh: DISABLED (manual refresh needed)
+2026-08-31 01:27:10.646 | INFO     | __main__:<module>:5301 -      → Set USB_AUTO_REFRESH=true to enable
+2026-08-31 01:27:10.647 | INFO     | __main__:<module>:5306 -   ✓ Camera Streaming (RTSP)
+2026-08-31 01:27:10.648 | INFO     | __main__:<module>:5309 - ============================================================
+2026-08-31 01:27:10.653 | INFO     | __main__:<module>:5310 - Data folder: /home/pi/ChitUI/data
+2026-08-31 01:27:10.653 | INFO     | __main__:<module>:5311 - Settings file: /home/pi/ChitUI/data/chitui_settings.json
+2026-08-31 01:27:10.654 | INFO     | __main__:<module>:5312 - ============================================================
+2026-08-31 01:27:10.652 | INFO     | __main__:ws_connected_handler:4921 - Connected to: Saturn 4 Ultra
+ * Serving Flask app 'main'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://192.168.1.80:8080
+[33mPress CTRL+C to quit[0m
+192.168.1.74 - - [31/Aug/2026 01:27:12] "GET /socket.io/?EIO=4&transport=polling&t=Q1LDeDc HTTP/1.1" 200 -
+2026-08-31 01:27:12.399 | INFO     | __main__:sio_handle_connect:4346 - Client connected
+2026-08-31 01:27:12.400 | INFO     | __main__:sio_handle_connect:4347 - Available printers: ['944047506c1e0100']
+192.168.1.74 - - [31/Aug/2026 01:27:12] "POST /socket.io/?EIO=4&transport=polling&t=Q1LDeE6&sid=TWMkYSlW04l5qIRUAAAA HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:27:12] "GET /socket.io/?EIO=4&transport=polling&t=Q1LDeE8&sid=TWMkYSlW04l5qIRUAAAA HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:28:05] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:01] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:02] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:29:03.178 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:29:03] "[36mGET / HTTP/1.1[0m" 304 -
+2026-08-31 01:29:03.249 | INFO     | __main__:sio_handle_disconnect:4353 - Client disconnected
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /js/color-modes.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /css/bootstrap.min.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /css/chitui.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /css/bootstrap-icons.min.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /themes/active.css HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /js/bootstrap.bundle.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /js/jquery-3.7.1.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /js/socket.io.min.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /js/sdcp.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /js/uart.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /js/settings.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /js/chitui.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /js/network.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "[36mGET /css/fonts/bootstrap-icons.woff2?dd67030699838ea613ee6dbda90effa6 HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /js/plugins.js?v=3 HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /js/themes.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "[36mGET /assets/site.webmanifest HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /js/updates.js HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /socket.io/?EIO=4&transport=polling&t=Q1LE3Q0 HTTP/1.1" 200 -
+2026-08-31 01:29:03.792 | INFO     | __main__:sio_handle_connect:4346 - Client connected
+2026-08-31 01:29:03.793 | INFO     | __main__:sio_handle_connect:4347 - Available printers: ['944047506c1e0100']
+192.168.1.74 - - [31/Aug/2026 01:29:03] "POST /socket.io/?EIO=4&transport=polling&t=Q1LE3Qj&sid=ZET7TNjkYyAKWNfNAAAC HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /socket.io/?EIO=4&transport=polling&t=Q1LE3Qj.0&sid=ZET7TNjkYyAKWNfNAAAC HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /plugins/ui HTTP/1.1" 200 -
+2026-08-31 01:29:03.836 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:29:03.838 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:29:03.849 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /plugins HTTP/1.1" 200 -
+2026-08-31 01:29:03.861 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:29:03.864 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /plugins/store/settings HTTP/1.1" 200 -
+2026-08-31 01:29:03.873 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:29:03.878 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:29:03.879 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /updates/status?on_load=1 HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /plugins/store/updates?on_load=1 HTTP/1.1" 200 -
+2026-08-31 01:29:03.936 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:29:03.937 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /settings HTTP/1.1" 200 -
+2026-08-31 01:29:03.941 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /printer/images HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "[36mGET /assets/favicon.ico HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /socket.io/?EIO=4&transport=polling&t=Q1LE3RT&sid=ZET7TNjkYyAKWNfNAAAC HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /plugin/terminal/filter HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:03] "GET /plugin/terminal/messages HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:04] "[36mGET /assets/favicon.svg HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:29:04] "[36mGET /img/Elegoo%20Mars%202.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:29:04] "GET /raspicam/status HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:04] "[36mGET /img/Elegoo%20Mars%205%20Ultra.png HTTP/1.1[0m" 304 -
+2026-08-31 01:29:04.066 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:29:04] "[36mGET /img/Elegoo%20Saturn%203%20Ultra.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:29:04] "[36mGET /img/Elegoo%20Mars%205.png HTTP/1.1[0m" 304 -
+2026-08-31 01:29:04.079 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:29:04] "[36mGET /img/Elegoo%20Saturn%204%20Ultra%2016k.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:29:04] "[36mGET /img/Elegoo%20Saturn%204%20Ultra.webp HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:29:04] "[36mGET /img/Elegoo%20Saturn%204.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:29:04] "[36mGET /img/elegoo_saturn4ultra.webp HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:29:04] "[36mGET /img/mars2.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:29:04] "GET /raspicam/status HTTP/1.1" 200 -
+2026-08-31 01:29:05.169 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:29:05.172 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:29:05.174 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:29:05.175 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:29:05] "GET /settings HTTP/1.1" 200 -
+2026-08-31 01:29:05.179 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+2026-08-31 01:29:05.181 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:29:05] "GET /auth/session-timeout HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:05] "GET /network/status HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:06] "[36mGET /thumbnails/goblin_big.png HTTP/1.1[0m" 304 -
+2026-08-31 01:29:07.058 | INFO     | __main__:load_settings:1565 - Loaded settings: 1 printers configured
+192.168.1.74 - - [31/Aug/2026 01:29:07] "GET /themes HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:07] "[36mGET /themes/bamboo_labs/assets/preview.png HTTP/1.1[0m" 304 -
+192.168.1.74 - - [31/Aug/2026 01:29:07] "GET /img/theme_default_preview.png HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:08] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:13] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:18] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:23] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:28] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:33] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:38] "GET /usb-gadget/storage HTTP/1.1" 200 -
+192.168.1.74 - - [31/Aug/2026 01:29:43] "GET /usb-gadget/storage HTTP/1.1" 200 -
+2026-08-31 01:29:48.199 | INFO     | __main__:sio_handle_disconnect:4353 - Client disconnected

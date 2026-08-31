@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ChitUI Theme Designer</title>
+  <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link href="css/bootstrap-icons.min.css" rel="stylesheet" />
+  <style>
+    :root { --td-accent: #e63946; }
+    html, body { height: 100%; }
+    body { background: #14161b; overflow: hidden; }
+    .td-app { display: grid; grid-template-columns: 1fr 420px; height: 100vh; }
+    .td-preview-pane { display: flex; flex-direction: column; min-width: 0; }
+    .td-preview-toolbar {
+      display: flex; align-items: center; gap: .5rem; padding: .6rem 1rem;
+      background: #1b1e24; border-bottom: 1px solid #2b2f38;
+    }
+    .td-preview-host { flex: 1; display: flex; align-items: stretch; justify-content: center;
+      background: repeating-conic-gradient(#181a20 0% 25%, #15171c 0% 50%) 0 0/24px 24px; overflow: auto; padding: 1rem; }
+    #previewFrame { border: 0; background: #222; width: 100%; height: 100%; border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.5); transition: width .25s ease; }
+    #previewFrame.phone { width: 390px; align-self: center; }
+    .td-panel { background: #1b1e24; border-left: 1px solid #2b2f38; display: flex; flex-direction: column; min-height: 0; }
+    .td-panel .nav-pills { padding: .6rem .6rem 0; gap: .25rem; flex-wrap: wrap; }
+    .td-panel .nav-pills .nav-link { font-size: .8rem; padding: .35rem .7rem; color: #aab1bf; }
+    .td-panel .nav-pills .nav-link.active { background: var(--td-accent); color: #fff; }
+    .td-panel-body { overflow-y: auto; padding: 1rem; flex: 1; }
+    .td-group { background: #20242c; border: 1px solid #2b2f38; border-radius: 10px; padding: .9rem; margin-bottom: 1rem; }
+    .td-group h6 { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: #8b93a1; margin-bottom: .7rem; }
+    .td-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .55rem; }
+    .td-row label { font-size: .85rem; color: #ccd2dd; margin: 0; }
+    .td-row input[type=color] { width: 42px; height: 28px; border: 1px solid #2b2f38; border-radius: 6px; background: none; padding: 2px; }
+    .td-row input[type=range] { width: 150px; }
+    .td-row .form-select, .td-row .form-control { width: 170px; font-size: .85rem; }
+    .td-val { font-size: .75rem; color: #8b93a1; width: 46px; text-align: right; }
+
+    /* --- Layout canvas (the drag & drop board) --- */
+    .td-canvas { user-select: none; }
+    .td-block {
+      background: #262b34; border: 1px solid #333947; border-radius: 10px;
+      padding: .55rem .7rem; margin-bottom: .5rem; cursor: grab;
+      display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: #dde2ea;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .td-block i.bi-grip-vertical { color: #5b6272; }
+    .td-block .badge { font-size: .6rem; }
+    .td-block.dragging { opacity: .4; }
+    .td-block.dashed { border-style: dashed; color: #8b93a1; }
+    .td-cols { display: flex; gap: .5rem; }
+    .td-cols .td-block { flex: 1; margin-bottom: 0; justify-content: center; cursor: grab; }
+    .td-cols .td-block.wide { flex: 2; }
+    .td-drop-line { height: 3px; background: var(--td-accent); border-radius: 2px; margin: .25rem 0; display: none; }
+    .td-drop-line.show { display: block; }
+    .td-cols.drop-hint { outline: 2px dashed var(--td-accent); outline-offset: 3px; border-radius: 10px; }
+
+    /* --- Icon picker --- */
+    .td-icons { display: grid; grid-template-columns: repeat(6, 1fr); gap: .4rem; }
+    .td-icon {
+      display: flex; align-items: center; justify-content: center; height: 42px;
+      background: #262b34; border: 1px solid #333947; border-radius: 8px;
+      font-size: 1.15rem; color: #ccd2dd; cursor: pointer;
+    }
+    .td-icon:hover { border-color: #4a5163; }
+    .td-icon.selected { border-color: var(--td-accent); color: var(--td-accent); background: rgba(230,57,70,.08); }
+    .td-mode-tabs .btn { font-size: .78rem; }
+    #cssOut { font-family: Consolas, monospace; font-size: .72rem; min-height: 180px; background: #14161b; color: #b8c0cd; }
+    .td-hint { font-size: .75rem; color: #8b93a1; }
+  </style>
+</head>
+<body>
+<div class="td-app">
+
+  <!-- ==================== PREVIEW ==================== -->
+  <div class="td-preview-pane">
+    <div class="td-preview-toolbar">
+      <span class="fw-bold me-2"><i class="bi bi-palette2 me-1" style="color:var(--td-accent)"></i>Theme Designer</span>
+      <div class="btn-group btn-group-sm" role="group">
+        <button class="btn btn-outline-secondary active" id="devDesktop" title="Desktop preview"><i class="bi bi-display"></i></button>
+        <button class="btn btn-outline-secondary" id="devPhone" title="Phone preview (KlipperScreen-style rules apply)"><i class="bi bi-phone"></i></button>
+      </div>
+      <div class="btn-group btn-group-sm" role="group">
+        <button class="btn btn-outline-secondary" id="pvLight" title="Preview light mode"><i class="bi bi-sun-fill"></i></button>
+        <button class="btn btn-outline-secondary active" id="pvDark" title="Preview dark mode"><i class="bi bi-moon-stars-fill"></i></button>
+      </div>
+      <span class="td-hint ms-auto d-none d-lg-inline">Preview uses the real chitui.css — what you see is what installs.</span>
+      <a href="/" class="btn btn-sm btn-outline-secondary" title="Back to ChitUI"><i class="bi bi-x-lg"></i></a>
+    </div>
+    <div class="td-preview-host">
+      <iframe id="previewFrame" title="Theme preview"></iframe>
+    </div>
+  </div>
+
+  <!-- ==================== PANEL ==================== -->
+  <div class="td-panel">
+    <ul class="nav nav-pills" id="tdTabs">
+      <li class="nav-item"><button class="nav-link active" data-panel="layout"><i class="bi bi-grid-1x2 me-1"></i>Layout</button></li>
+      <li class="nav-item"><button class="nav-link" data-panel="colors"><i class="bi bi-droplet-half me-1"></i>Colors</button></li>
+      <li class="nav-item"><button class="nav-link" data-panel="background"><i class="bi bi-image me-1"></i>Background</button></li>
+      <li class="nav-item"><button class="nav-link" data-panel="style"><i class="bi bi-sliders me-1"></i>Style</button></li>
+      <li class="nav-item"><button class="nav-link" data-panel="icons"><i class="bi bi-emoji-smile me-1"></i>Icons</button></li>
+      <li class="nav-item"><button class="nav-link" data-panel="export"><i class="bi bi-box-arrow-down me-1"></i>Export</button></li>
+    </ul>
+
+    <div class="td-panel-body">
+
+      <!-- ---------- LAYOUT ---------- -->
+      <div class="td-pane" data-pane="layout">
+        <div class="td-group">
+          <h6>Page sections — drag to reorder</h6>
+          <p class="td-hint mb-2">Drop a section onto another and the others are pushed up or down (flex reflow). Columns inside the info row push left / right the same way.</p>
+          <div class="td-canvas" id="sectionCanvas"></div>
+        </div>
+        <div class="td-group">
+          <h6>Sidebar position</h6>
+          <div class="btn-group w-100" role="group">
+            <button class="btn btn-sm btn-outline-secondary active" id="sideLeft"><i class="bi bi-layout-sidebar me-1"></i>Left</button>
+            <button class="btn btn-sm btn-outline-secondary" id="sideRight"><i class="bi bi-layout-sidebar-reverse me-1"></i>Right</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- COLORS ---------- -->
+      <div class="td-pane d-none" data-pane="colors">
+        <div class="td-group">
+          <h6>Editing mode</h6>
+          <div class="btn-group w-100 td-mode-tabs" role="group">
+            <button class="btn btn-sm btn-outline-secondary" data-edit-mode="light"><i class="bi bi-sun-fill me-1"></i>Light palette</button>
+            <button class="btn btn-sm btn-outline-secondary active" data-edit-mode="dark"><i class="bi bi-moon-stars-fill me-1"></i>Dark palette</button>
+          </div>
+          <p class="td-hint mt-2 mb-0">Each mode has its own palette. The preview follows the mode you're editing.</p>
+        </div>
+        <div class="td-group">
+          <h6>Brand</h6>
+          <div class="td-row"><label>Accent</label><input type="color" data-c="accent"></div>
+          <div class="td-row"><label>Accent hover</label><input type="color" data-c="accentHover"></div>
+        </div>
+        <div class="td-group">
+          <h6>Surfaces &amp; text</h6>
+          <div class="td-row"><label>Cards / tiles</label><input type="color" data-c="tile"></div>
+          <div class="td-row"><label>Tile opacity (glass)</label><input type="range" min="40" max="100" data-c="tileOpacity"><span class="td-val" data-v="tileOpacity"></span></div>
+          <div class="td-row"><label>Inputs / subtle surfaces</label><input type="color" data-c="tertiary"></div>
+          <div class="td-row"><label>Borders</label><input type="color" data-c="border"></div>
+          <div class="td-row"><label>Text</label><input type="color" data-c="text"></div>
+          <div class="td-row"><label>Muted text</label><input type="color" data-c="muted"></div>
+        </div>
+      </div>
+
+      <!-- ---------- BACKGROUND ---------- -->
+      <div class="td-pane d-none" data-pane="background">
+        <div class="td-group">
+          <h6>Background — <span class="td-edit-mode-label">dark</span> mode</h6>
+          <div class="td-row"><label>Type</label>
+            <select class="form-select form-select-sm" data-c="bgType">
+              <option value="solid">Solid color</option>
+              <option value="gradient">Gradient</option>
+              <option value="image">Image</option>
+            </select>
+          </div>
+          <div data-bg="solid">
+            <div class="td-row"><label>Color</label><input type="color" data-c="bgColor"></div>
+          </div>
+          <div data-bg="gradient" class="d-none">
+            <div class="td-row"><label>From</label><input type="color" data-c="bgG1"></div>
+            <div class="td-row"><label>Middle</label><input type="color" data-c="bgG2"></div>
+            <div class="td-row"><label>To</label><input type="color" data-c="bgG3"></div>
+            <div class="td-row"><label>Angle</label><input type="range" min="0" max="360" data-c="bgAngle"><span class="td-val" data-v="bgAngle"></span></div>
+          </div>
+          <div data-bg="image" class="d-none">
+            <input type="file" class="form-control form-control-sm mb-2" id="bgImageInput" accept="image/*">
+            <div class="td-row"><label>Darken overlay</label><input type="range" min="0" max="80" data-c="bgDim"><span class="td-val" data-v="bgDim"></span></div>
+            <p class="td-hint mb-0">The image is packaged inside the theme zip and served from the theme's own folder.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- STYLE ---------- -->
+      <div class="td-pane d-none" data-pane="style">
+        <div class="td-group">
+          <h6>Shape</h6>
+          <div class="td-row"><label>Card corner radius</label><input type="range" min="0" max="26" data-c="radius"><span class="td-val" data-v="radius"></span></div>
+          <div class="td-row"><label>Buttons</label>
+            <select class="form-select form-select-sm" data-c="btnShape">
+              <option value="default">Default</option>
+              <option value="rounded">Rounded (12px)</option>
+              <option value="pill">Pill</option>
+            </select>
+          </div>
+          <div class="td-row"><label>Glass blur behind tiles</label><input type="range" min="0" max="16" data-c="blur"><span class="td-val" data-v="blur"></span></div>
+        </div>
+        <div class="td-group">
+          <h6>Frame</h6>
+          <div class="td-row"><label>Sidebar width</label><input type="range" min="220" max="420" data-c="sidebarWidth"><span class="td-val" data-v="sidebarWidth"></span></div>
+          <div class="td-row"><label>Header height</label><input type="range" min="44" max="80" data-c="headerHeight"><span class="td-val" data-v="headerHeight"></span></div>
+        </div>
+        <div class="td-group">
+          <h6>Gauges &amp; progress</h6>
+          <div class="td-row"><label>Gauge / progress color</label><input type="color" data-c="gauge"></div>
+        </div>
+      </div>
+
+      <!-- ---------- ICONS ---------- -->
+      <div class="td-pane d-none" data-pane="icons">
+        <p class="td-hint">Icons are Bootstrap Icons font glyphs, so a theme can swap them with CSS. Pick a replacement or keep the default.</p>
+        <div class="td-group"><h6>App logo</h6><div class="td-icons" data-slot="logo"></div></div>
+        <div class="td-group"><h6>Upload button</h6><div class="td-icons" data-slot="upload"></div></div>
+        <div class="td-group"><h6>Refresh button</h6><div class="td-icons" data-slot="refresh"></div></div>
+      </div>
+
+      <!-- ---------- EXPORT ---------- -->
+      <div class="td-pane d-none" data-pane="export">
+        <div class="td-group">
+          <h6>Theme details</h6>
+          <div class="mb-2"><input class="form-control form-control-sm" id="mName" placeholder="Theme name"></div>
+          <div class="mb-2"><input class="form-control form-control-sm" id="mId" placeholder="theme id (auto)"></div>
+          <div class="mb-2"><input class="form-control form-control-sm" id="mAuthor" placeholder="Author"></div>
+          <div class="mb-2"><input class="form-control form-control-sm" id="mVersion" value="1.0.0" placeholder="Version"></div>
+          <div><textarea class="form-control form-control-sm" id="mDesc" rows="2" placeholder="Description"></textarea></div>
+        </div>
+        <div class="td-group">
+          <h6>Build</h6>
+          <div class="d-flex gap-2 mb-2">
+            <button class="btn btn-sm btn-danger flex-fill" id="btnInstall"><i class="bi bi-magic me-1"></i>Install to ChitUI</button>
+            <button class="btn btn-sm btn-outline-secondary flex-fill" id="btnDownload"><i class="bi bi-download me-1"></i>Download ZIP</button>
+          </div>
+          <div id="exportStatus" class="td-hint"></div>
+        </div>
+        <div class="td-group">
+          <h6>Generated CSS</h6>
+          <textarea id="cssOut" class="form-control" readonly></textarea>
+          <div class="d-flex gap-2 mt-2">
+            <button class="btn btn-sm btn-outline-secondary" id="btnCopyCss"><i class="bi bi-clipboard me-1"></i>Copy CSS</button>
+            <label class="btn btn-sm btn-outline-secondary mb-0">
+              <i class="bi bi-folder2-open me-1"></i>Import designer.json
+              <input type="file" id="importInput" accept=".json" hidden>
+            </label>
+          </div>
+          <p class="td-hint mt-2 mb-0">Every exported zip includes a <code>designer.json</code> so a theme can be re-opened here later.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* Desktop-only guard: the designer needs a wide screen for the preview
+   and drag & drop. Direct visits from phones get a friendly message. */
+if (window.matchMedia('(max-width: 991.98px)').matches) {
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.innerHTML =
+      '<div class="d-flex flex-column align-items-center justify-content-center text-center p-4" style="height:100vh">' +
+      '<i class="bi bi-display mb-3" style="font-size:3rem;color:#e63946"></i>' +
+      '<h5>Theme Designer is desktop-only</h5>' +
+      '<p class="text-muted" style="max-width:420px">It needs a large screen for the live preview and drag &amp; drop editing. ' +
+      'Please open it in a PC browser — themes you create there can be applied from any device.</p>' +
+      '<a href="/" class="btn btn-sm btn-outline-secondary mt-2"><i class="bi bi-arrow-left me-1"></i>Back to ChitUI</a></div>';
+  });
+  return;
+}
+
+/* ======================================================================
+   STATE
+   ====================================================================== */
+const defaultMode = (dark) => ({
+  accent: dark ? '#ff4757' : '#e63946',
+  accentHover: dark ? '#e63946' : '#d62839',
+  tile: dark ? '#212529' : '#ffffff',
+  tileOpacity: 100,
+  tertiary: dark ? '#343a40' : '#eaedf1',
+  border: dark ? '#495057' : '#e0e4ea',
+  text: dark ? '#dee2e6' : '#26292f',
+  muted: dark ? '#868e96' : '#667085',
+  bgType: 'solid',
+  bgColor: dark ? '#16181d' : '#f2f4f7',
+  bgG1: dark ? '#6a5d94' : '#cfc7ea',
+  bgG2: dark ? '#4a5a83' : '#bccfe9',
+  bgG3: dark ? '#2f6d75' : '#bfe4dd',
+  bgAngle: 135,
+  bgImage: null,        // {dataUrl, ext}
+  bgDim: 30,
+});
+
+const state = {
+  sections: ['hero', 'info', 'controls', 'files'],   // top -> bottom
+  camLeft: false,
+  sidebarRight: false,
+  radius: 12,
+  btnShape: 'default',
+  blur: 0,
+  sidebarWidth: 280,
+  headerHeight: 60,
+  gauge: '#06d6a0',
+  icons: { logo: null, upload: null, refresh: null },
+  modes: { dark: defaultMode(true), light: defaultMode(false) },
+};
+
+let editMode = 'dark';          // which palette is being edited
+let previewMode = 'dark';       // preview follows editing by default
+
+const SECTION_META = {
+  hero:     { label: 'Printer hero (image + name)', icon: 'bi-image', sel: '.app-content > .row:has(.printer-preview)' },
+  info:     { label: 'Info + Camera row',           icon: 'bi-grid-1x2', sel: '.app-content > .row:has(.camera-card)' },
+  controls: { label: 'Print controls (while printing)', icon: 'bi-joystick', sel: '.app-content > #printControlsRow', dashed: true },
+  files:    { label: 'Files',                       icon: 'bi-folder2-open', sel: '.app-content > .row:has(#fileManagerTable)' },
+};
+
+const ICON_SET = [
+  ['(default)', null],
+  ['box-seam', 'f1c7'], ['box', 'f1c8'], ['printer', 'f501'], ['cpu', 'f2d6'],
+  ['lightning-charge', 'f46d'], ['droplet-half', 'f30c'], ['gear-fill', 'f3e2'],
+  ['house-fill', 'f424'], ['rocket-takeoff', 'f845'], ['hexagon', 'f41d'],
+  ['layers', 'f45b'], ['boxes', 'f685'], ['bricks', 'f1ca'],
+  ['cloud-upload', 'f2c0'], ['cloud-arrow-up', 'f297'], ['upload', 'f603'],
+  ['send', 'f6c0'], ['arrow-clockwise', 'f116'], ['arrow-repeat', 'f130'],
+  ['stars', 'f589'], ['tools', 'f5db'], ['grid-3x3-gap', 'f3f9'],
+];
+const ICON_TARGETS = {
+  logo:    '.app-logo .bi::before',
+  upload:  '.bi-cloud-upload::before',
+  refresh: '.bi-arrow-clockwise::before',
+};
+
+/* ======================================================================
+   CSS GENERATION
+   ====================================================================== */
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function tileColor(m) {
+  if (m.tileOpacity >= 100) return m.tile;
+  const [r, g, b] = hexToRgb(m.tile);
+  return `rgba(${r}, ${g}, ${b}, ${(m.tileOpacity / 100).toFixed(2)})`;
+}
+function bgValue(m, mode) {
+  if (m.bgType === 'gradient')
+    return `linear-gradient(${m.bgAngle}deg, ${m.bgG1} 0%, ${m.bgG2} 50%, ${m.bgG3} 100%) fixed`;
+  if (m.bgType === 'image' && m.bgImage) {
+    const dim = m.bgDim / 100;
+    const url = m.bgImage.preview
+      ? m.bgImage.dataUrl
+      : `/themes/active/assets/bg-${mode}.${m.bgImage.ext}`;
+    return `linear-gradient(rgba(0,0,0,${dim}), rgba(0,0,0,${dim})), url("${url}") center / cover fixed`;
+  }
+  return m.bgColor;
+}
+
+function modeBlock(mode, forPreview) {
+  const m = state.modes[mode];
+  const img = (m.bgType === 'image' && m.bgImage);
+  const bg = bgValue({ ...m, bgImage: img ? { ...m.bgImage, preview: forPreview } : null }, mode);
+  return `[data-bs-theme="${mode}"] {
+  color-scheme: ${mode};
+  --accent-color: ${m.accent};
+  --accent-hover: ${m.accentHover};
+  --bs-body-bg: ${m.bgType === 'solid' ? m.bgColor : (mode === 'dark' ? '#16181d' : '#f2f4f7')};
+  --bs-body-color: ${m.text};
+  --bs-emphasis-color: ${m.text};
+  --bs-secondary-color: ${m.muted};
+  --bs-secondary-bg: ${m.tile};
+  --bs-tertiary-bg: ${m.tertiary};
+  --bs-border-color: ${m.border};
+  --td-tile: ${tileColor(m)};
+}
+[data-bs-theme="${mode}"] body { background: ${bg} !important; }
+`;
+}
+
+function generateCSS(forPreview) {
+  let css = `/* Generated by ChitUI Theme Designer */\n\n:root {\n  --sidebar-width: ${state.sidebarWidth}px;\n  --header-height: ${state.headerHeight}px;\n}\n\n`;
+  css += modeBlock('dark', forPreview) + '\n' + modeBlock('light', forPreview) + '\n';
+
+  css += `.app-header, .app-sidebar, .dashboard-card, .card, .print-info-card, .printer-preview, .modal-content {
+  background: var(--td-tile);
+  border-color: var(--bs-border-color);
+}
+.dashboard-card, .card, .print-info-card, .printer-preview, .modal-content {
+  border-radius: ${state.radius}px;
+  border: 1px solid var(--bs-border-color);
+}
+.gauge-progress { stroke: ${state.gauge}; }
+.progress-enhanced .progress-bar { background: ${state.gauge}; }
+`;
+
+  if (state.blur > 0) {
+    css += `.app-header, .app-sidebar, .dashboard-card, .card, .printer-preview {
+  backdrop-filter: blur(${state.blur}px);
+  -webkit-backdrop-filter: blur(${state.blur}px);
+}
+`;
+  }
+  if (state.btnShape === 'pill') css += `.btn { border-radius: 999px; }\n`;
+  if (state.btnShape === 'rounded') css += `.btn { border-radius: 12px; }\n`;
+
+  /* ---- layout: section order ---- */
+  const defaultOrder = ['hero', 'info', 'controls', 'files'];
+  if (state.sections.join() !== defaultOrder.join()) {
+    css += `\n/* section order (drag & drop) */\n.app-content { display: flex; flex-direction: column; }\n`;
+    state.sections.forEach((id, i) => {
+      css += `${SECTION_META[id].sel} { order: ${i + 1}; }\n`;
+    });
+  }
+  if (state.camLeft) {
+    css += `\n/* camera column on the left */\n@media (min-width: 992px) {\n  .row:has(> div > .camera-card) > div:first-child { order: 2; }\n  .row:has(> div > .camera-card) > div:last-child { order: 1; }\n}\n`;
+  }
+  if (state.sidebarRight) {
+    css += `\n/* sidebar on the right */
+.app-sidebar { left: auto; right: 0; border-right: none; border-left: 1px solid var(--bs-border-color); transform: translateX(100%); }
+.app-sidebar.show, .app-sidebar.pinned { transform: translateX(0); }
+.app-content.sidebar-pinned { margin-left: 0; margin-right: var(--sidebar-width); }
+`;
+  }
+
+  /* ---- icons ---- */
+  const iconCss = Object.entries(state.icons)
+    .filter(([, code]) => code)
+    .map(([slot, code]) => `${ICON_TARGETS[slot]} { content: "\\${code}"; }`)
+    .join('\n');
+  if (iconCss) css += `\n/* icon overrides */\n${iconCss}\n`;
+
+  return css;
+}
+
+/* ======================================================================
+   PREVIEW (iframe with the real chitui.css)
+   ====================================================================== */
+const MOCK = `<!DOCTYPE html><html data-bs-theme="dark"><head>
+<link href="/css/bootstrap.min.css" rel="stylesheet">
+<link href="/css/bootstrap-icons.min.css" rel="stylesheet">
+<link href="/css/chitui.css" rel="stylesheet">
+<style id="themeCss"></style>
+<style>body{overflow-x:hidden} .print-camera-container{height:120px;border-radius:8px;background:var(--bs-tertiary-bg);display:flex;align-items:center;justify-content:center;color:var(--bs-secondary-color)}</style>
+</head><body>
+<header class="app-header">
+  <div class="d-flex align-items-center gap-2">
+    <a href="#" class="app-logo" onclick="return false"><i class="bi bi-box-seam"></i><span>ChitUI</span></a>
+  </div>
+  <div class="header-actions"><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-moon-stars-fill"></i></button></div>
+</header>
+<aside class="app-sidebar pinned">
+  <div class="sidebar-section">
+    <div class="sidebar-section-title mb-2">PRINTERS</div>
+    <div class="printer-card active mb-2"><div class="p-2"><strong class="printer-name">Saturn 4 Ultra</strong><div class="small text-muted">Printing · 64%</div></div></div>
+    <div class="printer-card mb-2"><div class="p-2"><strong class="printer-name">Mars 2</strong><div class="small text-muted">Idle</div></div></div>
+  </div>
+</aside>
+<main class="app-content sidebar-pinned" style="padding-top:calc(var(--header-height) + 1rem)">
+  <div class="row mb-4"><div class="col-12">
+    <div class="printer-preview p-3 d-flex align-items-center gap-3">
+      <i class="bi bi-printer" style="font-size:3rem;color:var(--bs-secondary-color)"></i>
+      <div><h3 class="mb-0">Saturn 4 Ultra</h3><p class="mb-0 text-muted">ELEGOO Saturn 4 Ultra</p></div>
+    </div>
+  </div></div>
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-lg-8"><div class="dashboard-card p-3">
+      <h4 class="card-title">PRINTER INFORMATION</h4>
+      <ul class="nav custom-tabs mb-3"><li class="nav-item"><button class="nav-link active">Status</button></li><li class="nav-item"><button class="nav-link">Attributes</button></li></ul>
+      <div class="d-flex align-items-center gap-4">
+        <svg width="110" height="110" viewBox="0 0 110 110"><circle class="gauge-bg" cx="55" cy="55" r="46" fill="none" stroke="var(--bs-tertiary-bg)" stroke-width="10"/><circle class="gauge-progress" cx="55" cy="55" r="46" fill="none" stroke-width="10" stroke-dasharray="289" stroke-dashoffset="104" stroke-linecap="round" transform="rotate(-90 55 55)"/><text x="55" y="61" text-anchor="middle" fill="currentColor" font-size="20" font-weight="700">64%</text></svg>
+        <div class="flex-grow-1">
+          <div class="print-info-item d-flex justify-content-between p-2 mb-2"><span class="text-muted">Layer</span><strong>412 / 640</strong></div>
+          <div class="print-info-item d-flex justify-content-between p-2"><span class="text-muted">Remaining</span><strong>1h 22m</strong></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="col-12 col-lg-4"><div class="dashboard-card camera-card p-3">
+      <h4 class="card-title mb-3">CAMERA STREAM</h4>
+      <div class="print-camera-container"><i class="bi bi-camera-video me-2"></i> live view</div>
+    </div></div>
+  </div>
+  <div class="row g-3 mb-4" id="printControlsRow">
+    <div class="col-12"><div class="dashboard-card p-3" style="border:2px solid var(--accent-color)">
+      <h4 class="card-title">PRINT CONTROLS</h4>
+      <div class="progress progress-enhanced mb-2" style="height:1.4rem"><div class="progress-bar" style="width:64%">64%</div></div>
+      <div class="d-flex gap-2"><button class="btn btn-sm btn-accent btn-icon"><i class="bi bi-pause-fill"></i> Pause</button><button class="btn btn-sm btn-outline-secondary btn-icon"><i class="bi bi-stop-fill"></i> Stop</button></div>
+    </div></div>
+  </div>
+  <div class="row g-3">
+    <div class="col-12"><div class="dashboard-card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="card-title mb-0">FILES</h4>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-accent btn-icon"><i class="bi bi-cloud-upload"></i> Upload File</button>
+          <button class="btn btn-sm btn-outline-secondary btn-icon"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+        </div>
+      </div>
+      <table class="table table-sm mb-0" id="fileManagerTable"><tbody>
+        <tr><td><i class="bi bi-file-earmark me-2"></i>benchy.ctb</td><td class="text-muted text-end">14.2 MB</td></tr>
+        <tr><td><i class="bi bi-file-earmark me-2"></i>calibration.goo</td><td class="text-muted text-end">6.8 MB</td></tr>
+      </tbody></table>
+    </div></div>
+  </div>
+</main>
+</body></html>`;
+
+const frame = document.getElementById('previewFrame');
+frame.srcdoc = MOCK;
+
+function refreshPreview() {
+  const doc = frame.contentDocument;
+  if (!doc || !doc.getElementById('themeCss')) return;
+  doc.documentElement.setAttribute('data-bs-theme', previewMode);
+  doc.getElementById('themeCss').textContent = generateCSS(true);
+  const out = document.getElementById('cssOut');
+  if (out) out.value = generateCSS(false);
+}
+frame.addEventListener('load', refreshPreview);
+
+/* ======================================================================
+   LAYOUT CANVAS (drag & drop)
+   ====================================================================== */
+const canvas = document.getElementById('sectionCanvas');
+let dragId = null;
+
+function renderCanvas() {
+  canvas.innerHTML = '';
+  state.sections.forEach((id) => {
+    const line = document.createElement('div');
+    line.className = 'td-drop-line'; line.dataset.before = id;
+    canvas.appendChild(line);
+
+    if (id === 'info') {
+      const cols = document.createElement('div');
+      cols.className = 'td-cols'; cols.dataset.section = 'info'; cols.draggable = true;
+      const info = colBlock('infoCol', 'bi-info-circle', 'Printer info', !state.camLeft);
+      const cam = colBlock('camCol', 'bi-camera-video', 'Camera', false);
+      cols.append(...(state.camLeft ? [cam, info] : [info, cam]));
+      bindSectionDrag(cols, id);
+      canvas.appendChild(cols);
+    } else {
+      const meta = SECTION_META[id];
+      const b = document.createElement('div');
+      b.className = 'td-block' + (meta.dashed ? ' dashed' : '');
+      b.dataset.section = id; b.draggable = true;
+      b.innerHTML = `<i class="bi bi-grip-vertical"></i><i class="bi ${meta.icon}"></i>${meta.label}` +
+        (meta.dashed ? ' <span class="badge text-bg-secondary ms-auto">only while printing</span>' : '');
+      bindSectionDrag(b, id);
+      canvas.appendChild(b);
+    }
+  });
+  const tail = document.createElement('div');
+  tail.className = 'td-drop-line'; tail.dataset.before = '__end';
+  canvas.appendChild(tail);
+}
+
+function colBlock(kind, icon, label, wide) {
+  const c = document.createElement('div');
+  c.className = 'td-block' + (wide ? ' wide' : '');
+  c.dataset.col = kind; c.draggable = true;
+  c.innerHTML = `<i class="bi ${icon}"></i>${label}`;
+  c.addEventListener('dragstart', (e) => { e.stopPropagation(); dragId = kind; c.classList.add('dragging'); });
+  c.addEventListener('dragend', () => { dragId = null; c.classList.remove('dragging'); clearHints(); });
+  return c;
+}
+
+function bindSectionDrag(el, id) {
+  el.addEventListener('dragstart', (e) => { dragId = id; el.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+  el.addEventListener('dragend', () => { dragId = null; el.classList.remove('dragging'); clearHints(); });
+}
+
+function clearHints() {
+  canvas.querySelectorAll('.td-drop-line').forEach(l => l.classList.remove('show'));
+  canvas.querySelectorAll('.td-cols').forEach(c => c.classList.remove('drop-hint'));
+}
+
+canvas.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  clearHints();
+  if (!dragId) return;
+
+  // column drag: highlight the info row (dropping swaps sides)
+  if (dragId === 'infoCol' || dragId === 'camCol') {
+    const cols = canvas.querySelector('.td-cols');
+    if (cols) cols.classList.add('drop-hint');
+    return;
+  }
+  // section drag: show insertion line nearest to the cursor
+  const blocks = [...canvas.querySelectorAll('[data-section]')].filter(b => b.dataset.section !== dragId);
+  let target = '__end';
+  for (const b of blocks) {
+    const r = b.getBoundingClientRect();
+    if (e.clientY < r.top + r.height / 2) { target = b.dataset.section; break; }
+  }
+  const line = canvas.querySelector(`.td-drop-line[data-before="${target}"]`);
+  if (line) line.classList.add('show');
+});
+
+canvas.addEventListener('drop', (e) => {
+  e.preventDefault();
+  if (!dragId) return;
+
+  if (dragId === 'infoCol' || dragId === 'camCol') {
+    state.camLeft = !state.camLeft;               // dropping pushes the other column aside
+  } else {
+    const blocks = [...canvas.querySelectorAll('[data-section]')].filter(b => b.dataset.section !== dragId);
+    let before = null;
+    for (const b of blocks) {
+      const r = b.getBoundingClientRect();
+      if (e.clientY < r.top + r.height / 2) { before = b.dataset.section; break; }
+    }
+    const arr = state.sections.filter(s => s !== dragId);
+    arr.splice(before ? arr.indexOf(before) : arr.length, 0, dragId);
+    state.sections = arr;
+  }
+  clearHints(); renderCanvas(); refreshPreview();
+});
+
+/* sidebar side */
+document.getElementById('sideLeft').addEventListener('click', function () {
+  state.sidebarRight = false; this.classList.add('active');
+  document.getElementById('sideRight').classList.remove('active'); refreshPreview();
+});
+document.getElementById('sideRight').addEventListener('click', function () {
+  state.sidebarRight = true; this.classList.add('active');
+  document.getElementById('sideLeft').classList.remove('active'); refreshPreview();
+});
+
+/* ======================================================================
+   CONTROL BINDING (colors / background / style)
+   ====================================================================== */
+const MODE_KEYS = ['accent','accentHover','tile','tileOpacity','tertiary','border','text','muted',
+                   'bgType','bgColor','bgG1','bgG2','bgG3','bgAngle','bgDim'];
+
+function readInto(key, value) {
+  if (MODE_KEYS.includes(key)) state.modes[editMode][key] = value;
+  else state[key] = value;
+}
+function valueOf(key) {
+  return MODE_KEYS.includes(key) ? state.modes[editMode][key] : state[key];
+}
+
+function syncControls() {
+  document.querySelectorAll('[data-c]').forEach(inp => {
+    const key = inp.dataset.c;
+    const v = valueOf(key);
+    if (inp.type === 'color') inp.value = v;
+    else inp.value = v;
+    const lab = document.querySelector(`[data-v="${key}"]`);
+    if (lab) lab.textContent = v + (key === 'bgAngle' ? '°' : (['radius','blur','sidebarWidth','headerHeight'].includes(key) ? 'px' : (key === 'tileOpacity' || key === 'bgDim' ? '%' : '')));
+  });
+  document.querySelectorAll('[data-bg]').forEach(div => {
+    div.classList.toggle('d-none', div.dataset.bg !== state.modes[editMode].bgType);
+  });
+  document.querySelectorAll('.td-edit-mode-label').forEach(s => s.textContent = editMode);
+}
+
+document.querySelectorAll('[data-c]').forEach(inp => {
+  inp.addEventListener('input', () => {
+    const key = inp.dataset.c;
+    const v = (inp.type === 'range') ? parseInt(inp.value, 10) : inp.value;
+    readInto(key, v);
+    syncControls(); refreshPreview();
+  });
+});
+
+/* palette edit-mode toggle (also flips the preview) */
+document.querySelectorAll('[data-edit-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    editMode = btn.dataset.editMode;
+    previewMode = editMode;
+    document.querySelectorAll('[data-edit-mode]').forEach(b => b.classList.toggle('active', b === btn));
+    document.getElementById('pvLight').classList.toggle('active', previewMode === 'light');
+    document.getElementById('pvDark').classList.toggle('active', previewMode === 'dark');
+    syncControls(); refreshPreview();
+  });
+});
+
+/* background image upload */
+document.getElementById('bgImageInput').addEventListener('change', function () {
+  const file = this.files && this.files[0];
+  if (!file) return;
+  const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.modes[editMode].bgImage = { dataUrl: reader.result, ext: ['jpg','jpeg','png','webp','gif'].includes(ext) ? ext : 'png' };
+    refreshPreview();
+  };
+  reader.readAsDataURL(file);
+});
+
+/* preview toolbar */
+document.getElementById('devDesktop').addEventListener('click', function () {
+  frame.classList.remove('phone'); this.classList.add('active');
+  document.getElementById('devPhone').classList.remove('active');
+});
+document.getElementById('devPhone').addEventListener('click', function () {
+  frame.classList.add('phone'); this.classList.add('active');
+  document.getElementById('devDesktop').classList.remove('active');
+});
+document.getElementById('pvLight').addEventListener('click', function () {
+  previewMode = 'light'; this.classList.add('active');
+  document.getElementById('pvDark').classList.remove('active'); refreshPreview();
+});
+document.getElementById('pvDark').addEventListener('click', function () {
+  previewMode = 'dark'; this.classList.add('active');
+  document.getElementById('pvLight').classList.remove('active'); refreshPreview();
+});
+
+/* panel tabs */
+document.querySelectorAll('#tdTabs [data-panel]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#tdTabs .nav-link').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.td-pane').forEach(p => p.classList.toggle('d-none', p.dataset.pane !== btn.dataset.panel));
+  });
+});
+
+/* ======================================================================
+   ICON PICKERS
+   ====================================================================== */
+document.querySelectorAll('.td-icons').forEach(grid => {
+  const slot = grid.dataset.slot;
+  ICON_SET.forEach(([name, code]) => {
+    const el = document.createElement('div');
+    el.className = 'td-icon' + (state.icons[slot] === code ? ' selected' : '');
+    el.title = name;
+    el.innerHTML = code ? `<i class="bi bi-${name}"></i>` : '<span style="font-size:.6rem">default</span>';
+    el.addEventListener('click', () => {
+      state.icons[slot] = code;
+      grid.querySelectorAll('.td-icon').forEach(i => i.classList.remove('selected'));
+      el.classList.add('selected');
+      refreshPreview();
+    });
+    grid.appendChild(el);
+  });
+});
+
+/* ======================================================================
+   ZIP WRITER (pure JS, STORE method - works fully offline)
+   ====================================================================== */
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+/* files: [{name: string, data: Uint8Array}] -> Uint8Array (zip) */
+function makeZip(files) {
+  const enc = new TextEncoder();
+  const chunks = []; const central = [];
+  let offset = 0;
+  const u16 = v => new Uint8Array([v & 255, (v >> 8) & 255]);
+  const u32 = v => new Uint8Array([v & 255, (v >> 8) & 255, (v >> 16) & 255, (v >>> 24) & 255]);
+
+  for (const f of files) {
+    const name = enc.encode(f.name);
+    const crc = crc32(f.data);
+    const local = [u32(0x04034b50), u16(20), u16(0), u16(0), u16(0), u16(0),
+                   u32(crc), u32(f.data.length), u32(f.data.length),
+                   u16(name.length), u16(0), name, f.data];
+    central.push({ name, crc, size: f.data.length, offset });
+    for (const part of local) { chunks.push(part); offset += part.length; }
+  }
+  const cdStart = offset;
+  for (const e of central) {
+    const rec = [u32(0x02014b50), u16(20), u16(20), u16(0), u16(0), u16(0), u16(0),
+                 u32(e.crc), u32(e.size), u32(e.size), u16(e.name.length), u16(0), u16(0),
+                 u16(0), u16(0), u32(0), u32(e.offset), e.name];
+    for (const part of rec) { chunks.push(part); offset += part.length; }
+  }
+  const cdSize = offset - cdStart;
+  const eocd = [u32(0x06054b50), u16(0), u16(0), u16(central.length), u16(central.length),
+                u32(cdSize), u32(cdStart), u16(0)];
+  for (const part of eocd) { chunks.push(part); offset += part.length; }
+
+  const out = new Uint8Array(offset);
+  let p = 0;
+  for (const c of chunks) { out.set(c, p); p += c.length; }
+  return out;
+}
+
+/* ======================================================================
+   EXPORT
+   ====================================================================== */
+function slugify(s) {
+  return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 50);
+}
+document.getElementById('mName').addEventListener('input', function () {
+  document.getElementById('mId').value = slugify(this.value);
+});
+
+function dataUrlToBytes(dataUrl) {
+  const b64 = dataUrl.split(',')[1];
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+function buildThemeZip() {
+  const name = document.getElementById('mName').value.trim() || 'My Theme';
+  const id = slugify(document.getElementById('mId').value || name) || 'my_theme';
+  const manifest = {
+    id, name,
+    version: document.getElementById('mVersion').value.trim() || '1.0.0',
+    author: document.getElementById('mAuthor').value.trim() || 'Theme Designer',
+    description: document.getElementById('mDesc').value.trim() || 'Created with the ChitUI Theme Designer.',
+    css: 'theme.css',
+  };
+  const enc = new TextEncoder();
+  const files = [
+    { name: `${id}/theme.json`, data: enc.encode(JSON.stringify(manifest, null, 2)) },
+    { name: `${id}/theme.css`, data: enc.encode(generateCSS(false)) },
+    { name: `${id}/designer.json`, data: enc.encode(JSON.stringify(state, (k, v) => k === 'dataUrl' ? undefined : v, 2)) },
+  ];
+  for (const mode of ['dark', 'light']) {
+    const m = state.modes[mode];
+    if (m.bgType === 'image' && m.bgImage) {
+      files.push({ name: `${id}/bg-${mode}.${m.bgImage.ext}`, data: dataUrlToBytes(m.bgImage.dataUrl) });
+    }
+  }
+  return { id, name, zip: makeZip(files) };
+}
+
+function setStatus(html) { document.getElementById('exportStatus').innerHTML = html; }
+
+document.getElementById('btnDownload').addEventListener('click', () => {
+  const { id, zip } = buildThemeZip();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }));
+  a.download = `${id}.zip`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  setStatus('<i class="bi bi-check-circle me-1"></i>ZIP downloaded. Install it in Settings → Appearance.');
+});
+
+document.getElementById('btnInstall').addEventListener('click', async () => {
+  const { name, zip } = buildThemeZip();
+  setStatus('Installing…');
+  try {
+    const fd = new FormData();
+    fd.append('theme', new Blob([zip], { type: 'application/zip' }), 'theme.zip');
+    const r = await fetch('/themes/upload', { method: 'POST', body: fd });
+    const j = await r.json();
+    if (j.success) setStatus(`<i class="bi bi-check-circle me-1"></i>${j.message} — apply it in <a href="/">Settings → Appearance</a>.`);
+    else setStatus(`<i class="bi bi-x-circle me-1"></i>${j.message || 'Install failed'}`);
+  } catch (e) {
+    setStatus(`<i class="bi bi-x-circle me-1"></i>Install failed (are you logged in to ChitUI?): ${e}`);
+  }
+});
+
+document.getElementById('btnCopyCss').addEventListener('click', function () {
+  navigator.clipboard.writeText(document.getElementById('cssOut').value);
+  this.innerHTML = '<i class="bi bi-check-lg me-1"></i>Copied';
+  setTimeout(() => { this.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy CSS'; }, 1500);
+});
+
+document.getElementById('importInput').addEventListener('change', function () {
+  const file = this.files && this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const s = JSON.parse(reader.result);
+      Object.assign(state, s);
+      state.modes.dark = { ...defaultMode(true), ...(s.modes && s.modes.dark) };
+      state.modes.light = { ...defaultMode(false), ...(s.modes && s.modes.light) };
+      renderCanvas(); syncControls(); refreshPreview();
+      setStatus('<i class="bi bi-check-circle me-1"></i>Designer state imported.');
+    } catch (e) { setStatus('<i class="bi bi-x-circle me-1"></i>Not a valid designer.json'); }
+  };
+  reader.readAsText(file);
+});
+
+/* init */
+renderCanvas();
+syncControls();
+})();
+</script>
+</body>
+</html>

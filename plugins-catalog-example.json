@@ -1,0 +1,14 @@
+{
+  "plugins": [
+    {
+      "slug": "tapo_p100",
+      "name": "Tapo P100 Smart Plugs",
+      "version": "1.5.0",
+      "author": "xmodpt",
+      "short_description": "Control up to 5 TP-Link Tapo P100/P105/P110 smart plugs from the toolbar.",
+      "download_url": "https://www.chitui.net/plugins/tapo_p100-1.5.0.zip",
+      "detail_url": "https://www.chitui.net/plugins/tapo-p100",
+      "min_chitui_version": "2.3.0"
+    }
+  ]
+}

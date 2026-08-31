@@ -1,0 +1,13 @@
+{
+  "name": "Terminal",
+  "version": "1.0.0",
+  "author": "ChitUI",
+  "description": "Terminal window to monitor printer communication and send raw commands",
+  "dependencies": [],
+  "ui_integration": {
+    "type": "card",
+    "location": "main",
+    "icon": "bi-terminal",
+    "title": "Terminal"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "my_theme",
+  "name": "My Theme",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "description": "A short description of your theme, shown in the theme picker.",
+  "css": "theme.css",
+  "preview": "preview.png"
+}

@@ -1,0 +1,192 @@
+/* ==========================================================================
+   MY THEME - ChitUI theme stylesheet
+   ==========================================================================
+
+   HOW THIS FILE WORKS
+   -------------------
+   This stylesheet is loaded AFTER ChitUI's default stylesheet
+   (web/css/chitui.css) and after Bootstrap 5. Anything you write here
+   overrides the default look. You do NOT need to copy the whole default
+   stylesheet - only write the rules you want to change.
+
+   ChitUI runs Bootstrap 5.3 in dark mode by default. The fastest way to
+   restyle the entire app is to override CSS variables, because both
+   Bootstrap and ChitUI's own components read their colors from them.
+
+   TIP: open ChitUI in your browser, press F12, and use "Inspect element"
+   to find the class name of anything you want to restyle.
+
+   ========================================================================
+   1. CHITUI VARIABLES
+   ========================================================================
+   These are defined by ChitUI itself. Overriding --accent-color alone
+   already re-brands most of the interface (buttons, icons, highlights).
+
+   :root {
+     --sidebar-width: 280px;        Width of the left sidebar
+     --header-height: 60px;         Height of the top bar
+     --accent-color:  #e63946;      Main brand color (buttons, icons, links)
+     --accent-hover:  #d62839;      Brand color on hover
+     --success-color: #06d6a0;      "OK" states (printing, connected...)
+     --warning-color: #ffd166;      Warnings
+     --info-color:    #118ab2;      Informational highlights
+   }
+
+   NOTE: dark mode re-declares the accent colors, so to reliably change
+   them override BOTH :root and [data-bs-theme="dark"] (see the example
+   at the bottom of this file).
+
+   ========================================================================
+   2. BOOTSTRAP VARIABLES (the big levers)
+   ========================================================================
+   Set these inside [data-bs-theme="dark"] (and/or [data-bs-theme="light"])
+   to change the app's base colors globally:
+
+   --bs-body-bg            Page / header / sidebar background
+   --bs-body-color         Default text color
+   --bs-secondary-bg       Cards, inputs, secondary surfaces
+   --bs-tertiary-bg        Hover states, subtle surfaces
+   --bs-border-color       All borders and separators
+   --bs-emphasis-color     High-contrast text
+   --bs-secondary-color    Muted text (.text-muted, labels)
+   --bs-link-color         Links
+
+   ========================================================================
+   3. MAIN LAYOUT COMPONENTS (ChitUI classes you can restyle)
+   ========================================================================
+   .app-header               Fixed top bar
+   .app-logo                 Logo + title in the header
+   .app-sidebar              Left navigation panel
+   .sidebar-overlay          Dark backdrop behind the mobile sidebar
+   .app-content              Main content area
+   .mobile-menu-toggle       Hamburger button (mobile)
+
+   ========================================================================
+   4. DASHBOARD & PRINTER COMPONENTS
+   ========================================================================
+   .dashboard-card           Generic dashboard card
+   .printer-card             Printer tile in the sidebar/list
+   .printer-card-header      Its header row
+   .printer-name             Printer title text
+   .printer-icon             Printer image
+   .printer-status-badge     Online/offline badge
+   .print-info-card          Card with details of the running print
+   .print-info-item /-label /-value
+   .print-status-badge       Print state pill
+   .print-status-printing    ...while printing
+   .print-status-idle        ...while idle
+   .print-status-error       ...on error
+   .print-thumbnail          Sliced-file thumbnail image
+   .print-camera-container   Camera stream wrapper
+
+   ========================================================================
+   5. GAUGES (circular progress indicators)
+   ========================================================================
+   .circular-gauge / .gauge-wrapper / .gauge-svg
+   .gauge-bg                 Background ring
+   .gauge-progress           Progress ring (stroke color!)
+   .gauge-percentage         Big number in the middle
+   .gauge-label              Small label under the number
+
+   ========================================================================
+   6. FILE MANAGER
+   ========================================================================
+   .file-manager-container / .file-manager-toolbar
+   .file                     One file row
+   .file-detail-item /-label /-value
+   .file-expand-btn          Row expander
+   .data-table               Generic data table
+
+   ========================================================================
+   7. BUTTONS, TABS, MODALS
+   ========================================================================
+   .btn-accent               ChitUI's primary button (uses --accent-color)
+   .btn-icon                 Button with an icon
+   .custom-tabs              Tab strips
+   .settings-nav             Vertical nav inside the Settings modal
+   Standard Bootstrap classes (.btn, .modal-content, .form-control,
+   .nav-pills, .badge, .alert ...) can of course also be overridden.
+
+   ========================================================================
+   8. USING YOUR OWN IMAGES / FONTS
+   ========================================================================
+   Put files in this theme folder and reference them with the STABLE
+   active-theme URL. The prefix /themes/active/assets/ maps to your
+   theme's ROOT folder:
+
+       background.png       -> url("/themes/active/assets/background.png")
+       img/background.png   -> url("/themes/active/assets/img/background.png")
+
+   Allowed file types: css, png, jpg, jpeg, gif, webp, svg, ico,
+   woff, woff2, ttf, otf. (Themes are pure CSS - no JavaScript.)
+
+   ========================================================================
+   9. LIGHT / DARK MODE  (build for BOTH from the start!)
+   ========================================================================
+   ChitUI has a color-mode switcher in the header, so users can be in
+   either mode at any time. A good theme defines its palette twice:
+
+       [data-bs-theme="light"] { ... }    bright palette
+       [data-bs-theme="dark"]  { ... }    dark palette
+
+   Rules that apply to both modes (layout, radii, component styling that
+   only uses variables) go outside those blocks. The scaffold below
+   already has this structure - just fill in your colors.
+
+   Also set  color-scheme  in each block so native controls (scrollbars,
+   inputs) match the mode.
+
+   ======================================================================== */
+
+
+/* ==========================================================================
+   YOUR THEME - light & dark scaffold
+   Fill in the palettes below. Shared, mode-independent rules go at the
+   bottom. Delete anything you don't need - less is more.
+   ========================================================================== */
+
+/* ----- Brand colors used in BOTH modes ---------------------------------- */
+:root {
+  --accent-color: #e63946;      /* <- change me: your brand color          */
+  --accent-hover: #d62839;      /* <- change me: brand color on hover      */
+}
+
+/* ----- LIGHT mode palette ----------------------------------------------- */
+[data-bs-theme="light"] {
+  color-scheme: light;
+
+  /* --accent-color: #e63946;       accent can differ per mode             */
+  /* --bs-body-bg: #f2f4f7;         page background                        */
+  /* --bs-body-color: #26292f;      default text                           */
+  /* --bs-secondary-bg: #ffffff;    cards / inputs                         */
+  /* --bs-tertiary-bg: #eaedf1;     hovers / subtle surfaces               */
+  /* --bs-border-color: #e0e4ea;    borders & separators                   */
+  /* --bs-secondary-color: #667085; muted text                             */
+}
+
+/* ----- DARK mode palette ------------------------------------------------- */
+[data-bs-theme="dark"] {
+  color-scheme: dark;
+
+  /* --accent-color: #ff4757;       often brighter on dark backgrounds     */
+  /* --bs-body-bg: #16181d;                                                */
+  /* --bs-body-color: #e6e8ec;                                             */
+  /* --bs-secondary-bg: #1f2229;                                           */
+  /* --bs-tertiary-bg: #262a32;                                            */
+  /* --bs-border-color: #31353e;                                           */
+  /* --bs-secondary-color: #9aa1ad;                                        */
+}
+
+/* ----- Shared rules (both modes) ----------------------------------------- */
+/* Component styling that reads from the variables above works in both
+   modes automatically. Examples:
+
+.gauge-progress { stroke: var(--accent-color); }
+
+.btn { border-radius: 999px; }                  pill buttons
+
+.dashboard-card { border-radius: 14px; }        rounder cards
+*/
+
+
+/* Your theme continues here ............................................. */

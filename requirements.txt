@@ -1,0 +1,48 @@
+# ChitUI Python dependencies
+#
+# Keep this in sync with the check_package list in install.sh - install.sh
+# drives the interactive first-time install, this file is what the built-in
+# updater (Settings -> General -> Software Updates) runs on every upgrade so
+# that a new release can pull in packages it needs without you touching the Pi.
+#
+# Manual install:
+#     cd ~/ChitUI
+#     pip3 install -r requirements.txt --break-system-packages
+#
+# Versions are deliberately unpinned: Raspberry Pi OS ships quite different
+# baselines across releases and pinning tends to cause more breakage than it
+# prevents here.
+
+# ── Web server ──────────────────────────────────────────────────────────
+flask
+werkzeug
+flask-socketio
+python-socketio
+
+# ── Printer communication ───────────────────────────────────────────────
+websocket-client
+requests
+pyserial
+
+# ── Core utilities ──────────────────────────────────────────────────────
+loguru
+psutil
+pillow
+
+# ── Plugin support ──────────────────────────────────────────────────────
+# opencv: IP camera plugin. Headless build - no desktop/X11 dependencies.
+opencv-python-headless
+# zeroconf: mDNS discovery of ESP32 modules for the Leak Detector plugin.
+zeroconf
+# beautifulsoup4: HTML parsing.
+beautifulsoup4
+
+# ── Raspberry Pi only ───────────────────────────────────────────────────
+# GPIO Relay Control plugin. The marker keeps pip from failing the whole
+# install on a non-ARM machine, where this wheel does not exist.
+RPi.GPIO; platform_machine == "armv6l" or platform_machine == "armv7l" or platform_machine == "aarch64"
+
+# ── Optional ────────────────────────────────────────────────────────────
+# watchdog: live file-watching. ChitUI falls back to periodic scanning when
+# this is absent, so it is safe to leave out on very constrained systems.
+watchdog
