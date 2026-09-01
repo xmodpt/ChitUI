@@ -3638,7 +3638,21 @@ def upload_file():
             if 'printer' not in form_data or form_data['printer'] == "":
                 logger.error("No 'printer' parameter in request.")
                 return Response('{"upload": "error", "msg": "Malformed request - no printer."}', status=400, mimetype="application/json")
-            printer = printers[form_data['printer']]
+            # Look the printer up explicitly. printers[...] raised a bare
+            # KeyError here, and because the enclosing try has only a finally,
+            # it escaped to Flask and produced its stock HTML 500 page - which
+            # the browser then showed verbatim in an alert box. The upload
+            # itself had already finished, so it always failed at ~99%: Flask
+            # parses the whole request body before this line ever runs.
+            printer = printers.get(form_data['printer'])
+            if printer is None:
+                logger.error(f"Upload for unknown printer id '{form_data['printer']}'. "
+                             f"Known ids: {list(printers.keys())}")
+                return Response(json.dumps({
+                    "upload": "error",
+                    "msg": ("ChitUI is not connected to that printer. Reload the page, "
+                            "and re-add the printer in Settings if it is missing."),
+                }), status=409, mimetype="application/json")
             if file and not allowed_file(file.filename):
                 logger.error("Invalid filetype.")
                 return Response('{"upload": "error", "msg": "Invalid filetype."}', status=400, mimetype="application/json")
@@ -3656,7 +3670,7 @@ def upload_file():
 
             # Determine upload path based on printer's USB device type
             printer_id = form_data['printer']
-            usb_device_type = printers[printer_id].get('usb_device_type', 'physical')
+            usb_device_type = printer.get('usb_device_type', 'physical')
 
             # Route to correct folder:
             # - destination=usb + virtual USB gadget active → USB_GADGET_FOLDER (/mnt/usb_share)
@@ -3802,6 +3816,18 @@ def upload_file():
             except Exception as e:
                 logger.error(f"Upload failed: {e}")
                 return Response(f'{{"upload": "error", "msg": "Upload failed: {str(e)}", "upload_id": "{upload_id}"}}', status=500, mimetype="application/json")
+        except Exception as e:
+            # Anything raised before the inner try - a bad form field, a
+            # missing folder, a filename secure_filename() reduces to nothing -
+            # used to escape to Flask and come back as its stock HTML error
+            # page. The uploader shows the raw response body, so the user got a
+            # wall of HTML in an alert instead of a usable message.
+            logger.error(f"Unhandled error during upload: {e}")
+            logger.error(traceback.format_exc())
+            return Response(json.dumps({
+                "upload": "error",
+                "msg": f"Upload failed: {e}",
+            }), status=500, mimetype="application/json")
         finally:
             # Always release the lock
             uploadLock.release()

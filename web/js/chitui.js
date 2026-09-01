@@ -831,6 +831,18 @@ function createTable(name, data, active = false) {
   // is rebuilt - this replaces the old page-wide MutationObserver.
   if (name === 'Files') {
     hideFilesTab();
+    // addFileOptions() must run BEFORE the sync, not after it.
+    //
+    // syncTableToFileManager() clones the <i> icons out of each source row to
+    // build the Actions cell. Every caller used to do createTable() then
+    // addFileOptions(), so the sync ran against rows that had no icons yet:
+    // querySelectorAll('i') came back empty and the Actions column ended up
+    // with nothing but the rotate button, which sync creates itself. Print,
+    // download and delete silently vanished.
+    //
+    // addFileOptions() is idempotent (it skips cells that already have a
+    // .fileOption), so the callers' own trailing call is now a harmless no-op.
+    addFileOptions();
     const fileTable = document.getElementById('tableFiles');
     if (fileTable) syncTableToFileManager(fileTable);
   }
