@@ -8,7 +8,7 @@
 
 ## Release Notes
 
-**Version 2.1**
+**Version 2.3.0**
 - Minor bug fixes
 - Added thumbnail auto generation in file manager
 - "Settings" button moved to side bar for better user experience
