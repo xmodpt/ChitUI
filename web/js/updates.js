@@ -1058,10 +1058,92 @@
     if (check) check.addEventListener('click', checkFromSettings);
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // About page: release notes straight from GitHub Releases
+  // ─────────────────────────────────────────────────────────────────────────
+
+  var aboutLoaded = false;
+
+  function loadAboutNotes(force) {
+    var box = el('aboutReleaseNotes');
+    if (!box || (aboutLoaded && !force)) return;
+    aboutLoaded = true;
+
+    apiFetch('/updates/history' + (force ? '?force=1' : ''))
+      .then(function (data) {
+        var list = data.releases || [];
+        if (!list.length) throw new Error(data.error || 'No releases');
+
+        var newest = list[0];
+        var title = el('aboutWhatsNewTitle');
+        if (title) title.textContent = "What's New in " + newest.version;
+
+        var html = list.map(function (rel, i) {
+          var heading =
+            '<span class="fw-semibold">' + esc(rel.name || rel.version) + '</span>' +
+            (rel.version === data.current_version
+              ? ' <span class="badge bg-success ms-1">installed</span>' : '') +
+            (rel.prerelease ? ' <span class="badge bg-secondary ms-1">pre-release</span>' : '') +
+            (rel.published_at
+              ? ' <span class="text-muted small ms-2">' + esc(formatDate(rel.published_at)) + '</span>' : '');
+          var notes = '<div class="update-notes mt-2">' + mdToHtml(rel.body) + '</div>';
+          if (i === 0) {
+            return '<div class="mb-3">' + heading + notes + '</div>';
+          }
+          return '<details class="mb-2"><summary class="small">' + heading + '</summary>' +
+                 notes + '</details>';
+        }).join('');
+
+        html += '<p class="small mb-1"><a href="' + esc(data.releases_url) +
+                '" target="_blank" rel="noopener"><i class="bi bi-github me-1"></i>' +
+                'All releases on GitHub</a></p>';
+
+        var status = el('aboutNotesStatus');
+        if (status) status.classList.add('d-none');
+        box.innerHTML = html;
+        box.classList.remove('d-none');
+        var fallback = el('aboutStaticNotes');
+        if (fallback) fallback.classList.add('d-none');
+      })
+      .catch(function (err) {
+        // Offline, rate-limited or not restarted yet: keep the built-in notes,
+        // say why, and try again next time the tab is opened.
+        aboutLoaded = false;
+        console.warn('Release notes unavailable:', err);
+        var status = el('aboutNotesStatus');
+        var text = el('aboutNotesStatusText');
+        if (status && text) {
+          text.textContent = 'Could not load the release notes from GitHub (' +
+            (err && err.message ? err.message : err) +
+            '). Showing the notes built into this version instead.';
+          status.classList.remove('d-none');
+        }
+      });
+  }
+
+  function bindAboutTab() {
+    // Click as well as shown.bs.tab: the tab event doesn't fire when About is
+    // already the active pane, e.g. when the Settings dialog reopens on it.
+    document.addEventListener('click', function (e) {
+      var tab = e.target.closest && e.target.closest('[data-bs-target="#about-pane"]');
+      if (tab) loadAboutNotes(false);
+    });
+    document.addEventListener('shown.bs.tab', function (e) {
+      if (e.target && e.target.getAttribute('data-bs-target') === '#about-pane') {
+        loadAboutNotes(false);
+      }
+    });
+    document.addEventListener('shown.bs.modal', function () {
+      var pane = el('about-pane');
+      if (pane && pane.classList.contains('active')) loadAboutNotes(false);
+    });
+  }
+
   function init() {
     bind();
     bindPluginBanner();
     bindPluginSettings();
+    bindAboutTab();
 
     fetchStatus(false, true)
       .then(function (data) {

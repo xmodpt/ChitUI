@@ -2547,6 +2547,18 @@ def update_status():
     return jsonify(result)
 
 
+@app.route('/updates/history', methods=['GET'])
+@login_required
+def update_history():
+    """Release notes for the installed version and the ones before it (About page)."""
+    force = request.args.get('force') in ('1', 'true', 'yes')
+    try:
+        return jsonify(updater.get_release_history(force=force))
+    except Exception as e:
+        logger.error(f"Release history failed: {e}")
+        return jsonify({"success": False, "releases": [], "error": str(e)}), 500
+
+
 @app.route('/updates/settings', methods=['GET', 'POST'])
 @login_required
 def update_settings_route():

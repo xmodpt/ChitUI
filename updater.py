@@ -457,6 +457,101 @@ def check_for_updates(update_settings: dict, force: bool = False) -> dict:
 
 
 # ============================================================================
+# RELEASE HISTORY (About page)
+# ============================================================================
+
+HISTORY_CACHE_FILE = os.path.join(DATA_FOLDER, 'release_history_cache.json')
+HISTORY_TTL = 24 * 3600
+
+
+def _history_from(raw_list, current, limit):
+    """Published releases up to and including the running version, newest first."""
+    releases = []
+    for raw in raw_list or []:
+        if not isinstance(raw, dict) or raw.get('draft'):
+            continue
+        rel = _slim_release(raw)
+        if not rel['version'] or parse_version(rel['version']) is None:
+            continue
+        if compare_versions(rel['version'], current) > 0:
+            continue            # newer than what's installed - that's the update banner's job
+        releases.append(rel)
+    releases.sort(key=lambda r: parse_version(r['version']), reverse=True)
+    return releases[:limit]
+
+
+def get_release_history(limit: int = 5, force: bool = False) -> dict:
+    """
+    Release notes for the installed version and the few before it, taken
+    from GitHub Releases so the About page always matches what was published.
+
+    Cached for a day and re-fetched whenever the installed version changes,
+    so an update shows its own notes straight away. On any failure the last
+    cached list is served, and the page falls back to its built-in notes if
+    there is nothing at all.
+    """
+    current = get_current_version()
+    result = {
+        'success': True,
+        'current_version': current,
+        'releases': [],
+        'from_cache': False,
+        'error': None,
+        'releases_url': RELEASES_URL,
+    }
+
+    try:
+        with open(HISTORY_CACHE_FILE, 'r') as f:
+            cache = json.load(f)
+        if not isinstance(cache, dict):
+            cache = {}
+    except Exception:
+        cache = {}
+
+    fresh = (
+        not force
+        and cache.get('for_version') == current
+        and (time.time() - (cache.get('checked_at') or 0)) < HISTORY_TTL
+    )
+    if fresh:
+        result['releases'] = _history_from(cache.get('raw'), current, limit)
+        result['from_cache'] = True
+        return result
+
+    try:
+        response = requests.get(f"{API_BASE}/releases?per_page=30",
+                                headers=_api_headers(), timeout=HTTP_TIMEOUT)
+        if response.status_code != 200:
+            raise RuntimeError(f"GitHub returned HTTP {response.status_code}")
+        payload = response.json()
+        if not isinstance(payload, list):
+            raise RuntimeError("Unexpected response from GitHub")
+    except Exception as exc:
+        result['error'] = f"Could not load release notes: {exc}"
+        result['releases'] = _history_from(cache.get('raw'), current, limit)
+        result['from_cache'] = bool(result['releases'])
+        return result
+
+    # Keep only what the page needs, so the cache stays small.
+    raw = [{k: r.get(k) for k in ('tag_name', 'name', 'body', 'html_url',
+                                  'published_at', 'prerelease', 'draft',
+                                  'tarball_url')}
+           for r in payload if isinstance(r, dict)]
+    try:
+        os.makedirs(DATA_FOLDER, exist_ok=True)
+        tmp = HISTORY_CACHE_FILE + '.tmp'
+        with open(tmp, 'w') as f:
+            json.dump({'for_version': current, 'checked_at': time.time(),
+                       'raw': raw}, f)
+        os.replace(tmp, HISTORY_CACHE_FILE)
+    except Exception as exc:
+        logger.debug(f"Could not write release history cache: {exc}")
+
+    result['releases'] = _history_from(raw, current, limit)
+    return result
+
+
+# ============================================================================
 # TEMP FILE HOUSEKEEPING
 # ============================================================================
 

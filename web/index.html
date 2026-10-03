@@ -1015,10 +1015,16 @@
                 <div class="card border-success mb-3">
                   <div class="card-header bg-success bg-opacity-10 border-success py-2">
                     <h6 class="mb-0 text-success fw-semibold">
-                      <i class="bi bi-stars me-2"></i>What's New in 2.3.0
+                      <i class="bi bi-stars me-2"></i><span id="aboutWhatsNewTitle">What's New in 2.3.0</span>
                     </h6>
                   </div>
-                  <div class="card-body pb-2">
+                  <!-- Filled from GitHub Releases by updates.js; the static notes
+                       below are only shown if GitHub can't be reached. -->
+                  <div class="card-body pb-2 d-none" id="aboutReleaseNotes"></div>
+                  <div class="card-body pb-0 d-none" id="aboutNotesStatus">
+                    <p class="small text-warning mb-0" id="aboutNotesStatusText"></p>
+                  </div>
+                  <div class="card-body pb-2" id="aboutStaticNotes">
 
                     <!-- Theme system update -->
                     <p class="text-muted small fw-semibold mb-2 text-uppercase" style="letter-spacing:.05em;">
