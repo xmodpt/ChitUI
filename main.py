@@ -1678,7 +1678,11 @@ def login_required(f):
 @app.after_request
 def add_no_cache_headers(response):
     """Add no-cache headers to JavaScript and CSS files to prevent caching issues"""
-    if request.path.endswith(('.js', '.css', '.html')):
+    # The plugin/update endpoints describe what is on disk *right now*; a
+    # cached copy is what made a finished update or a deleted plugin keep
+    # showing the old "update available" state after a refresh.
+    if (request.path.endswith(('.js', '.css', '.html'))
+            or request.path.startswith(('/plugins', '/updates'))):
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
@@ -2680,6 +2684,7 @@ def get_plugins():
 
 
 @app.route('/plugins/<plugin_id>/enable', methods=['POST'])
+@login_required
 def enable_plugin(plugin_id):
     """Enable a plugin"""
     try:
@@ -2694,6 +2699,7 @@ def enable_plugin(plugin_id):
 
 
 @app.route('/plugins/<plugin_id>/disable', methods=['POST'])
+@login_required
 def disable_plugin(plugin_id):
     """Disable a plugin"""
     try:
@@ -2705,6 +2711,7 @@ def disable_plugin(plugin_id):
 
 
 @app.route('/plugins/<plugin_id>/delete', methods=['POST'])
+@login_required
 def delete_plugin(plugin_id):
     """Delete a plugin"""
     try:
@@ -3120,9 +3127,13 @@ def plugin_store_install():
         return jsonify({"success": False,
                         "message": f"'{entry['name']}' has no download URL in the catalog."}), 400
 
+    # Updates go into the folder the plugin already lives in - the store
+    # slug (chitui-notify) is not the folder name (chitu_notify).
     job_id = plugin_store.start_install(
         plugin_manager, app, socketio, _plugin_install_jobs,
-        slug, download_url, entry.get('name'))
+        slug, download_url, entry.get('name'),
+        target_folder=entry.get('installed_folder'),
+        expected_version=entry.get('version'))
 
     logger.info(f"Plugin store install started: {slug} -> {entry.get('version')} "
                 f"(job {job_id})")

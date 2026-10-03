@@ -923,14 +923,12 @@ function _initRaspicamToggle() {
               <div class="small" style="color:#6c757d;">Restart ChitUI to activate the plugin.</div>
             </div>
           </div>`;
-        plugin.installed = true;
-        plugin.installed_version = plugin.version;
-        plugin.has_update = false;
-        const upd = _storePlugins.filter(x => x.has_update).length;
-        const cb  = document.getElementById('storeUpdateCount');
-        if (upd > 0) { cb.textContent = upd; }
-        else { cb.style.display = 'none'; document.getElementById('storeUpdateBanner').classList.add('d-none'); }
-        _storeRender();
+        // Don't assume the update worked - ask the server what is actually
+        // installed now, so the grid and the counts can't drift from disk.
+        storeLoadCatalog();
+        if (window.chituiUpdates && window.chituiUpdates.refreshPluginBanner) {
+          window.chituiUpdates.refreshPluginBanner();
+        }
       } else {
         result.innerHTML = `
           <div class="d-flex align-items-center gap-2" style="color:#f38ba8;">

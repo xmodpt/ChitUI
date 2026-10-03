@@ -12,11 +12,12 @@ The catalog is a JSON document served over HTTPS. Either shape works:
 
     {"plugins": [ ... ]}          or          [ ... ]
 
-Each entry is matched against the installed plugin whose folder name equals
-its slug. Only "slug", "name" and "version" are required:
+Each entry is matched to an installed plugin by folder name == slug, then by
+an optional "store_slug" in the plugin's plugin.json, then by a normalised
+name (see _match_installed). Only "slug", "name" and "version" are required:
 
     {
-      "slug": "tapo_p100",                       # must equal the folder name
+      "slug": "tapo_p100",                       # folder name, or set store_slug in plugin.json
       "name": "Tapo P100 Smart Plugs",
       "version": "1.5.0",
       "author": "xmodpt",
@@ -486,18 +487,92 @@ def scrape_catalog(url):
 # ============================================================================
 
 def _installed_map(plugin_manager) -> dict:
-    """folder name -> {name, version} for every installed plugin."""
+    """folder name -> {name, version, enabled, store_slug} for every installed plugin."""
     installed = {}
     try:
-        for entry in plugin_manager.get_plugin_info():
-            installed[entry['id']] = {
-                'name': entry.get('name', entry['id']),
-                'version': str(entry.get('version', '0.0.0')),
-                'enabled': entry.get('enabled', True),
+        discovered = plugin_manager.discover_plugins()
+        for folder, info in discovered.items():
+            manifest = info.get('manifest') or {}
+            installed[folder] = {
+                'name': info.get('name', folder),
+                'version': str(info.get('version', '0.0.0')),
+                'enabled': info.get('enabled', True),
+                # Optional link to the store listing when the folder name and
+                # the chitui.net slug differ (e.g. chitu_notify <-> chitui-notify).
+                'store_slug': str(manifest.get('store_slug') or '').strip() or None,
             }
     except Exception as exc:
         logger.error(f"Could not enumerate installed plugins: {exc}")
     return installed
+
+
+# Words that carry no meaning when comparing a store title with a local name:
+# "ChitUI - Notify" and "Chitu Notify" are the same plugin.
+_NAME_NOISE = {'chitui', 'chitu', 'plugin', 'for', 'the'}
+
+
+def _name_key(name) -> frozenset:
+    """Order- and punctuation-insensitive token set for a plugin name."""
+    tokens = re.findall(r'[a-z0-9]+', str(name or '').lower())
+    out = set()
+    for tok in tokens:
+        if tok in _NAME_NOISE:
+            continue
+        if len(tok) > 3 and tok.endswith('s'):
+            tok = tok[:-1]          # "Plugs" == "Plug"
+        out.add(tok)
+    return frozenset(out)
+
+
+def _slug_key(value) -> str:
+    """'chitui-ip-camera' / 'ip_camera' -> 'ipcamera'."""
+    s = re.sub(r'[^a-z0-9]', '', str(value or '').lower())
+    for prefix in ('chitui', 'chitu'):
+        if s.startswith(prefix) and len(s) > len(prefix):
+            s = s[len(prefix):]
+            break
+    return s
+
+
+def _match_installed(entry: dict, installed: dict, claimed: set):
+    """
+    Find the installed folder that corresponds to a catalog entry.
+
+    The store's slug is the chitui.net URL slug, which usually is NOT the
+    plugin's folder name, so matching on folder == slug alone made every
+    installed plugin show up twice (once as "Install", once as "Installed
+    locally"). Tried in order, most to least reliable:
+
+      1. folder name == slug
+      2. plugin.json "store_slug" == slug
+      3. normalised slug == normalised folder name
+      4. same name tokens (ignoring "ChitUI", punctuation, order, plurals)
+
+    Steps 3-4 only accept a single unambiguous candidate.
+    """
+    slug = entry['slug']
+    free = {k: v for k, v in installed.items() if k not in claimed}
+
+    if slug in free:
+        return slug
+
+    for folder, local in free.items():
+        if local.get('store_slug') == slug:
+            return folder
+
+    target = _slug_key(slug)
+    hits = [f for f in free if not free[f].get('store_slug') and _slug_key(f) == target]
+    if len(hits) == 1:
+        return hits[0]
+
+    key = _name_key(entry.get('name'))
+    if key:
+        hits = [f for f, local in free.items()
+                if not local.get('store_slug') and _name_key(local['name']) == key]
+        if len(hits) == 1:
+            return hits[0]
+
+    return None
 
 
 def build_catalog(plugin_manager, store_settings: dict, force: bool = False) -> dict:
@@ -514,14 +589,16 @@ def build_catalog(plugin_manager, store_settings: dict, force: bool = False) -> 
     chitui_version = updater.get_current_version()
 
     plugins = []
-    seen = set()
+    claimed = set()      # installed folders already matched to a store entry
 
     for entry in entries:
-        slug = entry['slug']
-        seen.add(slug)
-        local = installed.get(slug)
+        folder = _match_installed(entry, installed, claimed)
+        local = installed.get(folder) if folder else None
+        if folder:
+            claimed.add(folder)
 
         item = dict(entry)
+        item['installed_folder'] = folder
         item['installed'] = local is not None
         item['installed_version'] = local['version'] if local else None
         item['has_update'] = bool(local and is_newer(entry['version'], local['version']))
@@ -540,7 +617,7 @@ def build_catalog(plugin_manager, store_settings: dict, force: bool = False) -> 
         plugins.append(item)
 
     for slug, local in installed.items():
-        if slug in seen:
+        if slug in claimed:
             continue
         plugins.append({
             'slug': slug,
@@ -692,9 +769,14 @@ def _install_dependencies(q, plugin_dir, manifest):
 
 
 def install_worker(q, plugin_manager, app, socketio, slug, download_url,
-                   expected_name=None):
+                   expected_name=None, target_folder=None, expected_version=None):
     """
     Download, verify and install (or update) one plugin.
+
+    slug is the store slug. target_folder is the folder of the already
+    installed copy when this is an update - the update always lands there,
+    whatever the folder inside the ZIP is called, so it can never end up as a
+    second copy next to the old one.
 
     Pushes log frames onto q in exactly the format the existing
     /plugins/install/<job_id>/stream endpoint and its frontend already speak,
@@ -706,7 +788,10 @@ def install_worker(q, plugin_manager, app, socketio, slug, download_url,
 
     work_dir = updater._make_work_dir('chitui-plugin-')
     zip_path = os.path.join(work_dir, 'plugin.zip')
-    target_path = os.path.join(plugin_manager.plugins_dir, slug)
+    pinned = bool(target_folder) and os.path.isdir(
+        os.path.join(plugin_manager.plugins_dir, target_folder))
+    target_path = os.path.join(plugin_manager.plugins_dir,
+                               target_folder if pinned else slug)
     backup_path = None
     is_update = os.path.isdir(target_path)
 
@@ -767,11 +852,31 @@ def install_worker(q, plugin_manager, app, socketio, slug, download_url,
 
         # The folder inside the ZIP must match the slug we were asked to
         # install, otherwise a catalog entry could overwrite a different plugin.
-        if dirs[0] != slug:
+        # An update is pinned to the installed folder: the store already
+        # matched this entry to that plugin, so the archive name is irrelevant.
+        if pinned:
+            if dirs[0] != os.path.basename(target_path):
+                _log(q, f"Archive folder '{dirs[0]}' differs from the installed "
+                        f"folder '{os.path.basename(target_path)}' - updating "
+                        f"the installed folder.")
+        elif dirs[0] != slug:
             _log(q, f"Archive folder '{dirs[0]}' does not match the expected "
                     f"'{slug}' - using the archive's own name.", 'warn')
             target_path = os.path.join(plugin_manager.plugins_dir, dirs[0])
             is_update = os.path.isdir(target_path)
+
+        # The store can list a version the package itself doesn't carry (the
+        # listing was bumped but plugin.json inside the ZIP was not). Installing
+        # that would "succeed" and then offer the same update forever.
+        pkg_version = str(manifest.get('version', '')).lstrip('vV')
+        if expected_version and compare_versions(pkg_version, expected_version) < 0:
+            msg = (f"The store lists v{expected_version}, but the downloaded "
+                   f"package's plugin.json says v{pkg_version}. Nothing was "
+                   f"changed. The ZIP on the store needs its plugin.json "
+                   f"version bumped to {expected_version}.")
+            _log(q, msg, 'error')
+            q.put({'type': 'done', 'success': False, 'message': msg})
+            return
 
         # ── Move the existing version aside so a failure can be undone ──
         if is_update:
@@ -793,6 +898,16 @@ def install_worker(q, plugin_manager, app, socketio, slug, download_url,
                 _log(q, "Restored the previous version.", 'warn')
             q.put({'type': 'done', 'success': False, 'message': str(exc)})
             return
+
+        # Remember which store listing this came from, so matching keeps
+        # working even when the package's own plugin.json has no store_slug.
+        if manifest.get('store_slug') != slug:
+            try:
+                manifest['store_slug'] = slug
+                with open(os.path.join(target_path, 'plugin.json'), 'w') as f:
+                    json.dump(manifest, f, indent=2)
+            except Exception as exc:
+                _log(q, f"Could not record store_slug in plugin.json: {exc}", 'warn')
 
         _install_dependencies(q, target_path, manifest)
 
@@ -845,7 +960,8 @@ def install_worker(q, plugin_manager, app, socketio, slug, download_url,
 
 
 def start_install(plugin_manager, app, socketio, jobs_dict, slug,
-                  download_url, expected_name=None):
+                  download_url, expected_name=None, target_folder=None,
+                  expected_version=None):
     """Queue an install job and return its id, reusing the existing SSE plumbing."""
     import queue as _queue
     import uuid as _uuid
@@ -856,7 +972,8 @@ def start_install(plugin_manager, app, socketio, jobs_dict, slug,
 
     thread = threading.Thread(
         target=install_worker,
-        args=(log_queue, plugin_manager, app, socketio, slug, download_url, expected_name),
+        args=(log_queue, plugin_manager, app, socketio, slug, download_url,
+              expected_name, target_folder, expected_version),
         name=f'plugin-install-{slug}', daemon=True,
     )
     thread.start()

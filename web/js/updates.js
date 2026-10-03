@@ -1095,6 +1095,18 @@
     check: function () { return fetchStatus(true, false); },
     open: openDetailsModal,
     checkPlugins: function () { return fetchPluginUpdates(true, false); },
+    // Re-read plugin update state after an install / update / delete and
+    // show or hide the main-screen banner to match what is on disk now.
+    refreshPluginBanner: function () {
+      return fetchPluginUpdates(false, false).then(function () {
+        var banner = el('pluginUpdateBanner');
+        if (!state.pluginUpdates.length) {
+          if (banner) banner.classList.add('d-none');
+        } else {
+          showPluginBanner();
+        }
+      }).catch(function () { /* banner is best-effort */ });
+    },
     openPluginStore: openPluginStoreUpdates,
     state: state
   };
