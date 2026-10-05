@@ -1015,16 +1015,10 @@
                 <div class="card border-success mb-3">
                   <div class="card-header bg-success bg-opacity-10 border-success py-2">
                     <h6 class="mb-0 text-success fw-semibold">
-                      <i class="bi bi-stars me-2"></i><span id="aboutWhatsNewTitle">What's New in 2.3.0</span>
+                      <i class="bi bi-stars me-2"></i>What's New in 2.3.0
                     </h6>
                   </div>
-                  <!-- Filled from GitHub Releases by updates.js; the static notes
-                       below are only shown if GitHub can't be reached. -->
-                  <div class="card-body pb-2 d-none" id="aboutReleaseNotes"></div>
-                  <div class="card-body pb-0 d-none" id="aboutNotesStatus">
-                    <p class="small text-warning mb-0" id="aboutNotesStatusText"></p>
-                  </div>
-                  <div class="card-body pb-2" id="aboutStaticNotes">
+                  <div class="card-body pb-2">
 
                     <!-- Theme system update -->
                     <p class="text-muted small fw-semibold mb-2 text-uppercase" style="letter-spacing:.05em;">
@@ -1252,9 +1246,11 @@
                   <div class="d-flex justify-content-between mb-2">
                     <small class="text-muted"><i class="bi bi-layers"></i> <span id="printLayers">0 / 0</span></small>
                   </div>
-                  <div class="d-flex justify-content-between">
+                  <div class="d-flex justify-content-between flex-wrap gap-2">
                     <small class="text-muted"><i class="bi bi-clock"></i> <span id="printTime">00:00:00 / 00:00:00</span></small>
+                    <small class="text-muted"><i class="bi bi-hourglass-split"></i> <span id="printTotalTime"></span></small>
                   </div>
+                  <small class="text-muted d-block mt-1" id="printEtaDetail" style="font-size: .75rem;"></small>
                 </div>
                 <div id="printError" class="alert alert-danger d-none" role="alert">
                   <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -1952,7 +1948,7 @@
             <div style="background:rgba(220,53,69,0.08);border:1px solid rgba(220,53,69,0.25);border-radius:8px;padding:0.6rem 1rem;" class="d-flex align-items-center gap-2">
               <i class="bi bi-exclamation-triangle-fill text-danger"></i>
               <span class="small" id="storeWarningText"></span>
-              <button class="btn btn-sm btn-outline-danger ms-auto" style="font-size:0.75rem;padding:2px 10px" onclick="storeLoadCatalog()">Retry</button>
+              <button class="btn btn-sm btn-outline-danger ms-auto" style="font-size:0.75rem;padding:2px 10px" onclick="storeLoadCatalog(true)">Retry</button>
             </div>
           </div>
           <!-- Update banner -->
@@ -1974,7 +1970,7 @@
             <i class="bi bi-wifi-off fs-1 text-danger mb-3 d-block"></i>
             <h6>Could not reach the plugin store</h6>
             <p class="text-secondary small mb-3" id="storeErrorMessage"></p>
-            <button class="btn btn-sm btn-outline-danger" onclick="storeLoadCatalog()"><i class="bi bi-arrow-clockwise me-1"></i>Try Again</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="storeLoadCatalog(true)"><i class="bi bi-arrow-clockwise me-1"></i>Try Again</button>
           </div>
           <!-- Plugin grid -->
           <div id="storePluginGrid" class="row g-3 p-4 d-none"></div>
@@ -1986,7 +1982,7 @@
         </div>
         <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,0.08);">
           <small class="text-secondary me-auto" id="storeLastChecked"></small>
-          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="storeLoadCatalog()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="storeLoadCatalog(true)"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
           <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </div>

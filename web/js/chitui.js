@@ -1317,7 +1317,66 @@ function setServerStatus(online) {
   }
 }
 
+// ── Print time estimate from the actual pace ───────────────────────────────
+// Slicer and firmware estimates are often off by an hour or more (tilt release,
+// accelerations and waits are not modelled well). This measures how long the
+// last layers really took (printer ticks, so pauses don't skew it) and projects
+// that onto the layers left. Bottom layers drop out of the window on their own.
+var printPace = {};               // printerId -> pace state for the running print
+var PACE_WINDOW = 60;             // layers used for the rate
+var PACE_MIN_LAYERS = 10;         // layers needed before an estimate is shown
+
+function updatePrintPace(printerId, printInfo) {
+  if (!printInfo) return;
+  var layer = printInfo.CurrentLayer || 0;
+  var total = printInfo.TotalLayer || 0;
+  var ticks = printInfo.CurrentTicks || 0;
+  var key = (printInfo.TaskId || '') + '|' + (printInfo.Filename || '') + '|' + total;
+  var pace = printPace[printerId];
+  if (!pace || pace.key !== key || layer < pace.lastLayer || total === 0) {
+    pace = printPace[printerId] = { key: key, samples: [], lastLayer: layer, t0: Date.now() };
+  }
+  // printers without tick counters (UART): fall back to wall-clock time
+  var now = ticks > 0 ? ticks : (Date.now() - pace.t0);
+  pace.useWall = !(ticks > 0);
+  if (pace.samples.length === 0 || layer > pace.lastLayer) {
+    pace.samples.push({ layer: layer, t: now });
+    if (pace.samples.length > PACE_WINDOW + 1) pace.samples.shift();
+    pace.lastLayer = layer;
+  }
+  pace.now = now;
+  pace.layer = layer;
+  pace.total = total;
+}
+
+// -> null, or { remainingMs, secPerLayer, layersUsed, finishAt (Date) }
+function getPaceEstimate(printerId) {
+  var pace = printPace[printerId];
+  if (!pace || pace.samples.length < 2 || !pace.total) return null;
+  var first = pace.samples[0], last = pace.samples[pace.samples.length - 1];
+  var layers = last.layer - first.layer;
+  if (layers < PACE_MIN_LAYERS || last.t <= first.t) return null;
+  var perLayer = (last.t - first.t) / layers;
+  var left = Math.max(0, pace.total - pace.layer);
+  // minus the time already spent on the current layer
+  var remaining = Math.max(0, perLayer * left - Math.max(0, pace.now - last.t));
+  return {
+    remainingMs: remaining,
+    secPerLayer: perLayer / 1000,
+    layersUsed: layers,
+    finishAt: new Date(Date.now() + remaining)
+  };
+}
+
+function formatClock(date) {
+  var opts = { hour: '2-digit', minute: '2-digit' };
+  var sameDay = date.toDateString() === new Date().toDateString();
+  return sameDay ? date.toLocaleTimeString([], opts)
+                 : date.toLocaleDateString([], { weekday: 'short' }) + ' ' + date.toLocaleTimeString([], opts);
+}
+
 function updatePrintOverlay(printerId, printInfo) {
+  updatePrintPace(printerId, printInfo);   // every printer, even when not shown
   if (!printInfo || printerId !== currentPrinter) return;
   
   if (!printStatusModal) {
@@ -1381,16 +1440,26 @@ function updatePrintOverlay(printerId, printInfo) {
   var percentage = totalLayers > 0 ? Math.round((currentLayer / totalLayers) * 100) : 0;
   $('#printProgress').css('width', percentage + '%').text(percentage + '%');
 
-  // Use CurrentTicks and TotalTicks directly from printer (like SdcpMonitor)
-  // This matches what the printer display shows
+  // Elapsed / total straight from the printer (matches the printer's screen)
   var currentTime = formatTime(printInfo.CurrentTicks || 0);
   var totalTime = formatTime(printInfo.TotalTicks || 0);
   var remainingTime = (printInfo.TotalTicks || 0) - (printInfo.CurrentTicks || 0);
   var remainingTimeText = remainingTime > 0 ? formatTime(remainingTime) : '--:--:--';
-
-  // Display format: "elapsed / total" (matches printer display)
   $('#printTime').text(currentTime + ' / ' + totalTime);
-  $('#printTotalTime').text('Remaining: ' + remainingTimeText);
+
+  // Remaining time from the real pace of the last layers, printer's figure beside it
+  var est = getPaceEstimate(printerId);
+  if (est) {
+    $('#printTotalTime').text(formatTime(est.remainingMs) + ' left, done ~' + formatClock(est.finishAt));
+    $('#printEtaDetail').text('From the last ' + est.layersUsed + ' layers (' +
+      est.secPerLayer.toFixed(1) + ' s/layer). Printer estimate: ' + remainingTimeText + ' left.');
+  } else if (currentLayer > 0 && currentLayer < totalLayers) {
+    $('#printTotalTime').text(remainingTimeText + ' left (printer estimate)');
+    $('#printEtaDetail').text('Measuring the real pace: an estimate appears after ' + PACE_MIN_LAYERS + ' layers.');
+  } else {
+    $('#printTotalTime').text('');
+    $('#printEtaDetail').text('');
+  }
   
   tracking.lastUpdate = Date.now();
   
@@ -2924,9 +2993,17 @@ function formatPrintInfo() {
                 <span class="print-info-value">${formatMilliseconds(printInfo.CurrentTicks || 0)}</span>
               </div>
               <div class="print-info-item">
-                <span class="print-info-label">Total Time</span>
+                <span class="print-info-label">Total Time (printer)</span>
                 <span class="print-info-value">${formatMilliseconds(printInfo.TotalTicks || 0)}</span>
               </div>
+              ${(() => {
+                const est = typeof currentPrinter !== 'undefined' ? getPaceEstimate(currentPrinter) : null;
+                return est ? `
+              <div class="print-info-item">
+                <span class="print-info-label">Remaining (actual pace)</span>
+                <span class="print-info-value">${formatMilliseconds(est.remainingMs)}, done ~${formatClock(est.finishAt)}</span>
+              </div>` : '';
+              })()}
               ${printInfo.Filename ? `
               <div class="print-info-item">
                 <span class="print-info-label">File</span>

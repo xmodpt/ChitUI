@@ -1678,11 +1678,7 @@ def login_required(f):
 @app.after_request
 def add_no_cache_headers(response):
     """Add no-cache headers to JavaScript and CSS files to prevent caching issues"""
-    # The plugin/update endpoints describe what is on disk *right now*; a
-    # cached copy is what made a finished update or a deleted plugin keep
-    # showing the old "update available" state after a refresh.
-    if (request.path.endswith(('.js', '.css', '.html'))
-            or request.path.startswith(('/plugins', '/updates'))):
+    if request.path.endswith(('.js', '.css', '.html')):
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
@@ -2547,18 +2543,6 @@ def update_status():
     return jsonify(result)
 
 
-@app.route('/updates/history', methods=['GET'])
-@login_required
-def update_history():
-    """Release notes for the installed version and the ones before it (About page)."""
-    force = request.args.get('force') in ('1', 'true', 'yes')
-    try:
-        return jsonify(updater.get_release_history(force=force))
-    except Exception as e:
-        logger.error(f"Release history failed: {e}")
-        return jsonify({"success": False, "releases": [], "error": str(e)}), 500
-
-
 @app.route('/updates/settings', methods=['GET', 'POST'])
 @login_required
 def update_settings_route():
@@ -2696,7 +2680,6 @@ def get_plugins():
 
 
 @app.route('/plugins/<plugin_id>/enable', methods=['POST'])
-@login_required
 def enable_plugin(plugin_id):
     """Enable a plugin"""
     try:
@@ -2711,7 +2694,6 @@ def enable_plugin(plugin_id):
 
 
 @app.route('/plugins/<plugin_id>/disable', methods=['POST'])
-@login_required
 def disable_plugin(plugin_id):
     """Disable a plugin"""
     try:
@@ -2723,7 +2705,6 @@ def disable_plugin(plugin_id):
 
 
 @app.route('/plugins/<plugin_id>/delete', methods=['POST'])
-@login_required
 def delete_plugin(plugin_id):
     """Delete a plugin"""
     try:
@@ -3139,13 +3120,9 @@ def plugin_store_install():
         return jsonify({"success": False,
                         "message": f"'{entry['name']}' has no download URL in the catalog."}), 400
 
-    # Updates go into the folder the plugin already lives in - the store
-    # slug (chitui-notify) is not the folder name (chitu_notify).
     job_id = plugin_store.start_install(
         plugin_manager, app, socketio, _plugin_install_jobs,
-        slug, download_url, entry.get('name'),
-        target_folder=entry.get('installed_folder'),
-        expected_version=entry.get('version'))
+        slug, download_url, entry.get('name'))
 
     logger.info(f"Plugin store install started: {slug} -> {entry.get('version')} "
                 f"(job {job_id})")
@@ -4151,6 +4128,25 @@ def allowed_file(filename):
 
 
 def upload_file_to_printer(printer_ip, filepath, upload_id, destination='local'):
+    """Send a file to the printer, then delete the Pi's temporary copy.
+
+    The file in data/uploads is only a staging copy. The transfer code used to
+    remove it only at the end of the printer-storage path; uploads to the
+    printer's USB drive returned early and left the file behind, so
+    data/uploads slowly filled with every file ever sent that way.
+    Failed uploads keep the copy so the user can retry.
+    """
+    ok = _upload_file_to_printer(printer_ip, filepath, upload_id, destination)
+    if ok and os.path.exists(filepath):
+        try:
+            os.remove(filepath)
+            logger.debug(f"Temporary file {filepath} removed")
+        except OSError as e:
+            logger.warning(f"Could not remove temporary file {filepath}: {e}")
+    return ok
+
+
+def _upload_file_to_printer(printer_ip, filepath, upload_id, destination='local'):
     """Upload file to printer in chunks via HTTP API
 
     Args:

@@ -725,7 +725,9 @@ function _initRaspicamToggle() {
     if (!_storeLoaded) storeLoadCatalog();
   };
 
-  window.storeLoadCatalog = function () {
+  // force=true (the Refresh button) asks the Pi to fetch the catalog from the
+  // store again; opening the dialog uses the Pi's cached copy (check_interval_hours).
+  window.storeLoadCatalog = function (force) {
     _storeLoaded = false;
     document.getElementById('storeSkeletonGrid').classList.remove('d-none');
     document.getElementById('storePluginGrid').classList.add('d-none');
@@ -734,7 +736,7 @@ function _initRaspicamToggle() {
     document.getElementById('storeUpdateBanner').classList.add('d-none');
     document.getElementById('storeWarning').classList.add('d-none');
 
-    fetch('/plugins/store/catalog')
+    fetch('/plugins/store/catalog' + (force ? '?force=1' : ''))
       .then(r => { if (!r.ok) throw new Error(`Server ${r.status}`); return r.json(); })
       .then(data => {
         if (!data.success) throw new Error(data.error || 'Unknown error');
@@ -742,8 +744,10 @@ function _initRaspicamToggle() {
         _storeLoaded  = true;
 
         document.getElementById('storeSkeletonGrid').classList.add('d-none');
+        // when the Pi really fetched the catalog, not when this dialog opened
+        const checked = data.checked_at ? new Date(data.checked_at * 1000) : new Date();
         document.getElementById('storeLastChecked').textContent =
-          'Last checked: ' + new Date().toLocaleTimeString() +
+          'Last checked: ' + checked.toLocaleString() +
           (data.store_url ? '  \u2022  ' + data.store_url : '');
 
         // The backend reports success whenever it has anything to show, so a
@@ -923,12 +927,14 @@ function _initRaspicamToggle() {
               <div class="small" style="color:#6c757d;">Restart ChitUI to activate the plugin.</div>
             </div>
           </div>`;
-        // Don't assume the update worked - ask the server what is actually
-        // installed now, so the grid and the counts can't drift from disk.
-        storeLoadCatalog();
-        if (window.chituiUpdates && window.chituiUpdates.refreshPluginBanner) {
-          window.chituiUpdates.refreshPluginBanner();
-        }
+        plugin.installed = true;
+        plugin.installed_version = plugin.version;
+        plugin.has_update = false;
+        const upd = _storePlugins.filter(x => x.has_update).length;
+        const cb  = document.getElementById('storeUpdateCount');
+        if (upd > 0) { cb.textContent = upd; }
+        else { cb.style.display = 'none'; document.getElementById('storeUpdateBanner').classList.add('d-none'); }
+        _storeRender();
       } else {
         result.innerHTML = `
           <div class="d-flex align-items-center gap-2" style="color:#f38ba8;">
